@@ -1,5 +1,5 @@
 export interface HudApi {
-  setScore: (score: number) => void;
+  setScore: (score: number, pipesPassed?: number, bonusScore?: number) => void;
   setCombo: (combo: number, multiplier: number) => void;
   setFeathers: (count: number) => void;
   setTimeSurvived: (seconds: number) => void;
@@ -19,6 +19,8 @@ export interface HudApi {
     multiplier: number,
     feathers: number,
     timeSec: number,
+    pipesPassed: number,
+    bonusScore: number,
     onRewind: () => void,
     onGiveUp: () => void
   ) => void;
@@ -84,6 +86,9 @@ export function initHud(container: HTMLElement): HudApi {
         <div id="hud-score" role="status" aria-label="Current score" style="font-size: clamp(44px, 12vw, 58px); font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; line-height: 0.95; text-shadow: 0 4px 20px rgba(0,0,0,0.7); letter-spacing: -0.02em;">
           0
         </div>
+        <div id="hud-score-sub" style="font-size: 11px; font-weight: 800; color: #cbd5e1; margin-top: 3px; background: rgba(13, 17, 30, 0.65); padding: 2px 8px; border-radius: 8px; text-shadow: 0 1px 4px rgba(0,0,0,0.8);">
+          <span id="hud-raw-pipes">0</span> pipes <span id="hud-bonus-tag" style="color: #ffd700; display: none;">(+0 bonus)</span>
+        </div>
         <div id="hud-combo" style="display: none; margin-top: 4px; background: linear-gradient(135deg, #ff2a6d, #ff6200); color: #fff; font-size: 11px; font-weight: 800; padding: 3px 12px; border-radius: 10px; letter-spacing: 0.5px; box-shadow: 0 2px 10px rgba(255,42,109,0.5); text-transform: uppercase;">
           COMBO ×1
         </div>
@@ -122,8 +127,11 @@ export function initHud(container: HTMLElement): HudApi {
         <div style="background: rgba(10, 16, 32, 0.88); border: 1.5px solid rgba(0, 229, 255, 0.45); border-radius: 20px; padding: 14px 18px; width: 100%; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.6), inset 0 0 16px rgba(0,229,255,0.14); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; flex-direction: column; align-items: flex-start;">
-              <span style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 1.5px; text-transform: uppercase;">Score</span>
+              <span style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 1.5px; text-transform: uppercase;">Total Score</span>
               <div id="hud-rewind-score" style="font-size: 46px; font-weight: 900; line-height: 1; color: #fff; text-shadow: 0 0 20px rgba(0,229,255,0.6); font-variant-numeric: tabular-nums;">0</div>
+              <div style="font-size: 11px; font-weight: 800; color: #94a3b8; margin-top: 2px;">
+                <span id="hud-rewind-pipes">0</span> pipes • <span id="hud-rewind-bonus" style="color: #ffd700;">+0 bonus</span>
+              </div>
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end;">
               <div style="background: rgba(255, 215, 0, 0.14); border: 1px solid rgba(255, 215, 0, 0.35); border-radius: 12px; padding: 3px 10px; display: flex; align-items: center; gap: 6px;">
@@ -166,6 +174,9 @@ export function initHud(container: HTMLElement): HudApi {
   const countdownVal = hud.querySelector("#hud-countdown-val") as HTMLElement;
   const countdownRing = hud.querySelector("#hud-countdown-ring") as HTMLElement;
 
+  const rawPipesEl = hud.querySelector("#hud-raw-pipes") as HTMLElement;
+  const bonusTagEl = hud.querySelector("#hud-bonus-tag") as HTMLElement;
+
   const headerEl = hud.querySelector("#hud-header") as HTMLElement;
   const scoreEl = hud.querySelector("#hud-score")!;
   const comboEl = hud.querySelector("#hud-combo") as HTMLElement;
@@ -181,6 +192,8 @@ export function initHud(container: HTMLElement): HudApi {
   const rewindPanel = hud.querySelector("#hud-rewind-panel") as HTMLElement;
   const rewindBadge = hud.querySelector("#hud-rewind-badge") as HTMLElement;
   const rewindScore = hud.querySelector("#hud-rewind-score") as HTMLElement;
+  const rewindPipesEl = hud.querySelector("#hud-rewind-pipes") as HTMLElement;
+  const rewindBonusEl = hud.querySelector("#hud-rewind-bonus") as HTMLElement;
   const rewindBest = hud.querySelector("#hud-rewind-best") as HTMLElement;
   const rewindFeathers = hud.querySelector("#hud-rewind-feathers") as HTMLElement;
   const rewindBtn = hud.querySelector("#hud-rewind-btn") as HTMLButtonElement;
@@ -193,8 +206,17 @@ export function initHud(container: HTMLElement): HudApi {
   const magnetTime = hud.querySelector("#hud-pill-magnet-time") as HTMLElement;
 
   return {
-    setScore(score: number) {
+    setScore(score: number, pipesPassed = score, bonusScore = 0) {
       scoreEl.textContent = score.toString();
+      if (rawPipesEl) rawPipesEl.textContent = pipesPassed.toString();
+      if (bonusTagEl) {
+        if (bonusScore > 0) {
+          bonusTagEl.style.display = "inline";
+          bonusTagEl.textContent = `(+${bonusScore} bonus)`;
+        } else {
+          bonusTagEl.style.display = "none";
+        }
+      }
     },
     setCombo(combo: number, multiplier: number) {
       if (combo > 0) {
@@ -285,11 +307,15 @@ export function initHud(container: HTMLElement): HudApi {
       multiplier: number,
       feathers: number,
       _timeSec: number,
+      pipesPassed = score,
+      bonusScore = 0,
       onRewind: () => void,
       onGiveUp: () => void,
     ) {
       const effectiveBest = Math.max(score, best);
       rewindScore.textContent = score.toString();
+      if (rewindPipesEl) rewindPipesEl.textContent = pipesPassed.toString();
+      if (rewindBonusEl) rewindBonusEl.textContent = `+${bonusScore} bonus`;
       rewindBest.textContent = effectiveBest.toString();
       rewindFeathers.textContent = feathers.toString();
 

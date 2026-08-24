@@ -116,11 +116,11 @@ describe("Devil's Advocate: 4D Snapshot & Rewind State Integrity", () => {
 });
 
 describe("Devil's Advocate: Scoring & Day/Night Boundary Cycles", () => {
-  it("multiplier correctly caps at 5 even with combo 500+", () => {
+  it("multiplier correctly caps at 3 even with combo 500+", () => {
     expect(multiplier(0)).toBe(1);
     expect(multiplier(5)).toBe(2);
-    expect(multiplier(20)).toBe(5);
-    expect(multiplier(500)).toBe(5);
+    expect(multiplier(10)).toBe(3);
+    expect(multiplier(500)).toBe(3);
   });
 
   it("day/night palette seamlessly wraps at multiples of 80 up to score 10,000", () => {

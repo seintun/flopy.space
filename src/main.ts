@@ -93,6 +93,8 @@ game.hooks = {
         multiplier(game.world.combo),
         game.world.feathersRun,
         game.world.runDurationSec,
+        game.world.pipesPassed,
+        game.world.bonusScore,
         () => game.chooseRewind(),
         () => game.acceptDeath(),
       );
@@ -123,6 +125,8 @@ game.hooks = {
         currentFeathers,
         timeSec,
         hasNewUnlock,
+        game.world.pipesPassed,
+        game.world.bonusScore,
         {
           onRetry: () => {
             game.start(Date.now(), loadAll().feathers);
@@ -141,8 +145,8 @@ game.hooks = {
     }
   },
 
-  onScoreChange: (score, combo, feathers, timeSec) => {
-    hud.setScore(score);
+  onScoreChange: (score, combo, feathers, timeSec, pipesPassed, bonusScore) => {
+    hud.setScore(score, pipesPassed, bonusScore);
     hud.setCombo(combo, multiplier(combo));
     hud.setFeathers(feathers);
     if (timeSec !== undefined) {

@@ -40,6 +40,8 @@ export interface World {
   nextPipeAtDist: number;
   nextOrbPipesIn: number;
   score: number;
+  pipesPassed: number;
+  bonusScore: number;
   combo: number;
   feathersRun: number;
   rewindsUsedRun: number;
@@ -65,6 +67,8 @@ export function createWorld(seed: number): World {
     nextPipeAtDist: 18, // ~3s grace at speed 6
     nextOrbPipesIn: ORB_EVERY_PIPES_MIN,
     score: 0,
+    pipesPassed: 0,
+    bonusScore: 0,
     combo: 0,
     feathersRun: 0,
     rewindsUsedRun: 0,

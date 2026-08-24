@@ -12,6 +12,8 @@ function formatDuration(sec: number): string {
 export class GameOverView {
   private overlay: HTMLElement;
   private scoreEl: HTMLElement;
+  private pipesEl: HTMLElement;
+  private bonusEl: HTMLElement;
   private bestEl: HTMLElement;
   private badgeEl: HTMLElement;
   private timeEl: HTMLElement;
@@ -56,21 +58,25 @@ export class GameOverView {
         </div>
 
         <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 18px 16px; margin-bottom: 18px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);">
-          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; font-weight: 700; margin-bottom: 2px;">Score</div>
-          <div id="go-score" style="font-size: 52px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 14px; color: #fff; letter-spacing: -0.02em;">0</div>
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; font-weight: 700; margin-bottom: 2px;">Total Score</div>
+          <div id="go-score" style="font-size: 52px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 12px; color: #fff; letter-spacing: -0.02em;">0</div>
           
-          <div style="display: flex; justify-content: space-around; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px;">
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; text-align: center;">
             <div>
-              <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Best</div>
-              <div id="go-best" style="font-size: 18px; font-weight: 800; color: #ffd700;">0</div>
+              <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Pipes</div>
+              <div id="go-pipes" style="font-size: 16px; font-weight: 800; color: #fff;">0</div>
             </div>
             <div>
-              <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Survived</div>
-              <div id="go-time" style="font-size: 18px; font-weight: 800; color: #00f5d4;">00:00s</div>
+              <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Bonus</div>
+              <div id="go-bonus" style="font-size: 16px; font-weight: 800; color: #ffd700;">+0</div>
+            </div>
+            <div>
+              <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Best</div>
+              <div id="go-best" style="font-size: 16px; font-weight: 800; color: #ffd700;">0</div>
             </div>
             <div>
               <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Feathers</div>
-              <div id="go-feathers" style="font-size: 18px; font-weight: 800; color: #00e5ff;">🪶 0</div>
+              <div id="go-feathers" style="font-size: 16px; font-weight: 800; color: #00e5ff;">🪶 0</div>
             </div>
           </div>
         </div>
@@ -87,9 +93,11 @@ export class GameOverView {
     container.appendChild(this.overlay);
 
     this.scoreEl = this.overlay.querySelector("#go-score")!;
+    this.pipesEl = this.overlay.querySelector("#go-pipes")!;
+    this.bonusEl = this.overlay.querySelector("#go-bonus")!;
     this.bestEl = this.overlay.querySelector("#go-best")!;
     this.badgeEl = this.overlay.querySelector("#go-badge")!;
-    this.timeEl = this.overlay.querySelector("#go-time")!;
+    this.timeEl = this.overlay.querySelector("#go-time") || document.createElement("div");
     this.featherEl = this.overlay.querySelector("#go-feathers")!;
     this.unlockBannerEl = this.overlay.querySelector("#go-unlock-banner")!;
 
@@ -108,12 +116,16 @@ export class GameOverView {
     feathers: number,
     timeSec = 0,
     hasNewUnlock = false,
+    pipesPassed = score,
+    bonusScore = 0,
     callbacks?: GameOverCallbacks,
   ): void {
     if (callbacks) this.callbacks = callbacks;
     this.scoreEl.textContent = score.toString();
+    if (this.pipesEl) this.pipesEl.textContent = pipesPassed.toString();
+    if (this.bonusEl) this.bonusEl.textContent = `+${bonusScore}`;
     this.bestEl.textContent = best.toString();
-    this.timeEl.textContent = formatDuration(timeSec);
+    if (this.timeEl) this.timeEl.textContent = formatDuration(timeSec);
     this.featherEl.textContent = `🪶 ${feathers}`;
     this.badgeEl.style.display = isNewBest ? "block" : "none";
     this.unlockBannerEl.style.display = hasNewUnlock ? "block" : "none";

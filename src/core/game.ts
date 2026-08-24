@@ -40,7 +40,14 @@ export type GameState =
 
 export interface GameHooks {
   onStateChange?: (state: GameState) => void;
-  onScoreChange?: (score: number, combo: number, feathers: number, timeSec?: number) => void;
+  onScoreChange?: (
+    score: number,
+    combo: number,
+    feathers: number,
+    timeSec?: number,
+    pipesPassed?: number,
+    bonusScore?: number,
+  ) => void;
   onCountdown?: (step: number | string) => void;
   onSlowmoMeter?: (frac: number) => void;
   onFeverChange?: (active: boolean, frac: number) => void;
@@ -53,10 +60,15 @@ export interface GameHooks {
   onHit?: (type: HitType) => void;
   onFlap?: (soundType: SoundType) => void;
   onRewindStart?: () => void;
-  onRewindChoice?: (feathers: number) => void;
+  onRewindChoice?: (feathers: number, pipesPassed?: number, bonusScore?: number) => void;
   onRewindComplete?: () => void;
   onMilestone?: (score: number) => void;
-  onGameOver?: (score: number, timeSec: number) => void;
+  onGameOver?: (
+    score: number,
+    timeSec: number,
+    pipesPassed?: number,
+    bonusScore?: number,
+  ) => void;
 }
 
 export class Game {
@@ -213,7 +225,12 @@ export class Game {
   acceptDeath(): void {
     if (this.state === "rewindChoice" || this.state === "hitstop") {
       this.setState("gameOver");
-      this.hooks.onGameOver?.(this.world.score, this.world.runDurationSec);
+      this.hooks.onGameOver?.(
+        this.world.score,
+        this.world.runDurationSec,
+        this.world.pipesPassed,
+        this.world.bonusScore,
+      );
     }
   }
 
@@ -288,6 +305,8 @@ export class Game {
           this.world.combo,
           this.world.feathersRun,
           this.world.runDurationSec,
+          this.world.pipesPassed,
+          this.world.bonusScore,
         );
 
         // Synchronize ambient border FX
@@ -355,31 +374,40 @@ export class Game {
                 switch (pType) {
                   case "slowmo": {
                     this.time.triggerSlowmo();
+                    w.bonusScore = (w.bonusScore || 0) + 1;
+                    w.score = (w.pipesPassed || 0) + w.bonusScore;
                     this.hooks.onOrbCollect?.("slowmo");
                     this.hooks.onMissionProgress?.("slowmo");
                     break;
                   }
                   case "rainbow_trail": {
                     w.rainbowTrailTimer = 7.0;
-                    this.juice.confetti(0, w.bird.y, 0, 35);
+                    w.bonusScore = (w.bonusScore || 0) + 2;
+                    w.score = (w.pipesPassed || 0) + w.bonusScore;
+                    this.juice.confetti(0, w.bird.y, 0, 25);
                     this.hooks.onOrbCollect?.("rainbow_trail");
                     break;
                   }
                   case "shield": {
                     w.hasShield = true;
+                    w.bonusScore = (w.bonusScore || 0) + 1;
+                    w.score = (w.pipesPassed || 0) + w.bonusScore;
                     this.hooks.onOrbCollect?.("shield");
                     break;
                   }
                   case "magnet": {
                     w.magnetTimer = 6.0;
+                    w.bonusScore = (w.bonusScore || 0) + 1;
+                    w.score = (w.pipesPassed || 0) + w.bonusScore;
                     this.hooks.onOrbCollect?.("magnet");
                     break;
                   }
                   case "star_gem": {
-                    w.score += 500;
-                    w.combo += 2;
-                    this.juice.popupAtWorld("+500 STAR! ⭐", -0.4, w.bird.y, 0, this.ctx.camera, "#ffbe0b", -1.1);
-                    this.juice.confetti(0, w.bird.y, 0, 25);
+                    w.bonusScore = (w.bonusScore || 0) + 5;
+                    w.score = (w.pipesPassed || 0) + w.bonusScore;
+                    w.combo += 1;
+                    this.juice.popupAtWorld("+5 GEM! ⭐", -0.4, w.bird.y, 0, this.ctx.camera, "#ffbe0b", -1.1);
+                    this.juice.confetti(0, w.bird.y, 0, 20);
                     this.hooks.onOrbCollect?.("star_gem");
                     break;
                   }
@@ -425,7 +453,11 @@ export class Game {
               if (canRewind) {
                 // Freeze the screen on the exact collision frame to show where it went wrong!
                 this.setState("rewindChoice");
-                this.hooks.onRewindChoice?.(this.world.feathersRun);
+                this.hooks.onRewindChoice?.(
+                  this.world.feathersRun,
+                  this.world.pipesPassed,
+                  this.world.bonusScore,
+                );
               } else {
                 this.time.hitstop(45);
                 this.setState("hitstop");
@@ -434,25 +466,18 @@ export class Game {
             }
           }
 
-          // Passes & Scoring
+          // Passes & Scoring (Raw Pipes + Spree Bonus, Max Multiplier 3x)
           const passes = processPasses(w);
           for (const p of passes) {
             this.pipesView.flash(p.pipeId);
 
-            // Bonus points during Fever or Rainbow Trail mode
-            let bonusMult = this.fever.scoreMultiplier;
-            if (w.rainbowTrailTimer > 0) {
-              bonusMult *= 3;
-            }
-
-            if (bonusMult > 1) {
-              p.points *= bonusMult;
-              w.score += p.points - (p.points / bonusMult);
-            }
-
             // Pass score popup directly above the bird's head
             const popupColor = p.nearMiss ? "#ff2a6d" : p.points > 1 ? "#ffd700" : "#ffffff";
-            const popupText = p.nearMiss ? "CLOSE! +2" : `+${p.points}`;
+            const popupText = p.nearMiss
+              ? "CLOSE! +2"
+              : p.points > 1
+                ? `+${p.points} (${p.points}X)`
+                : `+1`;
             this.juice.popupAtWorld(popupText, 0, w.bird.y, 0, this.ctx.camera, popupColor, 0.85);
 
             if (p.nearMiss) {
@@ -481,7 +506,14 @@ export class Game {
           }
 
           if (passes.length > 0) {
-            this.hooks.onScoreChange?.(w.score, w.combo, w.feathersRun, w.runDurationSec);
+            this.hooks.onScoreChange?.(
+              w.score,
+              w.combo,
+              w.feathersRun,
+              w.runDurationSec,
+              w.pipesPassed,
+              w.bonusScore,
+            );
             this.hooks.onMissionProgress?.("scoreMilestone", w.score);
 
             // Rare, non-distracting milestone check (25, 50, 100, 150...)
@@ -503,7 +535,12 @@ export class Game {
         this.juice.setBorderFx("none");
         if (!this.time.frozen) {
           this.setState("gameOver");
-          this.hooks.onGameOver?.(this.world.score, this.world.runDurationSec);
+          this.hooks.onGameOver?.(
+            this.world.score,
+            this.world.runDurationSec,
+            this.world.pipesPassed,
+            this.world.bonusScore,
+          );
         }
         break;
       }
@@ -529,7 +566,12 @@ export class Game {
           const success = this.buf.rewindInto(this.world);
           if (!success) {
             this.setState("gameOver");
-            this.hooks.onGameOver?.(this.world.score, this.world.runDurationSec);
+            this.hooks.onGameOver?.(
+              this.world.score,
+              this.world.runDurationSec,
+              this.world.pipesPassed,
+              this.world.bonusScore,
+            );
             return;
           }
 
@@ -563,6 +605,8 @@ export class Game {
             0,
             this.world.feathersRun,
             this.world.runDurationSec,
+            this.world.pipesPassed,
+            this.world.bonusScore,
           );
         }
         break;
