@@ -118,28 +118,37 @@ export function initHud(container: HTMLElement): HudApi {
     <div id="hud-rewind-panel" style="display: none; position: absolute; inset: 0; pointer-events: auto; z-index: 48; flex-direction: column; align-items: center; justify-content: flex-end; background: linear-gradient(180deg, transparent 40%, rgba(8, 12, 24, 0.75) 100%); padding: max(16px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); box-sizing: border-box;">
       <div style="text-align: center; max-width: 320px; width: 90%; animation: popIn 0.28s cubic-bezier(0.2, 0.8, 0.4, 1); display: flex; flex-direction: column; align-items: center;">
         
-        <!-- Score Capsule -->
-        <div style="background: rgba(10, 16, 32, 0.85); border: 1.5px solid rgba(0, 229, 255, 0.4); border-radius: 20px; padding: 12px 18px; width: 100%; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.6), inset 0 0 16px rgba(0,229,255,0.12); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);">
-          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
-            <div id="hud-rewind-score" style="font-size: 42px; font-weight: 900; line-height: 1; color: #fff; text-shadow: 0 0 16px rgba(0,229,255,0.6); font-variant-numeric: tabular-nums;">0</div>
-            <div style="display: flex; gap: 10px; font-size: 12px; font-weight: 800;">
-              <span style="color: #94a3b8;">BEST <span id="hud-rewind-best" style="color: #ffd700;">0</span></span>
-              <span id="hud-rewind-feathers" style="color: #00e5ff;">🪶 0</span>
+        <!-- High-Glance Score & Stat Capsule -->
+        <div style="background: rgba(10, 16, 32, 0.88); border: 1.5px solid rgba(0, 229, 255, 0.45); border-radius: 20px; padding: 14px 18px; width: 100%; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.6), inset 0 0 16px rgba(0,229,255,0.14); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; flex-direction: column; align-items: flex-start;">
+              <span style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 1.5px; text-transform: uppercase;">Score</span>
+              <div id="hud-rewind-score" style="font-size: 46px; font-weight: 900; line-height: 1; color: #fff; text-shadow: 0 0 20px rgba(0,229,255,0.6); font-variant-numeric: tabular-nums;">0</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end;">
+              <div style="background: rgba(255, 215, 0, 0.14); border: 1px solid rgba(255, 215, 0, 0.35); border-radius: 12px; padding: 3px 10px; display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 0.5px;">BEST</span>
+                <span id="hud-rewind-best" style="font-size: 16px; font-weight: 900; color: #ffd700; font-variant-numeric: tabular-nums;">0</span>
+              </div>
+              <div style="background: rgba(0, 229, 255, 0.14); border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 12px; padding: 3px 10px; display: flex; align-items: center; gap: 5px;">
+                <span style="font-size: 13px;">🪶</span>
+                <span id="hud-rewind-feathers" style="font-size: 16px; font-weight: 900; color: #00e5ff; font-variant-numeric: tabular-nums;">0</span>
+              </div>
             </div>
           </div>
-          <div id="hud-rewind-badge" style="font-size: 10px; font-weight: 800; color: #00f5d4; text-transform: uppercase; letter-spacing: 0.5px; text-align: left;">
+          <div id="hud-rewind-badge" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 11px; font-weight: 800; color: #00f5d4; text-transform: uppercase; letter-spacing: 0.5px; text-align: left;">
             ⚡ 1.5s Safe Runway + Shield
           </div>
         </div>
 
         <!-- High-Impact Primary CTA -->
-        <button id="hud-rewind-btn" class="btn interactive" style="width: 100%; height: 50px; font-size: 15px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #00f5d4); border: none; border-radius: 25px; color: #002233; cursor: pointer; box-shadow: 0 0 24px rgba(0, 229, 255, 0.6); letter-spacing: 0.5px; animation: softGlowPulse 1.2s infinite alternate;">
+        <button id="hud-rewind-btn" class="btn interactive" style="width: 100%; height: 50px; font-size: 15px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #00f5d4); border: none; border-radius: 25px; color: #002233; cursor: pointer; box-shadow: 0 0 24px rgba(0, 229, 255, 0.6); letter-spacing: 0.5px; animation: softGlowPulse 1.2s infinite alternate; touch-action: manipulation;">
           ⚡ REWIND (−1 🪶)
         </button>
 
-        <!-- Minimal Subdued Dismiss Link -->
-        <button id="hud-giveup-btn" class="btn interactive" style="background: none; border: none; color: #94a3b8; font-size: 11px; font-weight: 700; padding: 8px 16px; margin-top: 4px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;">
-          Give up
+        <!-- Tap-Friendly Secondary Give Up Button (Min 44px) -->
+        <button id="hud-giveup-btn" class="btn interactive" style="width: 100%; height: 44px; min-height: 44px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 22px; color: #b0b8d0; font-size: 12px; font-weight: 800; margin-top: 6px; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
+          GIVE UP & END RUN
         </button>
       </div>
     </div>
