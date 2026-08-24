@@ -74,12 +74,12 @@ export class PickupsView {
   }
 
   syncFrom(w: World, timeSec: number): void {
-    const activeOrbs = w.orbs.filter((o) => !o.taken);
-
-    for (let i = 0; i < this.pool.length; i++) {
-      const item = this.pool[i]!;
-      if (i < activeOrbs.length) {
-        const o = activeOrbs[i]!;
+    let activeIdx = 0;
+    for (let j = 0; j < w.orbs.length; j++) {
+      const o = w.orbs[j]!;
+      if (o.taken) continue;
+      if (activeIdx < this.pool.length) {
+        const item = this.pool[activeIdx]!;
         item.group.visible = true;
         item.orbId = o.id;
 
@@ -92,10 +92,14 @@ export class PickupsView {
 
         item.hourHand.rotation.z = -timeSec * 2;
         item.minuteHand.rotation.z = -timeSec * 6;
-      } else {
-        item.group.visible = false;
-        item.orbId = -1;
+        activeIdx++;
       }
+    }
+
+    for (let i = activeIdx; i < this.pool.length; i++) {
+      const item = this.pool[i]!;
+      item.group.visible = false;
+      item.orbId = -1;
     }
   }
 }

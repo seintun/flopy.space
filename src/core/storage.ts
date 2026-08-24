@@ -106,10 +106,9 @@ export function saveBest(score: number): { best: number; isNewBest: boolean } {
   return { best: data.best, isNewBest: false };
 }
 
-export function bankFeathers(runEarned: number, rewindsUsed: number): number {
-  const data = loadAll();
-  const net = Math.max(0, runEarned - rewindsUsed);
-  const total = Math.min(9, data.feathers + net);
+export function bankFeathers(balanceOrEarned: number, rewindsUsed = 0): number {
+  const net = Math.max(0, balanceOrEarned - rewindsUsed);
+  const total = Math.min(9, net);
   setLocal("feathers", total.toString());
   return total;
 }

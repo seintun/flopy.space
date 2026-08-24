@@ -91,15 +91,16 @@ export class Game {
     this.hooks.onStateChange?.(next);
   }
 
-  start(seed = Date.now()): void {
+  start(seed = Date.now(), initialFeathers = 0): void {
     this.world = createWorld(seed);
+    this.world.feathersRun = Math.min(9, Math.max(0, initialFeathers));
     this.time = new TimeSystem();
     this.buf = new SnapshotBuffer();
     this.accumulator.reset();
     this.lastMilestoneCrossed = 0;
     this.setState("playing");
     this.doFlap();
-    this.hooks.onScoreChange?.(0, 0, 0);
+    this.hooks.onScoreChange?.(0, 0, this.world.feathersRun);
     this.hooks.onSlowmoMeter?.(0);
   }
 
@@ -123,6 +124,8 @@ export class Game {
       return false;
     }
 
+    const feathersBefore = this.world.feathersRun;
+    const rewindsBefore = this.world.rewindsUsedRun;
     const success = this.buf.rewindInto(this.world);
     if (!success) {
       this.setState("gameOver");
@@ -132,8 +135,8 @@ export class Game {
 
     this.world.bird.alive = true;
     this.world.bird.invulnUntilTick = this.world.tick + INVULN_TICKS;
-    this.world.feathersRun--;
-    this.world.rewindsUsedRun++;
+    this.world.feathersRun = Math.max(0, feathersBefore - 1);
+    this.world.rewindsUsedRun = rewindsBefore + 1;
     this.time = new TimeSystem();
     this.accumulator.reset();
     this.juice.popup("REWOUND!", "#00e5ff");
@@ -281,7 +284,10 @@ export class Game {
         break;
       }
 
-      case "rewindChoice":
+      case "rewindChoice": {
+        break;
+      }
+
       case "gameOver": {
         if (this.world.bird.y > -5.5) {
           stepBird(this.world, realDt);
@@ -290,7 +296,17 @@ export class Game {
       }
     }
 
-    if (this.state !== "rewindReplay") {
+    if (this.state === "rewindReplay" || this.state === "rewindChoice") {
+      const snap =
+        this.state === "rewindChoice"
+          ? this.replaySnapshots[this.replaySnapshots.length - 1]
+          : this.replaySnapshots[this.replayIndex];
+      if (snap) {
+        this.birdView.syncFrom(snap, 1, realDt);
+        this.pipesView.syncFrom(snap, 1, realDt);
+        this.pickupsView.syncFrom(snap, this.totalTime);
+      }
+    } else {
       this.birdView.syncFrom(this.world, alpha, realDt);
       this.pipesView.syncFrom(this.world, alpha, realDt);
       this.pickupsView.syncFrom(this.world, this.totalTime);

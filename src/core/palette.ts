@@ -42,11 +42,17 @@ export function dayNight(score: number): PaletteOut {
   const s1 = STOPS[idx]!;
   const s2 = STOPS[(idx + 1) % STOPS.length]!;
 
+  let targetAngle = s2.sunAngle;
+  if (idx === STOPS.length - 1) {
+    targetAngle = s2.sunAngle + Math.PI * 2;
+  }
+  const sunAngle = lerp(s1.sunAngle, targetAngle, t);
+
   return {
     skyTop: lerpColor(s1.skyTop, s2.skyTop, t),
     skyBottom: lerpColor(s1.skyBottom, s2.skyBottom, t),
     fogColor: lerpColor(s1.fogColor, s2.fogColor, t),
-    sunAngle: lerp(s1.sunAngle, s2.sunAngle, t),
+    sunAngle,
     starAlpha: lerp(s1.starAlpha, s2.starAlpha, t),
   };
 }

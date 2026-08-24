@@ -28,7 +28,7 @@ game.birdView.setSkin(activeSkin.bodyColor, activeSkin.bellyColor);
 const menuView = new MenuView(app, {
   onStart: () => {
     audio.unlock();
-    game.start();
+    game.start(Date.now(), loadAll().feathers);
   },
   onSkinChange: (skinId) => {
     const s = SKINS[skinId];
@@ -59,7 +59,7 @@ game.hooks = {
       );
     } else if (state === "gameOver") {
       hud.hideRewindPrompt();
-      const currentFeathers = bankFeathers(game.world.feathersRun, game.world.rewindsUsedRun);
+      const currentFeathers = bankFeathers(game.world.feathersRun);
       const { best, isNewBest } = saveBest(game.world.score);
       touchStreak();
       gameoverView.show(
@@ -69,7 +69,7 @@ game.hooks = {
         currentFeathers,
         {
           onRetry: () => {
-            game.start();
+            game.start(Date.now(), loadAll().feathers);
           },
         },
       );

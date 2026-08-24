@@ -19,6 +19,7 @@ function spawnPipe(w: World): void {
   const delta = (worldRand(w) * 2 - 1) * GAP_WANDER_MAX;
   const gc = Math.min(hi, Math.max(lo, w.lastGapCenter + delta));
   w.lastGapCenter = gc;
+  if (w.spawnHistory.length > 50) w.spawnHistory.shift();
   w.spawnHistory.push(gc);
   w.pipes.push({ id: w.nextPipeId++, x: SPAWN_X, gapCenter: gc, gapHeight: gh, scored: false });
 

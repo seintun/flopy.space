@@ -31,6 +31,13 @@ describe("stepBird", () => {
     expect(w.bird.y).toBeLessThanOrEqual(CEILING_Y - HITBOX_RADIUS);
   });
 
+  it("eases pitch toward rising angle on flap", () => {
+    const w = createWorld(1);
+    flap(w);
+    for (let i = 0; i < 20; i++) stepBird(w, DT);
+    expect(w.bird.pitch).toBeGreaterThan(15);
+  });
+
   it("eases pitch toward dive angle while falling", () => {
     const w = createWorld(1);
     w.bird.vy = TERMINAL_VY;

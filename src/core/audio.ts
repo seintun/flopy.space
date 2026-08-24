@@ -1,6 +1,8 @@
 export class AudioSys {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
+  private flapNoiseBuf: AudioBuffer | null = null;
+  private rewindNoiseBuf: AudioBuffer | null = null;
   private muted = false;
 
   unlock(): void {
@@ -11,6 +13,8 @@ export class AudioSys {
         this.masterGain = this.ctx.createGain();
         this.masterGain.gain.setValueAtTime(this.muted ? 0 : 0.5, this.ctx.currentTime);
         this.masterGain.connect(this.ctx.destination);
+        this.flapNoiseBuf = this.createNoiseBuffer(0.1);
+        this.rewindNoiseBuf = this.createNoiseBuffer(0.8);
       }
     }
     if (this.ctx && this.ctx.state === "suspended") {
@@ -46,7 +50,7 @@ export class AudioSys {
 
     // 1. Soft whoosh
     const noise = this.ctx.createBufferSource();
-    const noiseBuf = this.createNoiseBuffer(0.08);
+    const noiseBuf = this.flapNoiseBuf || this.createNoiseBuffer(0.1);
     if (noiseBuf) {
       noise.buffer = noiseBuf;
       const filter = this.ctx.createBiquadFilter();
@@ -181,7 +185,7 @@ export class AudioSys {
     const now = this.ctx.currentTime;
 
     const noise = this.ctx.createBufferSource();
-    const noiseBuf = this.createNoiseBuffer(0.7);
+    const noiseBuf = this.rewindNoiseBuf || this.createNoiseBuffer(0.8);
     if (!noiseBuf) return;
     noise.buffer = noiseBuf;
 

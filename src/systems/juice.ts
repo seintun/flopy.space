@@ -16,6 +16,7 @@ interface Particle {
 export class Juice {
   trauma = 0;
   private time = 0;
+  private shakeOffset = { ox: 0, oy: 0 };
   private particleGroup: THREE.Group;
   private pool: Particle[] = [];
   private particleGeo: THREE.PlaneGeometry;
@@ -170,8 +171,8 @@ export class Juice {
     }
 
     const shakeMag = this.trauma * this.trauma * 0.45;
-    const ox = Math.sin(this.time * 38) * shakeMag;
-    const oy = Math.cos(this.time * 44) * shakeMag;
+    this.shakeOffset.ox = Math.sin(this.time * 38) * shakeMag;
+    this.shakeOffset.oy = Math.cos(this.time * 44) * shakeMag;
 
     // Update active particles
     for (const p of this.pool) {
@@ -198,6 +199,6 @@ export class Juice {
       }
     }
 
-    return { ox, oy };
+    return this.shakeOffset;
   }
 }
