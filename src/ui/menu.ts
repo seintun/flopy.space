@@ -46,7 +46,7 @@ export class MenuView {
       justify-content: space-between;
       z-index: 40;
       color: #fff;
-      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
       box-sizing: border-box;
       pointer-events: none;
     `;
@@ -54,34 +54,34 @@ export class MenuView {
     this.el.innerHTML = `
       <!-- Top header bar: Streak, Feathers & Mute -->
       <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; pointer-events: auto;">
-        <div id="menu-streak" style="display: flex; align-items: center; gap: 6px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255, 120, 0, 0.35); font-weight: 800; font-size: 13px; color: #ff9e00; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+        <div id="menu-streak" style="display: flex; align-items: center; gap: 5px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 12px; border-radius: 18px; border: 1px solid rgba(255, 120, 0, 0.35); font-weight: 800; font-size: 12px; color: #ff9e00; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
           🔥 <span id="menu-streak-count">1</span>d Streak
         </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <div id="menu-feathers" style="display: flex; align-items: center; gap: 6px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(0, 229, 255, 0.35); font-weight: 800; font-size: 13px; color: #00e5ff; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <div id="menu-feathers" style="display: flex; align-items: center; gap: 5px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 12px; border-radius: 18px; border: 1px solid rgba(0, 229, 255, 0.35); font-weight: 800; font-size: 12px; color: #00e5ff; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
             🪶 <span id="menu-feather-count">0</span>
           </div>
-          <button id="menu-mute-btn" class="btn interactive" style="background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.16); color: #fff; font-size: 16px; width: 38px; height: 38px; border-radius: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+          <button id="menu-mute-btn" class="btn interactive" style="background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.16); color: #fff; font-size: 14px; width: 34px; height: 34px; border-radius: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
             🔊
           </button>
         </div>
       </div>
 
       <!-- Center Title & Tap Prompt -->
-      <div style="display: flex; flex-direction: column; align-items: center; pointer-events: none; margin-top: 10px; animation: titleFloat 2.5s ease-in-out infinite alternate;">
-        <h1 style="font-size: 46px; font-weight: 900; margin: 0 0 4px 0; background: linear-gradient(180deg, #ffffff 15%, #bae6fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 20px rgba(0, 229, 255, 0.45)); letter-spacing: -0.02em; text-align: center;">
+      <div style="display: flex; flex-direction: column; align-items: center; pointer-events: none; margin-top: 4px; animation: titleFloat 2.5s ease-in-out infinite alternate;">
+        <h1 style="font-size: clamp(30px, 8.5vw, 44px); font-weight: 900; margin: 0 0 2px 0; background: linear-gradient(180deg, #ffffff 15%, #bae6fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 20px rgba(0, 229, 255, 0.45)); letter-spacing: -0.02em; text-align: center;">
           FLAPPY 3D
         </h1>
-        <div id="menu-best-label" style="font-size: 12px; font-weight: 800; color: #bae6fd; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 22px; background: rgba(13, 17, 30, 0.6); border: 1px solid rgba(255, 255, 255, 0.12); padding: 4px 14px; border-radius: 14px; backdrop-filter: blur(8px);">
+        <div id="menu-best-label" style="font-size: 11px; font-weight: 800; color: #bae6fd; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 14px; background: rgba(13, 17, 30, 0.6); border: 1px solid rgba(255, 255, 255, 0.12); padding: 3px 12px; border-radius: 12px; backdrop-filter: blur(8px);">
           BEST <span id="menu-best-val" style="color: #fff; margin-left: 2px;">0</span>
         </div>
-        <div style="font-size: 14px; font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.7); border: 1px solid rgba(0, 229, 255, 0.5); padding: 10px 24px; border-radius: 24px; letter-spacing: 0.5px; animation: softGlowPulse 1.8s infinite alternate; text-shadow: 0 0 10px rgba(0,229,255,0.7); backdrop-filter: blur(12px);">
+        <div style="font-size: clamp(12px, 3.6vw, 14px); font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.7); border: 1px solid rgba(0, 229, 255, 0.5); padding: 8px 20px; border-radius: 22px; letter-spacing: 0.5px; animation: softGlowPulse 1.8s infinite alternate; text-shadow: 0 0 10px rgba(0,229,255,0.7); backdrop-filter: blur(12px);">
           SPACE OR TAP TO FLY
         </div>
       </div>
 
       <!-- Bottom Drawer / Tabs Panel -->
-      <div style="width: 100%; max-width: 380px; display: flex; flex-direction: column; align-items: center; pointer-events: auto; background: rgba(12, 16, 28, 0.82); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 22px; padding: 10px 12px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
+      <div style="width: 100%; max-width: min(380px, 94vw); display: flex; flex-direction: column; align-items: center; pointer-events: auto; background: rgba(12, 16, 28, 0.85); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 20px; padding: 8px 10px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
         <!-- Tab navigation bar -->
         <div id="menu-tabs" style="display: flex; width: 100%; gap: 6px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
           <button data-tab="heroes" class="btn interactive tab-btn" style="flex: 1; padding: 7px 2px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px;">

@@ -205,12 +205,23 @@ initInput(
   },
 );
 
-window.addEventListener("resize", () => {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
+function handleResize() {
+  const w = window.visualViewport?.width || window.innerWidth;
+  const h = window.visualViewport?.height || window.innerHeight;
   ctx.setSize(w, h);
   rig.onResize(w / h);
+}
+
+window.addEventListener("resize", handleResize);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", handleResize);
+}
+window.addEventListener("orientationchange", () => {
+  setTimeout(handleResize, 100);
 });
+
+// Initial sizing trigger
+handleResize();
 
 function animate(time: number) {
   game.frame(time);
