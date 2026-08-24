@@ -143,7 +143,7 @@ export function initHud(container: HTMLElement): HudApi {
       <div style="text-align: center; max-width: 320px; width: 90%; animation: popIn 0.28s cubic-bezier(0.2, 0.8, 0.4, 1); display: flex; flex-direction: column; align-items: center;">
         
         <!-- High-Impact Primary CTA (Positioned on top for fast ergonomic thumb reach) -->
-        <button id="hud-rewind-btn" class="btn interactive" style="width: 100%; height: 52px; font-size: 15px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #00f5d4); border: none; border-radius: 26px; color: #002233; cursor: pointer; box-shadow: 0 0 24px rgba(0, 229, 255, 0.6); letter-spacing: 0.5px; animation: softGlowPulse 1.2s infinite alternate; touch-action: manipulation; margin-bottom: 12px;">
+        <button id="hud-rewind-btn" class="btn interactive" style="width: 100%; height: 54px; font-size: 16px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #00f5d4); border: none; border-radius: 27px; color: #002233; cursor: pointer; box-shadow: 0 0 28px rgba(0, 229, 255, 0.7); letter-spacing: 0.5px; animation: softGlowPulse 1.2s infinite alternate; touch-action: manipulation; margin-bottom: 12px;">
           ⚡ REWIND & RESUME (−1 🪶)
         </button>
 
@@ -411,6 +411,15 @@ export function initHud(container: HTMLElement): HudApi {
       } else {
         rewindBadge.textContent = "⚡ 1.5S SAFE RUNWAY + BULLET-TIME";
         rewindBadge.style.color = "#00e5ff";
+      }
+
+      if (feathers > 0) {
+        giveUpBtn.style.display = "none";
+        rewindBtn.style.display = "block";
+        rewindBtn.innerHTML = "⚡ REWIND & RESUME (−1 🪶)";
+      } else {
+        giveUpBtn.style.display = "block";
+        rewindBtn.style.display = "none";
       }
 
       rewindPanel.style.display = "flex";

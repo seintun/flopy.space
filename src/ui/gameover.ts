@@ -77,7 +77,7 @@ export class GameOverView {
   private questClaimContainer: HTMLElement;
   private nextUnlockContainer: HTMLElement;
   private quickSwapContainer: HTMLElement;
-  private rewindContainer: HTMLElement;
+  private actionBtn: HTMLButtonElement;
   private callbacks?: GameOverCallbacks;
 
   constructor(container: HTMLElement) {
@@ -103,13 +103,6 @@ export class GameOverView {
         
         <div id="go-badge" style="display:none; background: linear-gradient(135deg, #ffd700, #ff9e00); color: #0f172a; font-weight: 900; font-size: 11px; padding: 4px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 2px 14px rgba(255,215,0,0.5);">
           ★ NEW BEST RECORD ★
-        </div>
-
-        <!-- High-Impact Rewind Resume CTA (Positioned above Scoreboard) -->
-        <div id="go-rewind-container" style="display: none; width: 100%; margin-bottom: 4px;">
-          <button id="go-claim-rewind-btn" class="btn interactive" style="width: 100%; height: 50px; background: linear-gradient(135deg, #00e5ff, #00f5d4); color: #002233; font-weight: 900; font-size: 14px; border: none; border-radius: 25px; box-shadow: 0 0 24px rgba(0, 229, 255, 0.7); letter-spacing: 0.5px; animation: softGlowPulse 1.2s infinite alternate; cursor: pointer; touch-action: manipulation;">
-            ⚡ REWIND & RESUME RUN (−1 🪶)
-          </button>
         </div>
 
         <div id="go-unlock-banner" style="display:none; background: linear-gradient(135deg, #00f5d4, #00b4d8); color: #002233; font-weight: 900; font-size: 11px; padding: 4px 14px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 14px rgba(0,245,212,0.5);">
@@ -157,12 +150,12 @@ export class GameOverView {
           <div id="go-quick-swap" class="drag-scroll" style="display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 4px 2px; width: 100%; box-sizing: border-box;"></div>
         </div>
 
-        <!-- Dual CTA Buttons: Instant Fly Again + Home / Roster -->
-        <div style="display: flex; width: 100%; gap: 8px;">
-          <button id="go-menu-btn" class="btn interactive" style="flex: 0 0 48px; height: 48px; font-size: 18px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 24px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation;" title="Home / Full Roster">
+        <!-- Dual CTA Buttons: Home / Roster + Big Primary Action (Fly Again or Rewind & Resume) -->
+        <div style="display: flex; width: 100%; gap: 10px; align-items: center;">
+          <button id="go-menu-btn" class="btn interactive" style="flex: 0 0 54px; width: 54px; height: 54px; font-size: 20px; background: rgba(255, 255, 255, 0.08); border: 1.5px solid rgba(255, 255, 255, 0.2); border-radius: 27px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation; box-shadow: 0 4px 16px rgba(0,0,0,0.3);" title="Home / Full Roster">
             🏠
           </button>
-          <button id="go-retry-btn" class="btn interactive" style="flex: 1; height: 48px; font-size: 15px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #00f5d4); border: none; border-radius: 24px; color: #002233; cursor: pointer; box-shadow: 0 0 24px rgba(0, 229, 255, 0.6); letter-spacing: 0.5px; animation: softGlowPulse 1.2s infinite alternate; touch-action: manipulation;">
+          <button id="go-action-btn" class="btn interactive" style="flex: 1; height: 54px; font-size: 16px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #00f5d4); border: none; border-radius: 27px; color: #002233; cursor: pointer; box-shadow: 0 0 28px rgba(0, 229, 255, 0.7); letter-spacing: 0.5px; animation: softGlowPulse 1.2s infinite alternate; touch-action: manipulation;">
             ⚡ FLY AGAIN
           </button>
         </div>
@@ -183,15 +176,20 @@ export class GameOverView {
     this.questClaimContainer = this.overlay.querySelector("#go-quest-claim-box")!;
     this.nextUnlockContainer = this.overlay.querySelector("#go-next-unlock")!;
     this.quickSwapContainer = this.overlay.querySelector("#go-quick-swap")!;
-    this.rewindContainer = this.overlay.querySelector("#go-rewind-container")!;
+    this.actionBtn = this.overlay.querySelector("#go-action-btn") as HTMLButtonElement;
 
     enableDragScroll(this.quickSwapContainer);
 
-    const retryBtn = this.overlay.querySelector("#go-retry-btn") as HTMLButtonElement;
-    retryBtn.addEventListener("click", (e) => {
+    this.actionBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      this.hide();
-      this.callbacks?.onRetry();
+      const data = loadAll();
+      if (data.feathers > 0 && this.callbacks?.onRewind) {
+        this.hide();
+        this.callbacks.onRewind();
+      } else {
+        this.hide();
+        this.callbacks?.onRetry();
+      }
     });
 
     const menuBtn = this.overlay.querySelector("#go-menu-btn") as HTMLButtonElement;
@@ -200,6 +198,18 @@ export class GameOverView {
       this.hide();
       this.callbacks?.onMenu?.();
     });
+  }
+
+  updateActionButton(feathers: number): void {
+    if (feathers > 0) {
+      this.actionBtn.innerHTML = `⚡ REWIND & RESUME (−1 🪶)`;
+      this.actionBtn.style.background = `linear-gradient(135deg, #00e5ff, #00f5d4)`;
+      this.actionBtn.style.boxShadow = `0 0 30px rgba(0, 229, 255, 0.75)`;
+    } else {
+      this.actionBtn.innerHTML = `⚡ FLY AGAIN`;
+      this.actionBtn.style.background = `linear-gradient(135deg, #00e5ff, #00f5d4)`;
+      this.actionBtn.style.boxShadow = `0 0 24px rgba(0, 229, 255, 0.6)`;
+    }
   }
 
   show(
@@ -230,7 +240,7 @@ export class GameOverView {
     this.renderUnlockClaimBanner();
     this.renderQuestClaimBanner();
     this.renderQuickSwap(data, data.tokens);
-    this.hideRewindOption();
+    this.updateActionButton(data.feathers);
 
     this.overlay.style.display = "flex";
   }
@@ -333,6 +343,7 @@ export class GameOverView {
         addFeathers(readyMission.rewardFeathers);
         this.callbacks?.onClaimQuest?.(readyMission.rewardFeathers);
         this.questClaimContainer.style.display = "none";
+        this.updateActionButton(loadAll().feathers);
       });
     } else {
       this.questClaimContainer.style.display = "none";
@@ -403,29 +414,17 @@ export class GameOverView {
   }
 
   showRewindOption(onRewind: () => void): void {
-    if (this.rewindContainer) {
-      this.rewindContainer.style.display = "block";
-      const btn = this.rewindContainer.querySelector("#go-claim-rewind-btn") as HTMLButtonElement;
-      if (btn) {
-        btn.onclick = (e) => {
-          e.stopPropagation();
-          this.hide();
-          onRewind();
-        };
-      }
+    if (this.callbacks) {
+      this.callbacks.onRewind = onRewind;
     }
+    this.updateActionButton(loadAll().feathers);
   }
 
   hideRewindOption(): void {
-    if (this.rewindContainer) {
-      this.rewindContainer.style.display = "none";
-    }
+    this.updateActionButton(0);
   }
 
   hide(): void {
     this.overlay.style.display = "none";
-    if (this.rewindContainer) {
-      this.rewindContainer.style.display = "none";
-    }
   }
 }

@@ -23,6 +23,8 @@
 
 ### ⏳ 1. 4D Time Mechanics
 - **Death Rewind (Time Travel)**: Spend banked feathers $\🪶$ on collision to rewind time $1.5\text{s}$ into the past, resume with 1 second of invulnerability, and keep your run alive!
+- **Unified Action CTA**: The post-run action button occupies a prominent, fixed bottom position (`⚡ FLY AGAIN`), instantly transforming into `⚡ REWIND & RESUME (−1 🪶)` whenever feathers are banked or claimed in situ.
+- **Zero-Give-Up Invariant**: When feathers are available, distracting "Give Up" buttons are suppressed, keeping the focus entirely on reviving your best run.
 - **Temporal Bullet-Time Orbs**: Pick up glowing clock orbs to ease the universe into cinematic slow-motion ($0.35\times$) for 3 real seconds while retaining snappy flight control.
 
 ### 🐱 2. Spendable Token Economy & Interleaved Progression

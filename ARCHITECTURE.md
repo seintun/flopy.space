@@ -216,4 +216,7 @@ flowchart TD
    $$\text{Cost}(n) = \text{round}(25 \cdot n^{1.45})$$
 3. **Atomic Spend Operations**: `spendTokens(cost)` verifies balance before deduction and immediately writes to persistent storage.
 4. **Visual Telemetry & Feedback**: Real-time HUD token counter `[ 🪙 124 ] [ 🪶 2/3 ]`, dynamic `🎯 Next` target with percentage bar, and floating `-XX 🪙` upward-fading animation upon item redemption.
+5. **Unified Action CTA & Zero Give-Up Invariant**:
+   - **Unified Bottom Slot**: The primary action button maintains a fixed bottom position (`54px` touch target), displaying `⚡ FLY AGAIN` when feathers are 0, and seamlessly transforming into `⚡ REWIND & RESUME (−1 🪶)` whenever feathers are banked or claimed in situ.
+   - **Zero Give-Up Invariant**: When the player has banked feathers (`feathers > 0`), secondary "Give Up" buttons are suppressed, streamlining flow and preventing accidental forfeits. Spacebar keydown defaults to `chooseRewind()` directly.
 

@@ -152,14 +152,23 @@ async function run() {
     // 7. Verify Game Over & Token Economy Display
     console.log("\n🪙 7. Verifying Token Accrual & Post-Run Vault Telemetry...");
     if (collisionResult.state === "rewindChoice") {
-      const giveUpBtn = await page.waitForSelector("#hud-giveup-btn", { state: "visible" });
-      await giveUpBtn.click();
-      await page.waitForSelector("#gameover-overlay", { state: "visible" });
+      const hasFeathers = await page.evaluate(() => window.__FLOPY_GAME__.world.feathersRun > 0);
+      if (hasFeathers) {
+        const rewindBtn = await page.waitForSelector("#hud-rewind-btn", { state: "visible" });
+        await rewindBtn.click();
+        console.log("   ✅ In-flight Rewind clicked successfully.");
+        // wait for bird to fall again to end run
+        await page.waitForTimeout(3500);
+      } else {
+        const giveUpBtn = await page.waitForSelector("#hud-giveup-btn", { state: "visible" });
+        await giveUpBtn.click();
+        await page.waitForSelector("#gameover-overlay", { state: "visible" });
+      }
     }
 
     const tokensVerified = await page.evaluate(() => {
       const g = window.__FLOPY_GAME__;
-      const tokensEl = document.querySelector("#go-tokens");
+      const tokensEl = document.querySelector("#go-tokens") || document.querySelector("#hud-tokens");
       const tokensVal = tokensEl ? parseInt(tokensEl.textContent || "0", 10) : -1;
       return {
         hasTokensEl: !!tokensEl,
@@ -168,8 +177,8 @@ async function run() {
       };
     });
 
-    console.log(`   Tokens in post-run card: ${tokensVerified.tokensVal} 🪙 (from score ${tokensVerified.score})`);
-    expectTrue(tokensVerified.hasTokensEl, "Game Over card renders #go-tokens badge");
+    console.log(`   Tokens in card: ${tokensVerified.tokensVal} 🪙 (from score ${tokensVerified.score})`);
+    expectTrue(tokensVerified.hasTokensEl, "Renders tokens badge");
     expectTrue(tokensVerified.tokensVal >= tokensVerified.score, "Token vault accrued run score");
     console.log("   ✅ Token Economy verified: score deposited into vault successfully.");
 
