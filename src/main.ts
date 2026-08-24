@@ -1,10 +1,20 @@
 import "./style.css";
 import { createCameraRig } from "./render/camera";
 import { createScene } from "./render/scene";
+import { Game } from "./core/game";
+import { initInput } from "./core/input";
 
 const app = document.getElementById("app")!;
 const rig = createCameraRig(() => window.innerWidth / window.innerHeight);
 const ctx = createScene(app, rig.camera);
+const game = new Game(ctx, rig);
+
+initInput(
+  () => game.doFlap(),
+  () => {
+    // First gesture hook
+  },
+);
 
 window.addEventListener("resize", () => {
   const w = window.innerWidth;
@@ -13,12 +23,8 @@ window.addEventListener("resize", () => {
   rig.onResize(w / h);
 });
 
-let last = performance.now();
-function loop(now: number) {
-  const dt = Math.min((now - last) / 1000, 0.1);
-  last = now;
-  rig.update(dt, 1.5);
-  ctx.renderer.render(ctx.scene, ctx.camera);
-  requestAnimationFrame(loop);
+function animate(time: number) {
+  game.frame(time);
+  requestAnimationFrame(animate);
 }
-requestAnimationFrame(loop);
+requestAnimationFrame(animate);
