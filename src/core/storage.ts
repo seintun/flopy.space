@@ -22,6 +22,8 @@ export const FEATHER_BANK_CAP = 3;
 
 export interface SaveData {
   best: number;
+  tokens: number;
+  lifetimeTokens: number;
   feathers: number; // cap 3
   muted: boolean;
   streak: { lastDay: string; count: number };
@@ -30,9 +32,19 @@ export interface SaveData {
   biome: BiomeId | "auto";
   unlocked: string[];
   unlockedChars: string[];
+  unlockedBiomes: string[];
   totalPlayTimeSec: number;
   totalRuns: number;
   totalPipesPassed: number;
+}
+
+export interface PendingUnlock {
+  category: "hero" | "scene" | "skin";
+  id: string;
+  name: string;
+  emoji: string;
+  tagline: string;
+  unlockValue: number;
 }
 
 const PREFIX = "f3d.";
@@ -76,6 +88,8 @@ export function clearStorageForTest(): void {
 
 export function loadAll(): SaveData {
   const best = parseInt(getLocal("best") || "0", 10) || 0;
+  const tokens = Math.max(0, parseInt(getLocal("tokens") || "0", 10) || 0);
+  const lifetimeTokens = Math.max(tokens, parseInt(getLocal("lifetimeTokens") || "0", 10) || 0);
   const feathers = Math.min(FEATHER_BANK_CAP, Math.max(0, parseInt(getLocal("feathers") || "0", 10) || 0));
   const muted = getLocal("muted") === "true";
   const totalPlayTimeSec = parseFloat(getLocal("totalPlayTimeSec") || "0") || 0;
@@ -108,6 +122,15 @@ export function loadAll(): SaveData {
     unlockedChars = ["bird"];
   }
 
+  let unlockedBiomes: string[] = ["meadow"];
+  try {
+    const rawUnlockedBiomes = getLocal("unlockedBiomes");
+    if (rawUnlockedBiomes) unlockedBiomes = JSON.parse(rawUnlockedBiomes);
+    if (!unlockedBiomes.includes("meadow")) unlockedBiomes.unshift("meadow");
+  } catch {
+    unlockedBiomes = ["meadow"];
+  }
+
   let skin = getLocal("skin") || "classic";
   if (!SKINS[skin]) skin = "classic";
 
@@ -119,6 +142,8 @@ export function loadAll(): SaveData {
 
   return {
     best,
+    tokens,
+    lifetimeTokens,
     feathers,
     muted,
     streak,
@@ -127,6 +152,7 @@ export function loadAll(): SaveData {
     biome,
     unlocked,
     unlockedChars,
+    unlockedBiomes,
     totalPlayTimeSec,
     totalRuns,
     totalPipesPassed,
@@ -137,7 +163,6 @@ export function saveBest(score: number): { best: number; isNewBest: boolean } {
   const data = loadAll();
   if (score > data.best) {
     setLocal("best", score.toString());
-    unlockFor(score);
     return { best: score, isNewBest: true };
   }
   return { best: data.best, isNewBest: false };
@@ -181,6 +206,27 @@ export function spendFeathers(amount: number): boolean {
   return false;
 }
 
+export function addTokens(amount: number): number {
+  const data = loadAll();
+  const safe = Math.max(0, Math.floor(amount));
+  const newTokens = data.tokens + safe;
+  const newLifetime = data.lifetimeTokens + safe;
+  setLocal("tokens", newTokens.toString());
+  setLocal("lifetimeTokens", newLifetime.toString());
+  return newTokens;
+}
+
+export function spendTokens(amount: number): boolean {
+  const data = loadAll();
+  const safe = Math.max(0, Math.floor(amount));
+  if (safe > 0 && data.tokens >= safe) {
+    const newTokens = data.tokens - safe;
+    setLocal("tokens", newTokens.toString());
+    return true;
+  }
+  return false;
+}
+
 function parseYMD(str: string): { y: number; m: number; d: number } {
   const [y, m, d] = str.split("-").map(Number);
   return { y: y!, m: m!, d: d! };
@@ -217,19 +263,116 @@ export function touchStreak(todayStr = getTodayString()): number {
   return newCount;
 }
 
-export function unlockFor(bestScore: number): string[] {
+export function unlockFor(_bestScore = 0): string[] {
+  return claimSkin("classic");
+}
+
+export function isSkinUnlocked(
+  skinId: string,
+  unlockedSkins: string[] = ["classic"],
+): boolean {
+  if (skinId === "classic" || unlockedSkins.includes(skinId)) return true;
+  return false;
+}
+
+export function claimSkin(skinId: string): string[] {
   const data = loadAll();
   const unlocked = new Set(data.unlocked);
-
-  for (const s of Object.values(SKINS)) {
-    if (bestScore >= s.unlockScore) {
-      unlocked.add(s.id);
-    }
-  }
-
+  unlocked.add(skinId);
   const result = Array.from(unlocked);
   setLocal("unlocked", JSON.stringify(result));
   return result;
+}
+
+export function claimCharacter(charId: CharacterId): string[] {
+  const data = loadAll();
+  const unlocked = new Set(data.unlockedChars);
+  unlocked.add(charId);
+  const result = Array.from(unlocked);
+  setLocal("unlockedChars", JSON.stringify(result));
+  return result;
+}
+
+export function claimBiome(biomeId: BiomeId): string[] {
+  const data = loadAll();
+  const unlocked = new Set(data.unlockedBiomes);
+  unlocked.add(biomeId);
+  const result = Array.from(unlocked);
+  setLocal("unlockedBiomes", JSON.stringify(result));
+  return result;
+}
+
+export function isSkinClaimable(
+  skinId: string,
+  bestScore: number,
+  unlockedSkins: string[] = ["classic"],
+): boolean {
+  if (skinId === "classic" || unlockedSkins.includes(skinId)) return false;
+  const def = SKINS[skinId];
+  if (!def || def.unlockScore === 0) return false;
+  return bestScore >= def.unlockScore;
+}
+
+export function getPendingUnlocks(data: SaveData, streakDays = 1): PendingUnlock[] {
+  const pending: PendingUnlock[] = [];
+
+  // 1. Check Heroes
+  Object.values(CHARACTERS).forEach((char) => {
+    if (!data.unlockedChars.includes(char.id)) {
+      if (
+        (char.unlockType === "score" && data.best >= char.unlockValue) ||
+        (char.unlockType === "streak" && streakDays >= char.unlockValue) ||
+        (char.unlockType === "playtime" && data.totalPlayTimeSec >= char.unlockValue)
+      ) {
+        pending.push({
+          category: "hero",
+          id: char.id,
+          name: char.name,
+          emoji: char.emoji,
+          tagline: char.tagline,
+          unlockValue: char.unlockValue,
+        });
+      }
+    }
+  });
+
+  // 2. Check Scenes / Biomes
+  Object.values(BIOMES).forEach((biome) => {
+    if (
+      !data.unlockedBiomes.includes(biome.id) &&
+      biome.unlockScore > 0 &&
+      data.best >= biome.unlockScore
+    ) {
+      pending.push({
+        category: "scene",
+        id: biome.id,
+        name: biome.name,
+        emoji: biome.emoji,
+        tagline: biome.tagline,
+        unlockValue: biome.unlockScore,
+      });
+    }
+  });
+
+  // 3. Check Skins
+  Object.values(SKINS).forEach((skin) => {
+    if (
+      !data.unlocked.includes(skin.id) &&
+      skin.unlockScore > 0 &&
+      data.best >= skin.unlockScore
+    ) {
+      pending.push({
+        category: "skin",
+        id: skin.id,
+        name: skin.name,
+        emoji: "🎨",
+        tagline: `Score ${skin.unlockScore} Master Skin`,
+        unlockValue: skin.unlockScore,
+      });
+    }
+  });
+
+  return pending;
 }
 
 export function setSkin(skinId: string): void {

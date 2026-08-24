@@ -5,8 +5,11 @@ import {
   bankFeathers,
   addFeathers,
   spendFeathers,
+  addTokens,
+  spendTokens,
   touchStreak,
-  unlockFor,
+  claimSkin,
+  getPendingUnlocks,
   setSkin,
   recordPlaySession,
   clearStorageForTest,
@@ -102,17 +105,47 @@ describe("storage", () => {
     expect(s4).toBe(1);
   });
 
-  it("unlocks skins at thresholds 15, 30, 50, 100", () => {
-    expect(unlockFor(10)).toEqual(["classic"]);
-    expect(unlockFor(15)).toEqual(["classic", "sunrise"]);
-    expect(unlockFor(35)).toEqual(["classic", "sunrise", "ember"]);
-    expect(unlockFor(55)).toEqual(["classic", "sunrise", "ember", "void"]);
-    expect(unlockFor(100)).toEqual(["classic", "sunrise", "ember", "void", "prism"]);
+  it("claims skins and tracks pending unlock thresholds", () => {
+    claimSkin("sunrise");
+    expect(loadAll().unlocked).toEqual(["classic", "sunrise"]);
+    claimSkin("ember");
+    expect(loadAll().unlocked).toEqual(["classic", "sunrise", "ember"]);
+  });
+
+  it("getPendingUnlocks returns claimable items matching player high score", () => {
+    saveBest(20);
+    const data = loadAll();
+    const pending = getPendingUnlocks(data);
+    expect(pending.some((p) => p.id === "neko")).toBe(true);
+    expect(pending.some((p) => p.id === "sunrise")).toBe(true);
   });
 
   it("persists skin selection", () => {
-    unlockFor(20);
+    claimSkin("sunrise");
     setSkin("sunrise");
     expect(loadAll().skin).toBe("sunrise");
+  });
+
+  it("accrues tokens and handles atomic spend operations", () => {
+    expect(loadAll().tokens).toBe(0);
+    expect(loadAll().lifetimeTokens).toBe(0);
+
+    // Earn 59 tokens from a run
+    expect(addTokens(59)).toBe(59);
+    expect(loadAll().tokens).toBe(59);
+    expect(loadAll().lifetimeTokens).toBe(59);
+
+    // Spend 25 tokens on Neko -> balance becomes 34
+    expect(spendTokens(25)).toBe(true);
+    expect(loadAll().tokens).toBe(34);
+    expect(loadAll().lifetimeTokens).toBe(59); // lifetime retained
+
+    // Attempting to spend 50 tokens (more than 34) fails
+    expect(spendTokens(50)).toBe(false);
+    expect(loadAll().tokens).toBe(34);
+
+    // Spend remaining 34 -> balance becomes 0
+    expect(spendTokens(34)).toBe(true);
+    expect(loadAll().tokens).toBe(0);
   });
 });
