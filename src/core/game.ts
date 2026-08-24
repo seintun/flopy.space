@@ -392,7 +392,7 @@ export class Game {
                   case "star_gem": {
                     w.score += 500;
                     w.combo += 2;
-                    this.juice.popup("+500 STAR! ⭐", "#ffbe0b", 50, 16);
+                    this.juice.popupAtWorld("+500 STAR! ⭐", -0.4, w.bird.y, 0, this.ctx.camera, "#ffbe0b", -1.1);
                     this.juice.confetti(0, w.bird.y, 0, 25);
                     this.hooks.onOrbCollect?.("star_gem");
                     break;
@@ -420,7 +420,7 @@ export class Game {
               this.time.hitstop(24);
               this.juice.addTrauma(0.55);
               this.juice.burst(0, w.bird.y, 0, 20, 0xffd700);
-              this.juice.popup("💥 SHIELD SAVED!", "#ffd700", 50, 16);
+              this.juice.popupAtWorld("💥 SHIELD SAVED!", -0.4, w.bird.y, 0, this.ctx.camera, "#ffd700", -1.1);
               this.hooks.onShieldBreak?.();
             } else {
               w.bird.alive = false;
@@ -455,7 +455,7 @@ export class Game {
             // Pass score popup directly above the bird's head
             const popupColor = p.nearMiss ? "#ff2a6d" : p.points > 1 ? "#ffd700" : "#ffffff";
             const popupText = p.nearMiss ? "CLOSE! +2" : `+${p.points}`;
-            this.juice.popupAtWorld(popupText, 0, w.bird.y, 0, this.ctx.camera, popupColor);
+            this.juice.popupAtWorld(popupText, 0, w.bird.y, 0, this.ctx.camera, popupColor, 0.85);
 
             if (p.nearMiss) {
               this.juice.flashBorder("#ff2a6d", 120);
@@ -492,7 +492,7 @@ export class Game {
               this.lastMilestoneCrossed = currentMilestone;
               this.rig.kick(3);
               this.juice.confetti(0, w.bird.y, 0, 40);
-              this.juice.popup("★ MILESTONE! ★", "#ffd700", 50, 16);
+              this.juice.popupAtWorld("★ MILESTONE! ★", -0.4, w.bird.y, 0, this.ctx.camera, "#ffd700", -1.1);
               this.hooks.onMilestone?.(w.score);
             }
           }

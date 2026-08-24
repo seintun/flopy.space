@@ -236,9 +236,9 @@ export class Juice {
     }, 380);
   }
 
-  // Popup positioned directly above bird / object in 3D world space
-  popupAtWorld(text: string, wx: number, wy: number, wz: number, camera: THREE.Camera, color = "#ffd700"): void {
-    const vec = new THREE.Vector3(wx, wy + 0.85, wz);
+  // Popup positioned directly above/below bird or object in 3D world space
+  popupAtWorld(text: string, wx: number, wy: number, wz: number, camera: THREE.Camera, color = "#ffd700", offsetY = 0.85): void {
+    const vec = new THREE.Vector3(wx, wy + offsetY, wz);
     vec.project(camera);
 
     const sx = (vec.x * 0.5 + 0.5) * 100;
