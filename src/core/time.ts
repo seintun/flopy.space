@@ -14,14 +14,19 @@ export class TimeSystem {
     }
     if (this.holdLeft > 0) {
       this.holdLeft -= realDt;
-      this.target = this.holdLeft > 0 ? SLOWMO_SCALE : 1;
+      if (this.holdLeft <= 0) {
+        this.target = 1;
+      }
+    } else {
+      this.target = 1;
     }
     const k = 1 - Math.exp(-realDt / SLOWMO_EASE_S);
     this.scale += (this.target - this.scale) * k;
   }
 
-  triggerSlowmo(): void {
-    this.holdLeft = SLOWMO_HOLD_S;
+  triggerSlowmo(seconds = SLOWMO_HOLD_S, targetScale = SLOWMO_SCALE): void {
+    this.holdLeft = seconds;
+    this.target = targetScale;
   }
 
   triggerMicroFlash(): void {

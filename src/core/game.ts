@@ -537,10 +537,15 @@ export class Game {
           this.world.bird.invulnUntilTick = this.world.tick + INVULN_TICKS;
           this.world.feathersRun = Math.max(0, feathersBefore - 1);
           this.world.rewindsUsedRun = rewindsBefore + 1;
+
+          // Bullet-Time Readjustment: Slow pace to 45% speed for 1.8s easing smoothly back to 100%
           this.time = new TimeSystem();
+          this.time.scale = 0.45;
+          this.time.triggerSlowmo(1.8, 0.45);
+
           this.fever.reset();
           this.accumulator.reset();
-          this.juice.popupAtWorld("REWOUND!", 0, this.world.bird.y, 0, this.ctx.camera, "#00e5ff", 0.85);
+          this.juice.popupAtWorld("⚡ BULLET TIME", 0, this.world.bird.y, 0, this.ctx.camera, "#00e5ff", 0.85);
           this.setState("playing");
           this.hooks.onRewindComplete?.();
           this.hooks.onScoreChange?.(

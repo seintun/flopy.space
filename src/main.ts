@@ -233,6 +233,8 @@ game.hooks = {
 
   onRewindComplete: () => {
     hud.hideRewindPrompt();
+    audio.rewindResume();
+    hud.showPowerUpToast("⚡", "BULLET-TIME READY", "Speed slowed to 45% for easy sync", "#00e5ff");
   },
 
   onMilestone: () => {
