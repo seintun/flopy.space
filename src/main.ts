@@ -269,11 +269,11 @@ game.hooks = {
     audio.rewind();
   },
 
-  onRewindComplete: () => {
+  onRewindComplete: (title = "BULLET-TIME READY", desc = "Speed slowed to 45% for easy sync", color = "#00e5ff") => {
     hud.hideRewindPrompt();
     hud.setFeathers(game.world.feathersRun);
     audio.rewindResume();
-    hud.showPowerUpToast("⚡", "BULLET-TIME READY", "Speed slowed to 45% for easy sync", "#00e5ff");
+    hud.showPowerUpToast("⚡", title, desc, color);
   },
 
   onMilestone: () => {

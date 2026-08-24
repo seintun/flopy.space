@@ -14,7 +14,7 @@ function gapBounds(gapHeight: number): { lo: number; hi: number } {
 }
 
 function spawnPipe(w: World): void {
-  const gh = gapForScore(w.score);
+  const gh = gapForScore(w.score, w.rewindsUsedRun);
   const { lo, hi } = gapBounds(gh);
   const delta = (worldRand(w) * 2 - 1) * GAP_WANDER_MAX;
   const gc = Math.min(hi, Math.max(lo, w.lastGapCenter + delta));

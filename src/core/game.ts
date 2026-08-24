@@ -1,12 +1,11 @@
 import {
-  INVULN_TICKS,
   REWINDS_MAX_PER_RUN,
   SLOWMO_HOLD_S,
   MILESTONE_EVERY,
 } from "./constants";
 import { createWorld, type World, type HitType } from "./types";
 import { flap, stepBird } from "./physics";
-import { scrollForScore } from "./difficulty";
+import { scrollForScore, getRewindTierParams } from "./difficulty";
 import { advance } from "./spawner";
 import { checkCollisions } from "./collision";
 import { processPasses, type PassEvent } from "./scoring";
@@ -61,7 +60,7 @@ export interface GameHooks {
   onFlap?: (soundType: SoundType) => void;
   onRewindStart?: () => void;
   onRewindChoice?: (feathers: number, pipesPassed?: number, bonusScore?: number) => void;
-  onRewindComplete?: () => void;
+  onRewindComplete?: (title?: string, desc?: string, color?: string) => void;
   onMilestone?: (score: number) => void;
   onGameOver?: (
     score: number,
@@ -334,7 +333,7 @@ export class Game {
 
         alpha = this.accumulator.step(realDt * this.time.scale, this.time.frozen, (dt) => {
           const w = this.world;
-          w.scrollSpeed = scrollForScore(w.score);
+          w.scrollSpeed = scrollForScore(w.score, w.rewindsUsedRun);
 
           // Update active power-up timers
           if (w.rainbowTrailTimer > 0) w.rainbowTrailTimer = Math.max(0, w.rainbowTrailTimer - dt);
@@ -581,8 +580,9 @@ export class Game {
             return;
           }
 
+          const tier = getRewindTierParams(rewindsBefore);
           this.world.bird.alive = true;
-          this.world.bird.invulnUntilTick = this.world.tick + INVULN_TICKS;
+          this.world.bird.invulnUntilTick = this.world.tick + tier.invulnTicks;
           this.world.feathersRun = Math.max(0, feathersBefore - 1);
           spendFeathers(1);
           this.world.rewindsUsedRun = rewindsBefore + 1;
@@ -595,16 +595,16 @@ export class Game {
           this.world.hasShield = false;
           this.world.magnetTimer = 0;
 
-          // Bullet-Time Readjustment: Slow pace to 45% speed for 1.8s easing smoothly back to 100%
+          // Progressive bullet-time recovery
           this.time = new TimeSystem();
-          this.time.scale = 0.45;
-          this.time.triggerSlowmo(1.8, 0.45);
+          this.time.scale = tier.slowmoInitialScale;
+          this.time.triggerSlowmo(tier.slowmoDuration, tier.slowmoInitialScale);
 
           this.fever.reset();
           this.accumulator.reset();
-          this.juice.popupAtWorld("⚡ BULLET TIME", 0, this.world.bird.y, 0, this.ctx.camera, "#00e5ff", 0.85);
+          this.juice.popupAtWorld(tier.popupText, 0, this.world.bird.y, 0, this.ctx.camera, tier.popupColor, 0.85);
           this.setState("playing");
-          this.hooks.onRewindComplete?.();
+          this.hooks.onRewindComplete?.(tier.toastTitle, tier.toastDesc, tier.popupColor);
           this.hooks.onFeverChange?.(false, 0);
           this.hooks.onPowerUpsChange?.(0, false, 0);
           this.hooks.onScoreChange?.(
