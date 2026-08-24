@@ -183,17 +183,21 @@ export class MenuView {
 
           <!-- Tab navigation bar -->
           <div id="menu-tabs" style="display: flex; width: 100%; gap: 6px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
-            <button data-tab="heroes" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
-              🐱 HEROES
+            <button data-tab="heroes" class="btn interactive tab-btn" style="position: relative; flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
+              <span>🐱 HEROES</span>
+              <span class="tab-badge" style="display: none; position: absolute; top: -5px; right: 2px; background: linear-gradient(135deg, #ffd700, #ff8800); color: #002233; font-size: 9px; font-weight: 900; min-width: 15px; height: 15px; border-radius: 8px; padding: 0 3px; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(255,215,0,0.9); animation: softGlowPulse 1.1s infinite alternate; border: 1.5px solid #0c101c; pointer-events: none;">0</span>
             </button>
-            <button data-tab="scenes" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
-              🌄 SCENES
+            <button data-tab="scenes" class="btn interactive tab-btn" style="position: relative; flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
+              <span>🌄 SCENES</span>
+              <span class="tab-badge" style="display: none; position: absolute; top: -5px; right: 2px; background: linear-gradient(135deg, #ffd700, #ff8800); color: #002233; font-size: 9px; font-weight: 900; min-width: 15px; height: 15px; border-radius: 8px; padding: 0 3px; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(255,215,0,0.9); animation: softGlowPulse 1.1s infinite alternate; border: 1.5px solid #0c101c; pointer-events: none;">0</span>
             </button>
-            <button data-tab="quests" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
-              🎯 QUESTS
+            <button data-tab="quests" class="btn interactive tab-btn" style="position: relative; flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
+              <span>🎯 QUESTS</span>
+              <span class="tab-badge" style="display: none; position: absolute; top: -5px; right: 2px; background: linear-gradient(135deg, #ffd700, #ff8800); color: #002233; font-size: 9px; font-weight: 900; min-width: 15px; height: 15px; border-radius: 8px; padding: 0 3px; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(255,215,0,0.9); animation: softGlowPulse 1.1s infinite alternate; border: 1.5px solid #0c101c; pointer-events: none;">0</span>
             </button>
-            <button data-tab="skins" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
-              🎨 SKINS
+            <button data-tab="skins" class="btn interactive tab-btn" style="position: relative; flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
+              <span>🎨 SKINS</span>
+              <span class="tab-badge" style="display: none; position: absolute; top: -5px; right: 2px; background: linear-gradient(135deg, #ffd700, #ff8800); color: #002233; font-size: 9px; font-weight: 900; min-width: 15px; height: 15px; border-radius: 8px; padding: 0 3px; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(255,215,0,0.9); animation: softGlowPulse 1.1s infinite alternate; border: 1.5px solid #0c101c; pointer-events: none;">0</span>
             </button>
           </div>
 
@@ -285,6 +289,60 @@ export class MenuView {
     this.renderTabContent();
   }
 
+  private updateTabBadges(): void {
+    const data = loadAll();
+    const counts = {
+      heroes: 0,
+      scenes: 0,
+      quests: 0,
+      skins: 0,
+    };
+
+    // 1. Heroes
+    Object.values(CHARACTERS).forEach((char) => {
+      if (!data.unlockedChars.includes(char.id) && char.unlockValue > 0 && data.tokens >= char.unlockValue) {
+        counts.heroes++;
+      }
+    });
+
+    // 2. Scenes
+    Object.values(BIOMES).forEach((biome) => {
+      if (!data.unlockedBiomes.includes(biome.id) && biome.unlockScore > 0 && data.tokens >= biome.unlockScore) {
+        counts.scenes++;
+      }
+    });
+
+    // 3. Quests
+    const missions = getStoredMissions();
+    missions.forEach((m) => {
+      if (m.completed && !m.claimed) {
+        counts.quests++;
+      }
+    });
+
+    // 4. Skins
+    Object.values(SKINS).forEach((skin) => {
+      if (!data.unlocked.includes(skin.id) && skin.unlockScore > 0 && data.tokens >= skin.unlockScore) {
+        counts.skins++;
+      }
+    });
+
+    const tabButtons = this.el.querySelectorAll(".tab-btn");
+    tabButtons.forEach((btn) => {
+      const tab = (btn as HTMLElement).dataset.tab as keyof typeof counts;
+      const badge = btn.querySelector(".tab-badge") as HTMLElement;
+      if (badge && tab) {
+        const count = counts[tab] || 0;
+        if (count > 0) {
+          badge.textContent = count > 9 ? "9+" : count.toString();
+          badge.style.display = "flex";
+        } else {
+          badge.style.display = "none";
+        }
+      }
+    });
+  }
+
   private renderTabContent(): void {
     const data = loadAll();
     const streak = touchStreak();
@@ -297,6 +355,8 @@ export class MenuView {
       (btn as HTMLElement).style.color = isSelected ? "#00e5ff" : "rgba(255, 255, 255, 0.55)";
       (btn as HTMLElement).style.border = isSelected ? "1px solid rgba(0, 229, 255, 0.45)" : "1px solid transparent";
     });
+
+    this.updateTabBadges();
 
     this.tabContentEl.innerHTML = "";
 
