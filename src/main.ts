@@ -142,3 +142,6 @@ function animate(time: number) {
   requestAnimationFrame(animate);
 }
 requestAnimationFrame(animate);
+
+// Prevent right-click / context menu on mobile
+window.addEventListener("contextmenu", (e) => e.preventDefault());
