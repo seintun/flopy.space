@@ -90,11 +90,10 @@ export class GameOverView {
           </div>
         </div>
 
-        <!-- In-Situ Quick-Swap Character & Scene Carousel for Next Run -->
+        <!-- In-Situ Quick-Swap Character Carousel for Next Run -->
         <div style="width: 100%; display: flex; flex-direction: column; gap: 4px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 4px;">
+          <div style="display: flex; justify-content: flex-start; align-items: center; padding: 0 4px;">
             <span style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 1px; text-transform: uppercase;">✨ Select Hero for Next Run</span>
-            <span id="go-equip-toast" style="font-size: 10px; font-weight: 800; color: #00f5d4; display: none;">Equipped for Next Run! ✨</span>
           </div>
           <div id="go-quick-swap" class="drag-scroll" style="display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 4px 2px; width: 100%; box-sizing: border-box;"></div>
         </div>
@@ -263,24 +262,12 @@ export class GameOverView {
         if (isUnlocked) {
           setCharacter(char.id);
           this.callbacks?.onCharacterChange?.(char.id);
-          this.flashEquipToast(`${char.emoji} ${char.name} Ready for Next Run!`);
           this.renderQuickSwap(loadAll(), bestScore);
         }
       };
 
       this.quickSwapContainer.appendChild(chip);
     });
-  }
-
-  private flashEquipToast(msg: string): void {
-    const toast = this.overlay.querySelector("#go-equip-toast") as HTMLElement;
-    if (toast) {
-      toast.textContent = msg;
-      toast.style.display = "inline";
-      setTimeout(() => {
-        toast.style.display = "none";
-      }, 1500);
-    }
   }
 
   hide(): void {
