@@ -36,7 +36,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     species: "Lucky Cat",
     tagline: "Pointy ears & fluffy meows",
     unlockType: "score",
-    unlockValue: 15,
+    unlockValue: 25, // Tier 1 (Hero)
     primaryColor: 0xff9f1c, // Orange Tabby
     bellyColor: 0xfff8f0,
     accentColor: 0xff6b8b,
@@ -49,7 +49,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     species: "Shiba Inu",
     tagline: "Much flap, very fly, wow!",
     unlockType: "score",
-    unlockValue: 35,
+    unlockValue: 110, // Tier 4 (Hero)
     primaryColor: 0xe09f3e, // Golden Shiba
     bellyColor: 0xfffae0,
     accentColor: 0xd90429, // Red hero cape/collar
@@ -62,7 +62,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     species: "Space Hamster",
     tagline: "Bubble saucer & jet thrusters",
     unlockType: "score",
-    unlockValue: 60,
+    unlockValue: 300, // Tier 7 (Hero)
     primaryColor: 0xffb703, // Golden hamster
     bellyColor: 0xffeedb,
     accentColor: 0x00f5d4, // Cyan saucer
@@ -75,7 +75,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     species: "Flame Drake",
     tagline: "Tiny wings, fiery spirit",
     unlockType: "score",
-    unlockValue: 100,
+    unlockValue: 660, // Tier 10 (Hero)
     primaryColor: 0x2ec4b6, // Jade / Teal dragon
     bellyColor: 0xcbf3f0,
     accentColor: 0xff9f1c, // Orange horns/spikes
@@ -85,25 +85,19 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
 
 export function isCharacterUnlocked(
   charId: CharacterId,
-  bestScore: number,
-  streakDays: number,
-  unlockedList: string[],
-  playTimeSec = 0,
+  unlockedList: string[] = ["bird"],
 ): boolean {
-  if (unlockedList.includes(charId)) return true;
-  const def = CHARACTERS[charId];
-  if (!def) return false;
+  if (charId === "bird" || unlockedList.includes(charId)) return true;
+  return false;
+}
 
-  switch (def.unlockType) {
-    case "free":
-      return true;
-    case "score":
-      return bestScore >= def.unlockValue;
-    case "streak":
-      return streakDays >= def.unlockValue;
-    case "playtime":
-      return playTimeSec >= def.unlockValue;
-    case "feathers":
-      return false; // purchased manually
-  }
+export function isCharacterClaimable(
+  charId: CharacterId,
+  tokens: number,
+  unlockedList: string[] = ["bird"],
+): boolean {
+  if (charId === "bird" || unlockedList.includes(charId)) return false;
+  const def = CHARACTERS[charId];
+  if (!def || def.unlockType === "free") return false;
+  return tokens >= def.unlockValue;
 }

@@ -12,10 +12,10 @@ export interface SkinDef {
 
 export const SKINS: Record<string, SkinDef> = {
   classic: { id: "classic", name: "Classic Gold", bodyColor: 0xffd000, bellyColor: 0xfff8f0, unlockScore: 0 },
-  sunrise: { id: "sunrise", name: "Sakura Blossom", bodyColor: 0xff8da1, bellyColor: 0xfff0f5, unlockScore: 15 },
-  ember: { id: "ember", name: "Midnight Obsidian", bodyColor: 0x25262c, bellyColor: 0x3a3d46, unlockScore: 30 },
-  void: { id: "void", name: "Cosmic Starcat", bodyColor: 0x7928ca, bellyColor: 0x00dfd8, unlockScore: 50 },
-  prism: { id: "prism", name: "Prism Hologram", bodyColor: 0x00f5d4, bellyColor: 0xff007f, unlockScore: 100 },
+  sunrise: { id: "sunrise", name: "Sakura Blossom", bodyColor: 0xff8da1, bellyColor: 0xfff0f5, unlockScore: 50 }, // Tier 2 (Skin)
+  ember: { id: "ember", name: "Midnight Obsidian", bodyColor: 0x25262c, bellyColor: 0x3a3d46, unlockScore: 160 }, // Tier 5 (Skin)
+  void: { id: "void", name: "Cosmic Starcat", bodyColor: 0x7928ca, bellyColor: 0x00dfd8, unlockScore: 400 }, // Tier 8 (Skin)
+  prism: { id: "prism", name: "Prism Hologram", bodyColor: 0x00f5d4, bellyColor: 0xff007f, unlockScore: 820 }, // Tier 11 (Skin)
 };
 
 export const FEATHER_BANK_CAP = 3;
@@ -304,26 +304,22 @@ export function claimBiome(biomeId: BiomeId): string[] {
 
 export function isSkinClaimable(
   skinId: string,
-  bestScore: number,
+  tokens: number,
   unlockedSkins: string[] = ["classic"],
 ): boolean {
   if (skinId === "classic" || unlockedSkins.includes(skinId)) return false;
   const def = SKINS[skinId];
   if (!def || def.unlockScore === 0) return false;
-  return bestScore >= def.unlockScore;
+  return tokens >= def.unlockScore;
 }
 
-export function getPendingUnlocks(data: SaveData, streakDays = 1): PendingUnlock[] {
+export function getPendingUnlocks(data: SaveData): PendingUnlock[] {
   const pending: PendingUnlock[] = [];
 
   // 1. Check Heroes
   Object.values(CHARACTERS).forEach((char) => {
-    if (!data.unlockedChars.includes(char.id)) {
-      if (
-        (char.unlockType === "score" && data.best >= char.unlockValue) ||
-        (char.unlockType === "streak" && streakDays >= char.unlockValue) ||
-        (char.unlockType === "playtime" && data.totalPlayTimeSec >= char.unlockValue)
-      ) {
+    if (!data.unlockedChars.includes(char.id) && char.unlockValue > 0) {
+      if (data.tokens >= char.unlockValue) {
         pending.push({
           category: "hero",
           id: char.id,
@@ -341,7 +337,7 @@ export function getPendingUnlocks(data: SaveData, streakDays = 1): PendingUnlock
     if (
       !data.unlockedBiomes.includes(biome.id) &&
       biome.unlockScore > 0 &&
-      data.best >= biome.unlockScore
+      data.tokens >= biome.unlockScore
     ) {
       pending.push({
         category: "scene",
@@ -359,14 +355,14 @@ export function getPendingUnlocks(data: SaveData, streakDays = 1): PendingUnlock
     if (
       !data.unlocked.includes(skin.id) &&
       skin.unlockScore > 0 &&
-      data.best >= skin.unlockScore
+      data.tokens >= skin.unlockScore
     ) {
       pending.push({
         category: "skin",
         id: skin.id,
         name: skin.name,
         emoji: "🎨",
-        tagline: `Score ${skin.unlockScore} Master Skin`,
+        tagline: `Cost ${skin.unlockScore} 🪙 Master Skin`,
         unlockValue: skin.unlockScore,
       });
     }

@@ -41,7 +41,7 @@ export const BIOMES: Record<BiomeId, BiomeDef> = {
     name: "Neon Cyberpunk",
     emoji: "🌆",
     tagline: "Glowing laser grid & synthwave skyline",
-    unlockScore: 25,
+    unlockScore: 75, // Tier 3 (Scene)
     groundColor: 0x0f0c29,
     gridColor: 0x7209b7,
     pipeColor: 0x240046,
@@ -58,7 +58,7 @@ export const BIOMES: Record<BiomeId, BiomeDef> = {
     name: "Candy Kingdom",
     emoji: "🍭",
     tagline: "Pastel sugar plains & peppermint pillars",
-    unlockScore: 50,
+    unlockScore: 220, // Tier 6 (Scene)
     groundColor: 0xffcbf2,
     gridColor: 0xf72585,
     pipeColor: 0xff4d6d,
@@ -75,7 +75,7 @@ export const BIOMES: Record<BiomeId, BiomeDef> = {
     name: "Volcanic Rift",
     emoji: "🌋",
     tagline: "Obsidian crust & glowing basalt pillars",
-    unlockScore: 75,
+    unlockScore: 520, // Tier 9 (Scene)
     groundColor: 0x1f0c08,
     gridColor: 0xd00000,
     pipeColor: 0x370617,
@@ -115,4 +115,16 @@ export function getBiomeForScore(
 
   const biomeId = BIOME_ORDER[prevIndex] || "meadow";
   return BIOMES[biomeId] || BIOMES.meadow;
+}
+
+export function isBiomeUnlocked(biomeId: BiomeId, unlockedBiomes: string[] = ["meadow"]): boolean {
+  if (biomeId === "meadow") return true;
+  return unlockedBiomes.includes(biomeId);
+}
+
+export function isBiomeClaimable(biomeId: BiomeId, tokens: number, unlockedBiomes: string[] = ["meadow"]): boolean {
+  if (biomeId === "meadow" || unlockedBiomes.includes(biomeId)) return false;
+  const def = BIOMES[biomeId];
+  if (!def || def.unlockScore === 0) return false;
+  return tokens >= def.unlockScore;
 }

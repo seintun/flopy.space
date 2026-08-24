@@ -112,12 +112,13 @@ describe("storage", () => {
     expect(loadAll().unlocked).toEqual(["classic", "sunrise", "ember"]);
   });
 
-  it("getPendingUnlocks returns claimable items matching player high score", () => {
-    saveBest(20);
+  it("getPendingUnlocks returns claimable items matching player token balance", () => {
+    addTokens(60);
     const data = loadAll();
     const pending = getPendingUnlocks(data);
-    expect(pending.some((p) => p.id === "neko")).toBe(true);
-    expect(pending.some((p) => p.id === "sunrise")).toBe(true);
+    expect(pending.some((p) => p.id === "neko")).toBe(true); // 25 tokens
+    expect(pending.some((p) => p.id === "sunrise")).toBe(true); // 50 tokens
+    expect(pending.some((p) => p.id === "cyber")).toBe(false); // 75 tokens
   });
 
   it("persists skin selection", () => {
