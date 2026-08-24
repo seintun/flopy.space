@@ -76,7 +76,7 @@ export class GameOverView {
             </div>
             <div>
               <div style="font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Feathers</div>
-              <div id="go-feathers" style="font-size: 16px; font-weight: 800; color: #00e5ff;">🪶 0</div>
+              <div id="go-feathers" style="font-size: 16px; font-weight: 800; color: #00e5ff;">🪶 0/3</div>
             </div>
           </div>
         </div>
@@ -126,7 +126,7 @@ export class GameOverView {
     if (this.bonusEl) this.bonusEl.textContent = `+${bonusScore}`;
     this.bestEl.textContent = best.toString();
     if (this.timeEl) this.timeEl.textContent = formatDuration(timeSec);
-    this.featherEl.textContent = `🪶 ${feathers}`;
+    this.featherEl.textContent = `🪶 ${feathers}/3`;
     this.badgeEl.style.display = isNewBest ? "block" : "none";
     this.unlockBannerEl.style.display = hasNewUnlock ? "block" : "none";
     this.overlay.style.display = "flex";

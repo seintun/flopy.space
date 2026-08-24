@@ -114,7 +114,7 @@ export function initHud(container: HTMLElement): HudApi {
           <span style="font-size: 14px;">⏱️</span> <span id="hud-time-val" style="font-variant-numeric: tabular-nums;">00:00</span>
         </div>
         <div id="hud-feathers" role="status" aria-label="Feathers available" style="display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 900; color: #00e5ff; background: rgba(13, 17, 30, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 6px 14px; border-radius: 20px; border: 1.5px solid rgba(0,229,255,0.45); box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 12px rgba(0,229,255,0.25);">
-          <span style="font-size: 16px;">🪶</span> <span id="hud-feather-count" style="font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums;">0</span>
+          <span style="font-size: 16px;">🪶</span> <span id="hud-feather-count" style="font-size: 14px; font-weight: 900; font-variant-numeric: tabular-nums;">0/3</span>
         </div>
       </div>
     </div>
@@ -140,7 +140,7 @@ export function initHud(container: HTMLElement): HudApi {
               </div>
               <div style="background: rgba(0, 229, 255, 0.14); border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 12px; padding: 3px 10px; display: flex; align-items: center; gap: 5px;">
                 <span style="font-size: 13px;">🪶</span>
-                <span id="hud-rewind-feathers" style="font-size: 16px; font-weight: 900; color: #00e5ff; font-variant-numeric: tabular-nums;">0</span>
+                <span id="hud-rewind-feathers" style="font-size: 15px; font-weight: 900; color: #00e5ff; font-variant-numeric: tabular-nums;">0/3</span>
               </div>
             </div>
           </div>
@@ -227,7 +227,7 @@ export function initHud(container: HTMLElement): HudApi {
       }
     },
     setFeathers(count: number) {
-      featherEl.textContent = count.toString();
+      featherEl.textContent = `${count}/3`;
     },
     setTimeSurvived(seconds: number) {
       timeVal.textContent = formatTime(seconds);
@@ -317,7 +317,7 @@ export function initHud(container: HTMLElement): HudApi {
       if (rewindPipesEl) rewindPipesEl.textContent = pipesPassed.toString();
       if (rewindBonusEl) rewindBonusEl.textContent = `+${bonusScore} bonus`;
       rewindBest.textContent = effectiveBest.toString();
-      rewindFeathers.textContent = feathers.toString();
+      rewindFeathers.textContent = `${feathers}/3`;
 
       // Minimal, glanceable context tag
       if (combo >= 3) {
