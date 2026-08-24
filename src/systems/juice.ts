@@ -208,7 +208,7 @@ export class Juice {
   // Popup positioned at screen percentage
   popup(text: string, color = "#ffeb3b", screenXPercent = 50, screenYPercent = 16): void {
     const el = document.createElement("div");
-    el.textContent = text;
+    el.innerHTML = text;
     el.style.cssText = `
       position: absolute;
       left: ${screenXPercent}%;

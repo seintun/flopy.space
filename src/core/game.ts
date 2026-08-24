@@ -476,7 +476,7 @@ export class Game {
             const popupText = p.nearMiss
               ? "CLOSE! +2"
               : p.points > 1
-                ? `+${p.points} (${p.points}X)`
+                ? `+${p.points} <span style="font-size:12px;opacity:0.75;font-weight:700;margin-left:1px;">×${p.points}</span>`
                 : `+1`;
             this.juice.popupAtWorld(popupText, 0, w.bird.y, 0, this.ctx.camera, popupColor, 0.85);
 

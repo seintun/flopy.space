@@ -303,8 +303,8 @@ export function initHud(container: HTMLElement): HudApi {
     showRewindPrompt(
       score: number,
       best: number,
-      combo: number,
-      multiplier: number,
+      _combo: number,
+      _multiplier: number,
       feathers: number,
       _timeSec: number,
       pipesPassed = score,
@@ -319,18 +319,15 @@ export function initHud(container: HTMLElement): HudApi {
       rewindBest.textContent = effectiveBest.toString();
       rewindFeathers.textContent = `${feathers}/3`;
 
-      // Minimal, glanceable context tag
-      if (combo >= 3) {
-        rewindBadge.textContent = `★ KEEP ×${multiplier} COMBO (${combo} STREAK)`;
-        rewindBadge.style.color = "#ff007f";
-      } else if (score >= best && score > 0) {
-        rewindBadge.textContent = "★ NEW RECORD RUN";
+      // Minimal, truthful, glanceable context tag
+      if (score >= best && score > 0) {
+        rewindBadge.textContent = "★ PROTECT NEW BEST RUN";
         rewindBadge.style.color = "#ffd700";
       } else if (best - score <= 20 && best - score > 0) {
-        rewindBadge.textContent = `★ ${best - score} PTS TO BEST`;
+        rewindBadge.textContent = `★ ${best - score} PTS TO BEST RECORD`;
         rewindBadge.style.color = "#00f5d4";
       } else {
-        rewindBadge.textContent = "⚡ 1.5S RUNWAY + INVULNERABILITY";
+        rewindBadge.textContent = "⚡ 1.5S SAFE RUNWAY + BULLET-TIME";
         rewindBadge.style.color = "#00e5ff";
       }
 
