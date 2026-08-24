@@ -1,4 +1,11 @@
-import { BIRD_X, PIPE_RADIUS, NEAR_MISS_MARGIN, COMBO_CAP, COMBO_PASSES_PER_STEP, FEATHER_EVERY_POINTS } from "./constants";
+import {
+  BIRD_X,
+  PIPE_RADIUS,
+  NEAR_MISS_MARGIN,
+  COMBO_TIER_2,
+  COMBO_TIER_3,
+  FEATHER_EVERY_POINTS,
+} from "./constants";
 import type { World } from "./types";
 
 export interface PassEvent {
@@ -10,7 +17,9 @@ export interface PassEvent {
 }
 
 export function multiplier(combo: number): number {
-  return Math.min(COMBO_CAP, 1 + Math.floor(Math.max(0, combo) / COMBO_PASSES_PER_STEP));
+  if (combo >= COMBO_TIER_3) return 3;
+  if (combo >= COMBO_TIER_2) return 2;
+  return 1;
 }
 
 export function processPasses(w: World): PassEvent[] {

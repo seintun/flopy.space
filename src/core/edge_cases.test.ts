@@ -118,8 +118,8 @@ describe("Devil's Advocate: 4D Snapshot & Rewind State Integrity", () => {
 describe("Devil's Advocate: Scoring & Day/Night Boundary Cycles", () => {
   it("multiplier correctly caps at 3 even with combo 500+", () => {
     expect(multiplier(0)).toBe(1);
-    expect(multiplier(5)).toBe(2);
-    expect(multiplier(10)).toBe(3);
+    expect(multiplier(6)).toBe(2);
+    expect(multiplier(20)).toBe(3);
     expect(multiplier(500)).toBe(3);
   });
 

@@ -3,11 +3,11 @@ import { multiplier, processPasses } from "./scoring";
 import { createWorld } from "./types";
 
 describe("multiplier", () => {
-  it("steps 1..3 and caps at 3x", () => {
+  it("steps 1..3 with wide gap to tier 3 (at streak 20+)", () => {
     expect(multiplier(0)).toBe(1);
-    expect(multiplier(4)).toBe(1);
-    expect(multiplier(5)).toBe(2);
-    expect(multiplier(10)).toBe(3);
+    expect(multiplier(5)).toBe(1);
+    expect(multiplier(6)).toBe(2);
+    expect(multiplier(19)).toBe(2);
     expect(multiplier(20)).toBe(3);
     expect(multiplier(100)).toBe(3);
   });
