@@ -43,3 +43,13 @@ canvas {
   0% { transform: scale(0.7); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+/* Hide scrollbars in menu tabs */
+#menu-tab-content::-webkit-scrollbar,
+#menu-tabs::-webkit-scrollbar {
+  display: none;
+}
+#menu-tab-content {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
