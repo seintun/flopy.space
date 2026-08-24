@@ -13,7 +13,6 @@ import {
 import { CHARACTERS, type CharacterId, isCharacterUnlocked } from "../core/characters";
 import { BIOMES, type BiomeId } from "../core/biomes";
 import { enableDragScroll } from "../utils/dom";
-import { formatDuration } from "../utils/time";
 import { InstallManager } from "./installManager";
 
 export interface MenuCallbacks {

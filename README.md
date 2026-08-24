@@ -99,6 +99,23 @@ npm run build
 
 ---
 
+---
+
+## 📖 Architecture & Deep Systems
+
+For detailed engineering specifications on fixed $120\text{Hz}$ physics, sphere-vs-AABB collision math, zero-allocation ring buffers, procedural WebAudio synthesis, and WebGL render pipelines, see **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+
+---
+
+## 📱 PWA & Offline Standalone Installation
+
+FLOPY.SPACE is a Progressive Web App (PWA) with full offline caching:
+- **Android / Chrome / Desktop**: Tap the in-game **`📲 INSTALL`** button or browser install icon to install as a standalone app.
+- **iOS Safari**: Tap the **Share** button `⎋` $\rightarrow$ **Add to Home Screen** `⊞`.
+- **Offline Ready**: Works $100\%$ offline on airplane mode without internet access.
+
+---
+
 ## 🕹️ Controls
 
 - **Mobile / Touch**: Tap anywhere on screen to flap. Touch-drag carousels to browse heroes & scenes.
