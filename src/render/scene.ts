@@ -10,6 +10,7 @@ export interface SceneCtx {
   ground: THREE.Mesh;
   fog: THREE.Fog;
   setSize: (w: number, h: number) => void;
+  setBiomeGround: (groundHex: number, gridHex?: number) => void;
 }
 
 export function createScene(container: HTMLElement, camera: THREE.PerspectiveCamera): SceneCtx {
@@ -46,8 +47,24 @@ export function createScene(container: HTMLElement, camera: THREE.PerspectiveCam
   ground.position.y = GROUND_Y;
   scene.add(ground);
 
+  const gridHelper = new THREE.GridHelper(100, 40, 0x5a8f3b, 0x5a8f3b);
+  gridHelper.position.y = GROUND_Y + 0.02;
+  scene.add(gridHelper);
+
   const setSize = (w: number, h: number) => {
     renderer.setSize(w, h, false);
+  };
+
+  const setBiomeGround = (groundHex: number, gridHex = 0x5a8f3b) => {
+    (ground.material as THREE.MeshStandardMaterial).color.setHex(groundHex);
+    // update grid colors
+    if (gridHelper) {
+      gridHelper.material = new THREE.LineBasicMaterial({
+        color: gridHex,
+        transparent: true,
+        opacity: 0.35,
+      });
+    }
   };
 
   return {
@@ -59,5 +76,6 @@ export function createScene(container: HTMLElement, camera: THREE.PerspectiveCam
     ground,
     fog,
     setSize,
+    setBiomeGround,
   };
 }

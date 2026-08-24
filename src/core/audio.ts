@@ -44,23 +44,23 @@ export class AudioSys {
     return buffer;
   }
 
-  flap(): void {
+  flap(soundType: "cat" | "dog" | "dragon" | "hamster" | "bird" = "cat"): void {
     if (this.muted || !this.ctx || !this.masterGain) return;
     const now = this.ctx.currentTime;
 
-    // 1. Soft whoosh
+    // 1. Soft base whoosh
     const noise = this.ctx.createBufferSource();
     const noiseBuf = this.flapNoiseBuf || this.createNoiseBuffer(0.1);
     if (noiseBuf) {
       noise.buffer = noiseBuf;
       const filter = this.ctx.createBiquadFilter();
       filter.type = "bandpass";
-      filter.frequency.setValueAtTime(450, now);
+      filter.frequency.setValueAtTime(soundType === "dragon" ? 250 : 450, now);
       filter.frequency.exponentialRampToValueAtTime(1000, now + 0.08);
       filter.Q.setValueAtTime(2, now);
 
       const gain = this.ctx.createGain();
-      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.setValueAtTime(soundType === "dragon" ? 0.35 : 0.2, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
 
       noise.connect(filter);
@@ -71,21 +71,109 @@ export class AudioSys {
       noise.stop(now + 0.08);
     }
 
-    // 2. Cute soft mew/purr chirrup harmonic
+    // 2. Character-Specific Voice Tone
     const osc = this.ctx.createOscillator();
     const oscGain = this.ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(680, now);
-    osc.frequency.exponentialRampToValueAtTime(980, now + 0.06);
 
-    oscGain.gain.setValueAtTime(0.08, now);
-    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+    switch (soundType) {
+      case "cat":
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(680, now);
+        osc.frequency.exponentialRampToValueAtTime(980, now + 0.06);
+        oscGain.gain.setValueAtTime(0.09, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+        break;
+      case "dog":
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.08);
+        oscGain.gain.setValueAtTime(0.14, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        break;
+      case "dragon":
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.exponentialRampToValueAtTime(280, now + 0.1);
+        oscGain.gain.setValueAtTime(0.12, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        break;
+      case "hamster":
+        osc.type = "square";
+        osc.frequency.setValueAtTime(1200, now);
+        osc.frequency.exponentialRampToValueAtTime(1800, now + 0.05);
+        oscGain.gain.setValueAtTime(0.06, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        break;
+      case "bird":
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(1400, now + 0.06);
+        oscGain.gain.setValueAtTime(0.1, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+        break;
+    }
 
     osc.connect(oscGain);
     oscGain.connect(this.masterGain);
 
     osc.start(now);
-    osc.stop(now + 0.07);
+    osc.stop(now + 0.1);
+  }
+
+  feverStart(): void {
+    if (this.muted || !this.ctx || !this.masterGain) return;
+    const now = this.ctx.currentTime;
+    const freqs = [440, 554.37, 659.25, 880, 1108.73];
+    freqs.forEach((f, i) => {
+      if (!this.ctx || !this.masterGain) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = now + i * 0.06;
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(f, t);
+      gain.gain.setValueAtTime(0.2, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t);
+      osc.stop(t + 0.15);
+    });
+  }
+
+  biomeWarp(): void {
+    if (this.muted || !this.ctx || !this.masterGain) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(300, now);
+    osc.frequency.exponentialRampToValueAtTime(900, now + 0.4);
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(now);
+    osc.stop(now + 0.45);
+  }
+
+  missionComplete(): void {
+    if (this.muted || !this.ctx || !this.masterGain) return;
+    const now = this.ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((f, i) => {
+      if (!this.ctx || !this.masterGain) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = now + i * 0.08;
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(f, t);
+      gain.gain.setValueAtTime(0.28, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t);
+      osc.stop(t + 0.18);
+    });
   }
 
   score(combo: number): void {

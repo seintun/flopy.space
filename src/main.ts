@@ -7,8 +7,17 @@ import { AudioSys } from "./core/audio";
 import { initHud } from "./ui/hud";
 import { MenuView } from "./ui/menu";
 import { GameOverView } from "./ui/gameover";
-import { loadAll, saveBest, bankFeathers, touchStreak, SKINS } from "./core/storage";
+import {
+  loadAll,
+  saveBest,
+  bankFeathers,
+  touchStreak,
+  SKINS,
+  getStoredMissions,
+  saveStoredMissions,
+} from "./core/storage";
 import { multiplier } from "./core/scoring";
+import { recordMissionEvent } from "./core/missions";
 
 const app = document.getElementById("app")!;
 const audio = new AudioSys();
@@ -22,20 +31,33 @@ const gameoverView = new GameOverView(app);
 // Load initial save data
 const saved = loadAll();
 audio.setMuted(saved.muted);
-const activeSkin = SKINS[saved.skin] || SKINS.classic!;
-game.birdView.setSkin(activeSkin.bodyColor, activeSkin.bellyColor);
+
+// Initialize selected character & biome
+game.setCharacter(saved.character, saved.skin);
+game.setBiomeOverride(saved.biome);
 
 const menuView = new MenuView(app, {
   onStart: () => {
     audio.unlock();
     game.start(Date.now(), loadAll().feathers);
   },
+  onCharacterChange: (charId) => {
+    game.setCharacter(charId, loadAll().skin);
+  },
   onSkinChange: (skinId) => {
     const s = SKINS[skinId];
-    if (s) game.birdView.setSkin(s.bodyColor, s.bellyColor);
+    if (s) {
+      game.characterView.setSkin(s.bodyColor, s.bellyColor);
+    }
+  },
+  onBiomeChange: (biomeId) => {
+    game.setBiomeOverride(biomeId);
   },
   onMuteToggle: (muted) => {
     audio.setMuted(muted);
+  },
+  onMissionClaim: () => {
+    audio.missionComplete();
   },
 });
 
@@ -86,8 +108,29 @@ game.hooks = {
     hud.setSlowmoMeter(frac);
   },
 
-  onFlap: () => {
-    audio.flap();
+  onFeverChange: (active, frac) => {
+    hud.setFeverMeter(active, frac);
+  },
+
+  onBiomeChange: (biome) => {
+    hud.setBiomeBadge(biome.name, biome.emoji);
+    audio.biomeWarp();
+  },
+
+  onMissionProgress: (event, value = 1) => {
+    const missions = getStoredMissions();
+    const { newlyCompleted } = recordMissionEvent(missions, event, value);
+    if (newlyCompleted.length > 0) {
+      saveStoredMissions(missions);
+      game.juice.popup("QUEST DONE! 🎯", "#00ffc3");
+      audio.missionComplete();
+    } else {
+      saveStoredMissions(missions);
+    }
+  },
+
+  onFlap: (soundType) => {
+    audio.flap(soundType);
   },
 
   onPass: (event) => {

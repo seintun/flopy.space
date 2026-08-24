@@ -17,10 +17,14 @@ import { dayNight } from "./palette";
 import { type SceneCtx } from "../render/scene";
 import { type CameraRig } from "../render/camera";
 import { SkyDome } from "../render/sky";
-import { BirdView } from "../entities/birdView";
+import { CharacterView } from "../entities/characterView";
 import { PipesView } from "../entities/pipesView";
 import { PickupsView } from "../entities/pickupsView";
 import { Juice } from "../systems/juice";
+import { FeverSystem } from "./fever";
+import { getBiomeForScore, BIOMES, type BiomeDef, type BiomeId } from "./biomes";
+import { CHARACTERS, type CharacterId, type SoundType } from "./characters";
+import type { MissionEventType } from "./missions";
 
 export type GameState =
   | "menu"
@@ -34,10 +38,13 @@ export interface GameHooks {
   onStateChange?: (state: GameState) => void;
   onScoreChange?: (score: number, combo: number, feathers: number) => void;
   onSlowmoMeter?: (frac: number) => void;
+  onFeverChange?: (active: boolean, frac: number) => void;
+  onBiomeChange?: (biome: BiomeDef) => void;
+  onMissionProgress?: (event: MissionEventType, value?: number) => void;
   onPass?: (event: PassEvent) => void;
   onOrbCollect?: () => void;
   onHit?: (type: HitType) => void;
-  onFlap?: () => void;
+  onFlap?: (soundType: SoundType) => void;
   onRewindStart?: () => void;
   onRewindChoice?: (feathers: number) => void;
   onRewindComplete?: () => void;
@@ -50,13 +57,18 @@ export class Game {
   world: World;
   time = new TimeSystem();
   buf = new SnapshotBuffer();
+  fever = new FeverSystem();
   private accumulator = makeAccumulator();
 
   sky: SkyDome;
-  birdView: BirdView;
+  characterView: CharacterView;
   pipesView: PipesView;
   pickupsView: PickupsView;
   juice: Juice;
+
+  currentBiome: BiomeDef = BIOMES.meadow;
+  biomeOverride: BiomeId | "auto" = "auto";
+  selectedCharacterId: CharacterId = "neko";
 
   private totalTime = 0;
   private lastTime = 0;
@@ -77,12 +89,31 @@ export class Game {
     this.sky = new SkyDome();
     ctx.scene.add(this.sky.group);
 
-    this.birdView = new BirdView();
-    ctx.scene.add(this.birdView.group);
+    this.characterView = new CharacterView();
+    ctx.scene.add(this.characterView.group);
 
     this.pipesView = new PipesView(ctx.scene);
     this.pickupsView = new PickupsView(ctx.scene);
     this.juice = new Juice(ctx.scene, container);
+
+    this.applyBiome(this.currentBiome);
+  }
+
+  setCharacter(charId: CharacterId, skinId?: string): void {
+    this.selectedCharacterId = charId;
+    this.characterView.setCharacter(charId, skinId);
+  }
+
+  setBiomeOverride(biomeId: BiomeId | "auto"): void {
+    this.biomeOverride = biomeId;
+    this.applyBiome(getBiomeForScore(this.world.score, this.biomeOverride));
+  }
+
+  private applyBiome(biome: BiomeDef): void {
+    this.currentBiome = biome;
+    this.pipesView.setBiomeTheme(biome.pipeColor, biome.pipeLipColor, biome.pipeEmissive);
+    this.ctx.setBiomeGround(biome.groundColor, biome.gridColor);
+    this.hooks.onBiomeChange?.(biome);
   }
 
   setState(next: GameState): void {
@@ -96,12 +127,17 @@ export class Game {
     this.world.feathersRun = Math.min(9, Math.max(0, initialFeathers));
     this.time = new TimeSystem();
     this.buf = new SnapshotBuffer();
+    this.fever.reset();
     this.accumulator.reset();
     this.lastMilestoneCrossed = 0;
+
+    this.applyBiome(getBiomeForScore(0, this.biomeOverride));
+
     this.setState("playing");
     this.doFlap();
     this.hooks.onScoreChange?.(0, 0, this.world.feathersRun);
     this.hooks.onSlowmoMeter?.(0);
+    this.hooks.onFeverChange?.(false, 0);
   }
 
   doFlap(): void {
@@ -111,8 +147,9 @@ export class Game {
     }
     if (this.state === "playing" && this.world.bird.alive) {
       flap(this.world);
-      this.birdView.onFlap();
-      this.hooks.onFlap?.();
+      this.characterView.onFlap();
+      const sound = CHARACTERS[this.selectedCharacterId]?.soundType || "cat";
+      this.hooks.onFlap?.(sound);
     }
   }
 
@@ -138,6 +175,7 @@ export class Game {
     this.world.feathersRun = Math.max(0, feathersBefore - 1);
     this.world.rewindsUsedRun = rewindsBefore + 1;
     this.time = new TimeSystem();
+    this.fever.reset();
     this.accumulator.reset();
     this.juice.popup("REWOUND!", "#00e5ff");
     this.setState("playing");
@@ -161,13 +199,20 @@ export class Game {
 
     this.time.update(realDt);
 
+    const feverResult = this.fever.update(realDt);
+    if (feverResult.ended) {
+      this.hooks.onFeverChange?.(false, 0);
+    } else if (this.fever.isActive) {
+      this.hooks.onFeverChange?.(true, this.fever.meter);
+    }
+
     const shake = this.juice.update(realDt);
 
     let alpha = 1;
 
     switch (this.state) {
       case "menu": {
-        // Idle gentle bird hover
+        // Idle gentle hover
         this.world.bird.y = 1.5 + Math.sin(this.totalTime * 2.5) * 0.25;
         this.world.bird.pitch = Math.cos(this.totalTime * 2.5) * 8;
         break;
@@ -178,6 +223,13 @@ export class Game {
         const slowmoRemaining = this.time.slowmoRemaining();
         this.hooks.onSlowmoMeter?.(slowmoRemaining / SLOWMO_HOLD_S);
 
+        // Fever mode visual trail
+        if (this.fever.isActive) {
+          const colors = [0xff007f, 0x00f5d4, 0xffd166, 0x7209b7, 0xffffff];
+          const col = colors[Math.floor(Math.random() * colors.length)]!;
+          this.juice.burst(-0.4, this.world.bird.y, 0, 2, col);
+        }
+
         alpha = this.accumulator.step(realDt * this.time.scale, this.time.frozen, (dt) => {
           const w = this.world;
           w.scrollSpeed = scrollForScore(w.score);
@@ -185,16 +237,43 @@ export class Game {
           stepBird(w, dt);
           this.buf.record(w);
 
-          // Orb pickup check (distance < 0.9)
+          // Check dynamic biome transition
+          const targetBiome = getBiomeForScore(w.score, this.biomeOverride);
+          if (targetBiome.id !== this.currentBiome.id) {
+            this.applyBiome(targetBiome);
+            this.juice.confetti(0, w.bird.y, 0, 30);
+            this.juice.popup(`${targetBiome.emoji} ${targetBiome.name.toUpperCase()}`, "#00f5d4");
+          }
+
+          // Orb pickup & Magnet check
           for (const orb of w.orbs) {
             if (!orb.taken) {
-              const dx = orb.x - 0; // BIRD_X is 0
+              const dx = orb.x - 0;
               const dy = orb.y - w.bird.y;
-              if (dx * dx + dy * dy < 0.81) {
+              const distSq = dx * dx + dy * dy;
+
+              // Fever magnet attraction
+              if (this.fever.isActive && distSq < this.fever.magnetRadius * this.fever.magnetRadius) {
+                orb.x += (0 - orb.x) * 6 * dt;
+                orb.y += (w.bird.y - orb.y) * 6 * dt;
+              }
+
+              if (distSq < 0.81) {
                 orb.taken = true;
                 this.time.triggerSlowmo();
+                const feverTriggered = this.fever.addEnergy(0.4);
                 this.juice.popup("SLOW-MO", "#00e5ff");
                 this.hooks.onOrbCollect?.();
+                this.hooks.onMissionProgress?.("slowmo");
+
+                if (feverTriggered) {
+                  this.juice.popup("🔥 FEVER RUSH!", "#ff007f");
+                  this.rig.kick(4);
+                  this.hooks.onFeverChange?.(true, 1);
+                  this.hooks.onMissionProgress?.("fever");
+                } else if (!this.fever.isActive) {
+                  this.hooks.onFeverChange?.(false, this.fever.meter);
+                }
               }
             }
           }
@@ -204,6 +283,8 @@ export class Game {
           if (hit) {
             w.bird.alive = false;
             this.time.hitstop(60);
+            this.fever.reset();
+            this.hooks.onFeverChange?.(false, 0);
             this.juice.addTrauma(0.85);
             this.juice.burst(0, w.bird.y, 0, 24, 0xff5252);
             this.setState("hitstop");
@@ -215,17 +296,43 @@ export class Game {
           const passes = processPasses(w);
           for (const p of passes) {
             this.pipesView.flash(p.pipeId);
+
+            // Bonus points during Fever mode
+            const bonusMult = this.fever.scoreMultiplier;
+            if (bonusMult > 1) {
+              p.points *= bonusMult;
+              w.score += p.points - (p.points / bonusMult);
+            }
+
             if (p.nearMiss) {
               this.juice.popup("CLOSE!", "#ff2a6d");
               this.time.triggerMicroFlash();
+              this.hooks.onMissionProgress?.("nearMiss");
             } else {
               this.juice.popup(`+${p.points}`, p.points > 1 ? "#ffd700" : "#ffffff");
             }
+
+            // Add Fever energy on pass
+            const feverTriggered = this.fever.addEnergy(p.nearMiss ? 0.25 : 0.12);
+            if (feverTriggered) {
+              this.juice.popup("🔥 FEVER RUSH!", "#ff007f");
+              this.rig.kick(4);
+              this.hooks.onFeverChange?.(true, 1);
+              this.hooks.onMissionProgress?.("fever");
+            } else if (!this.fever.isActive) {
+              this.hooks.onFeverChange?.(false, this.fever.meter);
+            }
+
             this.hooks.onPass?.(p);
+            this.hooks.onMissionProgress?.("pass");
+            if (w.combo >= 5) {
+              this.hooks.onMissionProgress?.("combo5");
+            }
           }
 
           if (passes.length > 0) {
             this.hooks.onScoreChange?.(w.score, w.combo, w.feathersRun);
+            this.hooks.onMissionProgress?.("scoreMilestone", w.score);
 
             // Milestone check
             const currentMilestone = Math.floor(w.score / MILESTONE_EVERY);
@@ -273,7 +380,7 @@ export class Game {
           this.replayIndex = targetIdx;
           const snap = this.replaySnapshots[this.replayIndex];
           if (snap) {
-            this.birdView.syncFrom(snap, 1, realDt);
+            this.characterView.syncFrom(snap, 1, realDt);
             this.pipesView.syncFrom(snap, 1, realDt);
             this.pickupsView.syncFrom(snap, this.totalTime);
           }
@@ -302,12 +409,12 @@ export class Game {
           ? this.replaySnapshots[this.replaySnapshots.length - 1]
           : this.replaySnapshots[this.replayIndex];
       if (snap) {
-        this.birdView.syncFrom(snap, 1, realDt);
+        this.characterView.syncFrom(snap, 1, realDt);
         this.pipesView.syncFrom(snap, 1, realDt);
         this.pickupsView.syncFrom(snap, this.totalTime);
       }
     } else {
-      this.birdView.syncFrom(this.world, alpha, realDt);
+      this.characterView.syncFrom(this.world, alpha, realDt);
       this.pipesView.syncFrom(this.world, alpha, realDt);
       this.pickupsView.syncFrom(this.world, this.totalTime);
     }

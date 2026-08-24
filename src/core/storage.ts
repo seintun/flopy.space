@@ -1,3 +1,7 @@
+import { CHARACTERS, type CharacterId } from "./characters";
+import { BIOMES, type BiomeId } from "./biomes";
+import { getDailyMissionsForDate, type Mission } from "./missions";
+
 export interface SkinDef {
   id: string;
   name: string;
@@ -19,7 +23,10 @@ export interface SaveData {
   muted: boolean;
   streak: { lastDay: string; count: number };
   skin: string;
+  character: CharacterId;
+  biome: BiomeId | "auto";
   unlocked: string[];
+  unlockedChars: string[];
 }
 
 const PREFIX = "f3d.";
@@ -83,8 +90,23 @@ export function loadAll(): SaveData {
     unlocked = ["classic"];
   }
 
+  let unlockedChars: string[] = ["neko"];
+  try {
+    const rawUnlockedChars = getLocal("unlockedChars");
+    if (rawUnlockedChars) unlockedChars = JSON.parse(rawUnlockedChars);
+    if (!unlockedChars.includes("neko")) unlockedChars.unshift("neko");
+  } catch {
+    unlockedChars = ["neko"];
+  }
+
   let skin = getLocal("skin") || "classic";
   if (!SKINS[skin]) skin = "classic";
+
+  let character = (getLocal("character") || "neko") as CharacterId;
+  if (!CHARACTERS[character]) character = "neko";
+
+  let biome = (getLocal("biome") || "auto") as BiomeId | "auto";
+  if (biome !== "auto" && !BIOMES[biome]) biome = "auto";
 
   return {
     best,
@@ -92,7 +114,10 @@ export function loadAll(): SaveData {
     muted,
     streak,
     skin,
+    character,
+    biome,
     unlocked,
+    unlockedChars,
   };
 }
 
@@ -113,19 +138,29 @@ export function bankFeathers(balanceOrEarned: number, rewindsUsed = 0): number {
   return total;
 }
 
+export function spendFeathers(amount: number): boolean {
+  const data = loadAll();
+  if (data.feathers >= amount) {
+    setLocal("feathers", (data.feathers - amount).toString());
+    return true;
+  }
+  return false;
+}
+
 function parseYMD(str: string): { y: number; m: number; d: number } {
   const [y, m, d] = str.split("-").map(Number);
   return { y: y!, m: m!, d: d! };
 }
 
-function getYMDString(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
+export function getTodayString(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
 
-export function touchStreak(todayStr = getYMDString(new Date())): number {
+export function touchStreak(todayStr = getTodayString()): number {
   const data = loadAll();
   const last = data.streak.lastDay;
 
@@ -136,7 +171,7 @@ export function touchStreak(todayStr = getYMDString(new Date())): number {
   const { y, m, d } = parseYMD(todayStr);
   const localDate = new Date(y, m - 1, d);
   localDate.setDate(localDate.getDate() - 1);
-  const yStr = getYMDString(localDate);
+  const yStr = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, "0")}-${String(localDate.getDate()).padStart(2, "0")}`;
 
   let newCount = 1;
   if (last === yStr) {
@@ -169,6 +204,42 @@ export function setSkin(skinId: string): void {
   }
 }
 
+export function setCharacter(charId: CharacterId): void {
+  if (CHARACTERS[charId]) {
+    setLocal("character", charId);
+  }
+}
+
+export function setBiome(biomeId: BiomeId | "auto"): void {
+  if (biomeId === "auto" || BIOMES[biomeId]) {
+    setLocal("biome", biomeId);
+  }
+}
+
 export function setMuted(muted: boolean): void {
   setLocal("muted", muted.toString());
+}
+
+export function getStoredMissions(): Mission[] {
+  const today = getTodayString();
+  const storedDate = getLocal("missionsDate");
+  const rawMissions = getLocal("missions");
+
+  if (storedDate === today && rawMissions) {
+    try {
+      return JSON.parse(rawMissions);
+    } catch {
+      // fallback
+    }
+  }
+
+  const fresh = getDailyMissionsForDate(today);
+  setLocal("missionsDate", today);
+  setLocal("missions", JSON.stringify(fresh));
+  return fresh;
+}
+
+export function saveStoredMissions(missions: Mission[]): void {
+  setLocal("missionsDate", getTodayString());
+  setLocal("missions", JSON.stringify(missions));
 }

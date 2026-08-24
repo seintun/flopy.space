@@ -79,6 +79,17 @@ export class PipesView {
     }
   }
 
+  private emissiveHex = 0x66ff66;
+
+  setBiomeTheme(pipeHex: number, lipHex: number, emissiveHex: number): void {
+    this.emissiveHex = emissiveHex;
+    for (const p of this.pool) {
+      p.lowerMat.color.setHex(pipeHex);
+      p.upperMat.color.setHex(pipeHex);
+      p.lipMat.color.setHex(lipHex);
+    }
+  }
+
   flash(pipeId: number): void {
     const item = this.pool.find((p) => p.pipeId === pipeId);
     if (item) item.flashTimer = 0.25;
@@ -120,11 +131,11 @@ export class PipesView {
         if (item.flashTimer > 0) {
           item.flashTimer -= dt;
           const flashAmt = Math.max(0, item.flashTimer / 0.25);
-          item.lowerMat.emissive.setHex(0x66ff66);
+          item.lowerMat.emissive.setHex(this.emissiveHex);
           item.lowerMat.emissiveIntensity = flashAmt * 1.5;
-          item.upperMat.emissive.setHex(0x66ff66);
+          item.upperMat.emissive.setHex(this.emissiveHex);
           item.upperMat.emissiveIntensity = flashAmt * 1.5;
-          item.lipMat.emissive.setHex(0x99ff99);
+          item.lipMat.emissive.setHex(this.emissiveHex);
           item.lipMat.emissiveIntensity = flashAmt * 2.0;
         } else {
           item.lowerMat.emissiveIntensity = 0;
