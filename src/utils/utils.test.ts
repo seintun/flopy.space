@@ -4,11 +4,11 @@ import { hexToCss, lerpHex } from "./color";
 
 describe("Shared Utilities", () => {
   describe("time.ts", () => {
-    it("formats durations accurately", () => {
-      expect(formatDuration(0)).toBe("00:00");
-      expect(formatDuration(9)).toBe("00:09");
-      expect(formatDuration(65)).toBe("01:05");
-      expect(formatDuration(65, true)).toBe("01:05s");
+    it("formats durations accurately with sec suffix", () => {
+      expect(formatDuration(0)).toBe("0.00sec");
+      expect(formatDuration(1.55)).toBe("1.55sec");
+      expect(formatDuration(9)).toBe("9.00sec");
+      expect(formatDuration(65)).toBe("01:05sec");
     });
   });
 

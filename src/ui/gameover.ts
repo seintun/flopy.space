@@ -80,7 +80,7 @@ export class GameOverView {
               </div>
               <div style="background: rgba(0, 229, 255, 0.14); border: 1px solid rgba(0, 229, 255, 0.35); border-radius: 12px; padding: 3px 10px; display: flex; align-items: center; gap: 5px;">
                 <span style="font-size: 12px;">⏱️</span>
-                <span id="go-time" style="font-size: 14px; font-weight: 900; color: #00e5ff; font-variant-numeric: tabular-nums;">00:00s</span>
+                <span id="go-time" style="font-size: 14px; font-weight: 900; color: #00e5ff; font-variant-numeric: tabular-nums;">0.00sec</span>
               </div>
             </div>
           </div>
