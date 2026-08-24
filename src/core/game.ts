@@ -201,26 +201,12 @@ export class Game {
       return false;
     }
 
-    const feathersBefore = this.world.feathersRun;
-    const rewindsBefore = this.world.rewindsUsedRun;
-    const success = this.buf.rewindInto(this.world);
-    if (!success) {
-      this.setState("gameOver");
-      this.hooks.onGameOver?.(this.world.score, this.world.runDurationSec);
-      return false;
-    }
-
-    this.world.bird.alive = true;
-    this.world.bird.invulnUntilTick = this.world.tick + INVULN_TICKS;
-    this.world.feathersRun = Math.max(0, feathersBefore - 1);
-    this.world.rewindsUsedRun = rewindsBefore + 1;
-    this.time = new TimeSystem();
-    this.fever.reset();
-    this.accumulator.reset();
-    this.juice.popup("REWOUND!", "#00e5ff", 50, 16);
-    this.setState("playing");
-    this.hooks.onRewindComplete?.();
-    this.hooks.onScoreChange?.(this.world.score, this.world.combo, this.world.feathersRun, this.world.runDurationSec);
+    // Begin dynamic rewind scrub replay now that user has chosen to rewind!
+    this.replaySnapshots = this.buf.getSnapshotsReverse();
+    this.replayIndex = 0;
+    this.replayTimer = 0;
+    this.setState("rewindReplay");
+    this.hooks.onRewindStart?.();
     return true;
   }
 
@@ -424,14 +410,26 @@ export class Game {
               this.hooks.onShieldBreak?.();
             } else {
               w.bird.alive = false;
-              this.time.hitstop(60);
               this.fever.reset();
               this.hooks.onFeverChange?.(false, 0);
               this.juice.addTrauma(0.85);
               this.juice.burst(0, w.bird.y, 0, 24, 0xff5252);
               this.juice.setBorderFx("none");
-              this.setState("hitstop");
               this.hooks.onHit?.(hit);
+
+              const canRewind =
+                this.world.feathersRun > 0 &&
+                this.world.rewindsUsedRun < REWINDS_MAX_PER_RUN &&
+                this.buf.canRewind();
+
+              if (canRewind) {
+                // Freeze the screen on the exact collision frame to show where it went wrong!
+                this.setState("rewindChoice");
+                this.hooks.onRewindChoice?.(this.world.feathersRun);
+              } else {
+                this.time.hitstop(45);
+                this.setState("hitstop");
+              }
               return;
             }
           }
@@ -504,21 +502,8 @@ export class Game {
       case "hitstop": {
         this.juice.setBorderFx("none");
         if (!this.time.frozen) {
-          const canRewind =
-            this.world.feathersRun > 0 &&
-            this.world.rewindsUsedRun < REWINDS_MAX_PER_RUN &&
-            this.buf.canRewind();
-
-          if (canRewind) {
-            this.replaySnapshots = this.buf.getSnapshotsReverse();
-            this.replayIndex = 0;
-            this.replayTimer = 0;
-            this.setState("rewindReplay");
-            this.hooks.onRewindStart?.();
-          } else {
-            this.setState("gameOver");
-            this.hooks.onGameOver?.(this.world.score, this.world.runDurationSec);
-          }
+          this.setState("gameOver");
+          this.hooks.onGameOver?.(this.world.score, this.world.runDurationSec);
         }
         break;
       }
@@ -527,7 +512,7 @@ export class Game {
         this.juice.setBorderFx("slowmo");
         this.replayTimer += realDt;
         const targetIdx = Math.floor(
-          (this.replayTimer / 0.8) * this.replaySnapshots.length,
+          (this.replayTimer / 0.65) * this.replaySnapshots.length,
         );
         if (targetIdx < this.replaySnapshots.length) {
           this.replayIndex = targetIdx;
@@ -538,8 +523,32 @@ export class Game {
             this.pickupsView.syncFrom(snap, this.totalTime);
           }
         } else {
-          this.setState("rewindChoice");
-          this.hooks.onRewindChoice?.(this.world.feathersRun);
+          // Rewind replay complete -> Restore snapshot and resume playing seamlessly!
+          const feathersBefore = this.world.feathersRun;
+          const rewindsBefore = this.world.rewindsUsedRun;
+          const success = this.buf.rewindInto(this.world);
+          if (!success) {
+            this.setState("gameOver");
+            this.hooks.onGameOver?.(this.world.score, this.world.runDurationSec);
+            return;
+          }
+
+          this.world.bird.alive = true;
+          this.world.bird.invulnUntilTick = this.world.tick + INVULN_TICKS;
+          this.world.feathersRun = Math.max(0, feathersBefore - 1);
+          this.world.rewindsUsedRun = rewindsBefore + 1;
+          this.time = new TimeSystem();
+          this.fever.reset();
+          this.accumulator.reset();
+          this.juice.popupAtWorld("REWOUND!", 0, this.world.bird.y, 0, this.ctx.camera, "#00e5ff", 0.85);
+          this.setState("playing");
+          this.hooks.onRewindComplete?.();
+          this.hooks.onScoreChange?.(
+            this.world.score,
+            this.world.combo,
+            this.world.feathersRun,
+            this.world.runDurationSec,
+          );
         }
         break;
       }
