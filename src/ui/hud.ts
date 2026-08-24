@@ -74,14 +74,14 @@ export function initHud(container: HTMLElement): HudApi {
 
     <!-- Header info: Biome badge, Score, Combo, Survival Time, Feathers -->
     <div id="hud-header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; opacity: 0; transition: opacity 0.25s ease;">
-      <!-- Left: Compact Biome badge -->
-      <div id="hud-biome" style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 4px 10px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 4px 16px rgba(0,0,0,0.3); max-width: 105px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-        <span id="hud-biome-emoji">🌿</span> <span id="hud-biome-name">Meadow</span>
+      <!-- Left: High-Glance Biome badge -->
+      <div id="hud-biome" role="status" aria-label="Current biome" style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 6px 14px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,0.2); box-shadow: 0 4px 16px rgba(0,0,0,0.4); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        <span id="hud-biome-emoji" style="font-size: 16px;">🌿</span> <span id="hud-biome-name">Meadow</span>
       </div>
 
       <!-- Center: Compact Score + Combo Badge + Fever Alert + Power-up Badges -->
       <div style="display: flex; flex-direction: column; align-items: center; pointer-events: none;">
-        <div id="hud-score" style="font-size: clamp(42px, 11vw, 56px); font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; line-height: 0.95; text-shadow: 0 4px 20px rgba(0,0,0,0.7); letter-spacing: -0.02em;">
+        <div id="hud-score" role="status" aria-label="Current score" style="font-size: clamp(44px, 12vw, 58px); font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; line-height: 0.95; text-shadow: 0 4px 20px rgba(0,0,0,0.7); letter-spacing: -0.02em;">
           0
         </div>
         <div id="hud-combo" style="display: none; margin-top: 4px; background: linear-gradient(135deg, #ff2a6d, #ff6200); color: #fff; font-size: 11px; font-weight: 800; padding: 3px 12px; border-radius: 10px; letter-spacing: 0.5px; box-shadow: 0 2px 10px rgba(255,42,109,0.5); text-transform: uppercase;">
@@ -103,13 +103,13 @@ export function initHud(container: HTMLElement): HudApi {
         </div>
       </div>
 
-      <!-- Right: Time Survived & Feathers -->
-      <div style="display: flex; gap: 6px; align-items: center;">
-        <div id="hud-time" style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 4px 10px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
-          ⏱️ <span id="hud-time-val">00:00</span>
+      <!-- Right: High-Glance Time Survived & Feathers -->
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <div id="hud-time" role="status" aria-label="Time survived" style="display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 6px 12px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,0.2); box-shadow: 0 4px 16px rgba(0,0,0,0.4);">
+          <span style="font-size: 14px;">⏱️</span> <span id="hud-time-val" style="font-variant-numeric: tabular-nums;">00:00</span>
         </div>
-        <div id="hud-feathers" style="display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 800; color: #00e5ff; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 4px 10px; border-radius: 16px; border: 1px solid rgba(0,229,255,0.3); box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
-          <span>🪶</span> <span id="hud-feather-count">0</span>
+        <div id="hud-feathers" role="status" aria-label="Feathers available" style="display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 900; color: #00e5ff; background: rgba(13, 17, 30, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 6px 14px; border-radius: 20px; border: 1.5px solid rgba(0,229,255,0.45); box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 12px rgba(0,229,255,0.25);">
+          <span style="font-size: 16px;">🪶</span> <span id="hud-feather-count" style="font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums;">0</span>
         </div>
       </div>
     </div>
