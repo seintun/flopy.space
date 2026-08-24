@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { GROUND_Y } from "../core/constants";
+import { BiomeVfx } from "./biomeVfx";
 
 export interface SceneCtx {
   renderer: THREE.WebGLRenderer;
@@ -9,6 +10,7 @@ export interface SceneCtx {
   hemiLight: THREE.HemisphereLight;
   ground: THREE.Mesh;
   fog: THREE.Fog;
+  biomeVfx: BiomeVfx;
   setSize: (w: number, h: number) => void;
   setBiomeGround: (groundHex: number, gridHex?: number) => void;
 }
@@ -51,6 +53,9 @@ export function createScene(container: HTMLElement, camera: THREE.PerspectiveCam
   gridHelper.position.y = GROUND_Y + 0.02;
   scene.add(gridHelper);
 
+  const biomeVfx = new BiomeVfx();
+  scene.add(biomeVfx.group);
+
   const setSize = (w: number, h: number) => {
     renderer.setSize(w, h, false);
   };
@@ -75,6 +80,7 @@ export function createScene(container: HTMLElement, camera: THREE.PerspectiveCam
     hemiLight,
     ground,
     fog,
+    biomeVfx,
     setSize,
     setBiomeGround,
   };

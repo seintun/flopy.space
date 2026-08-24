@@ -91,11 +91,27 @@ export const BIOMES: Record<BiomeId, BiomeDef> = {
 
 export const BIOME_ORDER: BiomeId[] = ["meadow", "cyber", "candy", "magma"];
 
-export function getBiomeForScore(score: number, overrideBiome?: BiomeId | "auto"): BiomeDef {
+export function getBiomeForScore(
+  score: number,
+  overrideBiome?: BiomeId | "auto",
+  seed = 0,
+): BiomeDef {
   if (overrideBiome && overrideBiome !== "auto" && BIOMES[overrideBiome]) {
     return BIOMES[overrideBiome]!;
   }
-  const cycleIndex = Math.floor(Math.max(0, score) / 20) % BIOME_ORDER.length;
-  const biomeId = BIOME_ORDER[cycleIndex] || "meadow";
-  return BIOMES[biomeId] || BIOMES.meadow!;
+  const tier = Math.floor(Math.max(0, score) / 20);
+  if (tier === 0) {
+    return BIOMES.meadow;
+  }
+
+  // Guaranteed non-repeating pseudo-random sequence
+  let prevIndex = 0; // meadow
+  for (let t = 1; t <= tier; t++) {
+    const h = Math.imul(t ^ (seed + 101), 0x45d9f3b) ^ (seed >>> 3);
+    const step = 1 + (Math.abs(h) % (BIOME_ORDER.length - 1));
+    prevIndex = (prevIndex + step) % BIOME_ORDER.length;
+  }
+
+  const biomeId = BIOME_ORDER[prevIndex] || "meadow";
+  return BIOMES[biomeId] || BIOMES.meadow;
 }

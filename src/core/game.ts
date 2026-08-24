@@ -138,6 +138,7 @@ export class Game {
     this.currentBiome = biome;
     this.pipesView.setBiomeTheme(biome.pipeColor, biome.pipeLipColor, biome.pipeEmissive);
     this.ctx.setBiomeGround(biome.groundColor, biome.gridColor);
+    this.ctx.biomeVfx.setBiome(biome.id);
     this.hooks.onBiomeChange?.(biome);
   }
 
@@ -343,8 +344,8 @@ export class Game {
           stepBird(w, dt);
           this.buf.record(w);
 
-          // Check dynamic biome transition
-          const targetBiome = getBiomeForScore(w.score, this.biomeOverride);
+          // Check dynamic randomized biome transition
+          const targetBiome = getBiomeForScore(w.score, this.biomeOverride, w.rngState);
           if (targetBiome.id !== this.currentBiome.id) {
             this.applyBiome(targetBiome);
             this.juice.confetti(0, w.bird.y, 0, 30);
@@ -648,6 +649,7 @@ export class Game {
 
     this.trailView.update(this.world, realDt, this.totalTime);
     this.rig.update(realDt, this.world.bird.y);
+    this.ctx.biomeVfx.update(realDt, this.world.scrollSpeed);
 
     // Apply shake offset to camera
     this.ctx.camera.position.x += shake.ox;
