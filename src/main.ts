@@ -149,18 +149,23 @@ game.hooks = {
     switch (type) {
       case "slowmo":
         audio.collect();
+        hud.showPowerUpToast("⏱️", "CHRONO SLOW-MO", "Time dilated to 0.35× speed", "#00e5ff");
         break;
       case "rainbow_trail":
         audio.rainbowTrail();
+        hud.showPowerUpToast("🌈", "RAINBOW TRAIL", "Trajectory guide + 3× multiplier", "#ff007f");
         break;
       case "shield":
         audio.shieldActive();
+        hud.showPowerUpToast("🛡️", "STAR SHIELD", "Blocks 1 fatal crash safely", "#ffd700");
         break;
       case "magnet":
         audio.magnetActive();
+        hud.showPowerUpToast("🧲", "SUPER MAGNET", "Vacuum pulls all items & orbs", "#00f5d4");
         break;
       case "star_gem":
         audio.starGem();
+        hud.showPowerUpToast("⭐", "STAR GEM", "+500 Bonus score + combo up", "#ffbe0b");
         break;
       default:
         audio.collect();
@@ -169,6 +174,7 @@ game.hooks = {
 
   onShieldBreak: () => {
     audio.shieldBreak();
+    hud.showPowerUpToast("💥", "SHIELD BROKE", "Saved you from fatal crash!", "#ffd700");
   },
 
   onHit: () => {

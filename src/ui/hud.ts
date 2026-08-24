@@ -6,6 +6,7 @@ export interface HudApi {
   setFeverMeter: (active: boolean, frac: number) => void;
   setBiomeBadge: (name: string, emoji: string) => void;
   setPowerUps: (rainbowLeft: number, hasShield: boolean, magnetLeft: number) => void;
+  showPowerUpToast: (icon: string, title: string, benefit: string, color: string) => void;
   showMenu: () => void;
   hideMenu: () => void;
   showRewindPrompt: (feathers: number, onRewind: () => void, onGiveUp: () => void) => void;
@@ -37,6 +38,15 @@ export function initHud(container: HTMLElement): HudApi {
       <div id="fever-meter-bar" style="position: absolute; top: 0; left: 0; width: 0%; height: 100%; background: linear-gradient(90deg, #ff007f, #ffd166, #00f5d4); box-shadow: 0 0 14px #ff007f; transition: width 0.05s linear;"></div>
     </div>
 
+    <!-- Power-Up Pickup Toast Banner (Top Center, Non-Distracting) -->
+    <div id="hud-powerup-toast" style="position: absolute; top: 22px; left: 50%; transform: translateX(-50%) translateY(-20px); opacity: 0; pointer-events: none; z-index: 35; transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.25s ease; display: flex; align-items: center; gap: 8px; background: rgba(10, 15, 30, 0.9); border: 1.5px solid #00e5ff; border-radius: 20px; padding: 6px 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 20px rgba(0,229,255,0.3); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);">
+      <span id="hud-toast-icon" style="font-size: 20px;">🛡️</span>
+      <div style="display: flex; flex-direction: column;">
+        <span id="hud-toast-title" style="font-size: 12px; font-weight: 900; color: #fff; letter-spacing: 0.5px; text-transform: uppercase;">SHIELD ACTIVE</span>
+        <span id="hud-toast-benefit" style="font-size: 10px; font-weight: 700; color: #00e5ff; letter-spacing: 0.2px;">Blocks 1 fatal crash</span>
+      </div>
+    </div>
+
     <!-- Header info: Biome badge, Score, Combo, Feathers -->
     <div id="hud-header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; opacity: 0; transition: opacity 0.25s ease;">
       <!-- Left: Biome badge -->
@@ -44,7 +54,7 @@ export function initHud(container: HTMLElement): HudApi {
         <span id="hud-biome-emoji">🌿</span> <span id="hud-biome-name">Meadow</span>
       </div>
 
-      <!-- Center: Big Score + Combo Badge + Fever Alert -->
+      <!-- Center: Big Score + Combo Badge + Fever Alert + Power-up Badges -->
       <div style="display: flex; flex-direction: column; align-items: center; pointer-events: none;">
         <div id="hud-score" style="font-size: 58px; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; line-height: 1; text-shadow: 0 4px 20px rgba(0,0,0,0.7); letter-spacing: -0.02em;">
           0
@@ -56,14 +66,14 @@ export function initHud(container: HTMLElement): HudApi {
           🔥 FEVER RUSH 2X
         </div>
         <div id="hud-powerup-pills" style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; justify-content: center;">
-          <div id="hud-pill-rainbow" style="display: none; font-size: 11px; font-weight: 800; color: #fff; background: linear-gradient(135deg, rgba(255,0,127,0.7), rgba(0,212,255,0.7)); padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 0 10px rgba(255,0,127,0.4);">
-            🌈 RAINBOW <span id="hud-pill-rainbow-time">7s</span>
+          <div id="hud-pill-rainbow" style="display: none; font-size: 11px; font-weight: 800; color: #fff; background: linear-gradient(135deg, rgba(255,0,127,0.75), rgba(0,212,255,0.75)); padding: 4px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.35); box-shadow: 0 0 12px rgba(255,0,127,0.45);">
+            🌈 TRAIL 3X <span id="hud-pill-rainbow-time">7s</span>
           </div>
-          <div id="hud-pill-shield" style="display: none; font-size: 11px; font-weight: 800; color: #ffd700; background: rgba(255,215,0,0.25); padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(255,215,0,0.5); box-shadow: 0 0 10px rgba(255,215,0,0.4);">
-            🛡️ SHIELD
+          <div id="hud-pill-shield" style="display: none; font-size: 11px; font-weight: 800; color: #ffd700; background: rgba(255,215,0,0.25); padding: 4px 12px; border-radius: 12px; border: 1px solid rgba(255,215,0,0.55); box-shadow: 0 0 12px rgba(255,215,0,0.45);">
+            🛡️ 1-HIT GUARD
           </div>
-          <div id="hud-pill-magnet" style="display: none; font-size: 11px; font-weight: 800; color: #00f5d4; background: rgba(0,245,212,0.25); padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(0,245,212,0.5); box-shadow: 0 0 10px rgba(0,245,212,0.4);">
-            🧲 MAGNET <span id="hud-pill-magnet-time">6s</span>
+          <div id="hud-pill-magnet" style="display: none; font-size: 11px; font-weight: 800; color: #00f5d4; background: rgba(0,245,212,0.25); padding: 4px 12px; border-radius: 12px; border: 1px solid rgba(0,245,212,0.55); box-shadow: 0 0 12px rgba(0,245,212,0.45);">
+            🧲 VACUUM <span id="hud-pill-magnet-time">6s</span>
           </div>
         </div>
       </div>
@@ -94,6 +104,12 @@ export function initHud(container: HTMLElement): HudApi {
   `;
 
   container.appendChild(hud);
+
+  const toastEl = hud.querySelector("#hud-powerup-toast") as HTMLElement;
+  const toastIcon = hud.querySelector("#hud-toast-icon") as HTMLElement;
+  const toastTitle = hud.querySelector("#hud-toast-title") as HTMLElement;
+  const toastBenefit = hud.querySelector("#hud-toast-benefit") as HTMLElement;
+  let toastTimeout: ReturnType<typeof setTimeout> | null = null;
 
   const headerEl = hud.querySelector("#hud-header") as HTMLElement;
   const scoreEl = hud.querySelector("#hud-score")!;
@@ -160,8 +176,28 @@ export function initHud(container: HTMLElement): HudApi {
         magnetPill.style.display = "none";
       }
     },
+    showPowerUpToast(icon: string, title: string, benefit: string, color: string) {
+      if (toastTimeout) clearTimeout(toastTimeout);
+
+      toastIcon.textContent = icon;
+      toastTitle.textContent = title;
+      toastBenefit.textContent = benefit;
+      toastBenefit.style.color = color;
+      toastEl.style.borderColor = color;
+      toastEl.style.boxShadow = `0 8px 30px rgba(0,0,0,0.6), 0 0 20px ${color}55`;
+
+      toastEl.style.opacity = "1";
+      toastEl.style.transform = "translateX(-50%) translateY(0px)";
+
+      toastTimeout = setTimeout(() => {
+        toastEl.style.opacity = "0";
+        toastEl.style.transform = "translateX(-50%) translateY(-20px)";
+      }, 1400);
+    },
     showMenu() {
       headerEl.style.opacity = "0";
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastEl.style.opacity = "0";
     },
     hideMenu() {
       headerEl.style.opacity = "1";

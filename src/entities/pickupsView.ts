@@ -9,6 +9,13 @@ interface PooledPickup {
   magnetGroup: THREE.Group;
   starGroup: THREE.Group;
 
+  // In-world floating label sprites
+  clockSprite: THREE.Sprite;
+  rainbowSprite: THREE.Sprite;
+  shieldSprite: THREE.Sprite;
+  magnetSprite: THREE.Sprite;
+  starSprite: THREE.Sprite;
+
   // Specific meshes for animation
   clockRing: THREE.Mesh;
   clockHour: THREE.Mesh;
@@ -20,6 +27,45 @@ interface PooledPickup {
   starMesh: THREE.Mesh;
 
   orbId: number;
+}
+
+function createTextSprite(text: string, borderColor: string): THREE.Sprite {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 64;
+  const ctx = canvas.getContext("2d")!;
+
+  // Draw rounded pill background
+  ctx.fillStyle = "rgba(10, 15, 30, 0.85)";
+  ctx.beginPath();
+  ctx.roundRect(8, 8, 240, 48, 24);
+  ctx.fill();
+
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.roundRect(8, 8, 240, 48, 24);
+  ctx.stroke();
+
+  // Draw icon + text
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 21px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, 128, 32);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.minFilter = THREE.LinearFilter;
+  const mat = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    opacity: 0.92,
+    depthWrite: false,
+  });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(1.4, 0.35, 1);
+  sprite.position.y = 0.68;
+  return sprite;
 }
 
 export class PickupsView {
@@ -66,8 +112,9 @@ export class PickupsView {
       clockHour.position.z = 0.34;
       const clockMinute = new THREE.Mesh(clockHandGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
       clockMinute.position.z = 0.34;
+      const clockSprite = createTextSprite("⏱️ SLOW-MO", "#00e5ff");
 
-      clockGroup.add(clockCore, clockRing, clockHour, clockMinute);
+      clockGroup.add(clockCore, clockRing, clockHour, clockMinute, clockSprite);
       pGroup.add(clockGroup);
 
       // 2. RAINBOW PRISM
@@ -85,7 +132,8 @@ export class PickupsView {
         new THREE.MeshBasicMaterial({ color: 0xffd166, transparent: true, opacity: 0.8 }),
       );
       rainbowHalo.rotation.x = Math.PI / 3;
-      rainbowGroup.add(rainbowPrism, rainbowHalo);
+      const rainbowSprite = createTextSprite("🌈 TRAIL 3X", "#ff007f");
+      rainbowGroup.add(rainbowPrism, rainbowHalo, rainbowSprite);
       pGroup.add(rainbowGroup);
 
       // 3. SHIELD BUBBLE
@@ -109,7 +157,8 @@ export class PickupsView {
           roughness: 0.2,
         }),
       );
-      shieldGroup.add(shieldBubble, shieldStar);
+      const shieldSprite = createTextSprite("🛡️ SHIELD", "#ffd700");
+      shieldGroup.add(shieldBubble, shieldStar, shieldSprite);
       pGroup.add(shieldGroup);
 
       // 4. MAGNET
@@ -127,7 +176,8 @@ export class PickupsView {
         new THREE.SphereGeometry(0.22, 10, 8),
         new THREE.MeshBasicMaterial({ color: 0xffffff }),
       );
-      magnetGroup.add(magnetRing, magnetCore);
+      const magnetSprite = createTextSprite("🧲 MAGNET", "#00f5d4");
+      magnetGroup.add(magnetRing, magnetCore, magnetSprite);
       pGroup.add(magnetGroup);
 
       // 5. STAR GEM
@@ -142,7 +192,8 @@ export class PickupsView {
           metalness: 0.5,
         }),
       );
-      starGroup.add(starMesh);
+      const starSprite = createTextSprite("⭐ +500 PTS", "#ffbe0b");
+      starGroup.add(starMesh, starSprite);
       pGroup.add(starGroup);
 
       pGroup.visible = false;
@@ -155,6 +206,11 @@ export class PickupsView {
         shieldGroup,
         magnetGroup,
         starGroup,
+        clockSprite,
+        rainbowSprite,
+        shieldSprite,
+        magnetSprite,
+        starSprite,
         clockRing,
         clockHour,
         clockMinute,
