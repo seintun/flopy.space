@@ -74,47 +74,50 @@ export function initHud(container: HTMLElement): HudApi {
       </div>
     </div>
 
-    <!-- Header info: Biome badge, Score, Combo, Survival Time, Feathers -->
-    <div id="hud-header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; opacity: 0; transition: opacity 0.25s ease;">
-      <!-- Left: High-Glance Biome badge -->
-      <div id="hud-biome" role="status" aria-label="Current biome" style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 6px 14px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,0.2); box-shadow: 0 4px 16px rgba(0,0,0,0.4); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-        <span id="hud-biome-emoji" style="font-size: 16px;">🌿</span> <span id="hud-biome-name">Meadow</span>
+    <!-- Header info: Left (Biome + Time) | Center (Score) | Right (Feathers) -->
+    <div id="hud-header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; opacity: 0; transition: opacity 0.25s ease; box-sizing: border-box;">
+      
+      <!-- Left Anchor: Biome + Time Capsule (Symmetric to right side) -->
+      <div id="hud-left" style="flex: 1; display: flex; justify-content: flex-start; align-items: center; min-width: 0;">
+        <div id="hud-biome-pill" role="status" aria-label="Current biome and time" style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 5px 10px; border-radius: 18px; border: 1.5px solid rgba(255,255,255,0.18); box-shadow: 0 4px 16px rgba(0,0,0,0.4); max-width: 130px; box-sizing: border-box;">
+          <span id="hud-biome-emoji" style="font-size: 14px; line-height: 1;">🌿</span>
+          <span id="hud-biome-name" style="font-size: 11px; font-weight: 800; color: #e2e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55px;">Meadow</span>
+          <span style="color: rgba(255,255,255,0.25); font-size: 10px;">•</span>
+          <span id="hud-time-val" style="font-size: 11px; font-weight: 800; color: #00f5d4; font-variant-numeric: tabular-nums;">00:00</span>
+        </div>
       </div>
 
-      <!-- Center: Compact Score + Combo Badge + Fever Alert + Power-up Badges -->
-      <div style="display: flex; flex-direction: column; align-items: center; pointer-events: none;">
-        <div id="hud-score" role="status" aria-label="Current score" style="font-size: clamp(44px, 12vw, 58px); font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; line-height: 0.95; text-shadow: 0 4px 20px rgba(0,0,0,0.7); letter-spacing: -0.02em;">
+      <!-- Center Anchor: Large Focused Score + Secondary Pipes Counter -->
+      <div id="hud-center" style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; pointer-events: none; margin: 0 4px;">
+        <div id="hud-score" role="status" aria-label="Current score" style="font-size: clamp(38px, 11vw, 52px); font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; line-height: 0.92; text-shadow: 0 4px 20px rgba(0,0,0,0.7); letter-spacing: -0.02em;">
           0
         </div>
-        <div id="hud-score-sub" style="font-size: 11px; font-weight: 800; color: #cbd5e1; margin-top: 3px; background: rgba(13, 17, 30, 0.65); padding: 2px 8px; border-radius: 8px; text-shadow: 0 1px 4px rgba(0,0,0,0.8);">
-          <span id="hud-raw-pipes">0</span> pipes <span id="hud-bonus-tag" style="color: #ffd700; display: none;">(+0 bonus)</span>
+        <div id="hud-score-sub" style="font-size: 10px; font-weight: 800; color: #cbd5e1; margin-top: 2px; background: rgba(13, 17, 30, 0.65); padding: 1px 7px; border-radius: 7px; text-shadow: 0 1px 4px rgba(0,0,0,0.8); white-space: nowrap;">
+          <span id="hud-raw-pipes">0</span> pipes <span id="hud-bonus-tag" style="color: #ffd700; display: none;">(+0)</span>
         </div>
-        <div id="hud-combo" style="display: none; margin-top: 4px; background: linear-gradient(135deg, #ff2a6d, #ff6200); color: #fff; font-size: 11px; font-weight: 800; padding: 3px 12px; border-radius: 10px; letter-spacing: 0.5px; box-shadow: 0 2px 10px rgba(255,42,109,0.5); text-transform: uppercase;">
+        <div id="hud-combo" style="display: none; margin-top: 3px; background: linear-gradient(135deg, #ff2a6d, #ff6200); color: #fff; font-size: 10px; font-weight: 800; padding: 2px 10px; border-radius: 8px; letter-spacing: 0.5px; box-shadow: 0 2px 10px rgba(255,42,109,0.5); text-transform: uppercase;">
           COMBO ×1
         </div>
-        <div id="hud-fever" style="display: none; margin-top: 3px; background: linear-gradient(135deg, #ff007f, #7209b7); color: #fff; font-size: 10px; font-weight: 900; padding: 3px 10px; border-radius: 10px; letter-spacing: 1px; animation: softGlowPulse 0.8s infinite alternate; text-transform: uppercase; box-shadow: 0 0 14px #ff007f;">
-          🔥 FEVER RUSH 2X
+        <div id="hud-fever" style="display: none; margin-top: 3px; background: linear-gradient(135deg, #ff007f, #7209b7); color: #fff; font-size: 9px; font-weight: 900; padding: 2px 8px; border-radius: 8px; letter-spacing: 0.5px; animation: softGlowPulse 0.8s infinite alternate; text-transform: uppercase; box-shadow: 0 0 14px #ff007f;">
+          🔥 FEVER 2X
         </div>
-        <div id="hud-powerup-pills" style="display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; justify-content: center;">
-          <div id="hud-pill-rainbow" style="display: none; font-size: 10px; font-weight: 800; color: #fff; background: linear-gradient(135deg, rgba(255,0,127,0.75), rgba(0,212,255,0.75)); padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.35); box-shadow: 0 0 10px rgba(255,0,127,0.45);">
-            🌈 TRAIL 3X <span id="hud-pill-rainbow-time">7s</span>
+        <div id="hud-powerup-pills" style="display: flex; gap: 4px; margin-top: 3px; flex-wrap: wrap; justify-content: center;">
+          <div id="hud-pill-rainbow" style="display: none; font-size: 9px; font-weight: 800; color: #fff; background: linear-gradient(135deg, rgba(255,0,127,0.75), rgba(0,212,255,0.75)); padding: 2px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.35); box-shadow: 0 0 10px rgba(255,0,127,0.45);">
+            🌈 3X <span id="hud-pill-rainbow-time">7s</span>
           </div>
-          <div id="hud-pill-shield" style="display: none; font-size: 10px; font-weight: 800; color: #ffd700; background: rgba(255,215,0,0.25); padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(255,215,0,0.55); box-shadow: 0 0 10px rgba(255,215,0,0.45);">
-            🛡️ 1-HIT GUARD
+          <div id="hud-pill-shield" style="display: none; font-size: 9px; font-weight: 800; color: #ffd700; background: rgba(255,215,0,0.25); padding: 2px 8px; border-radius: 8px; border: 1px solid rgba(255,215,0,0.55); box-shadow: 0 0 10px rgba(255,215,0,0.45);">
+            🛡️ SHIELD
           </div>
-          <div id="hud-pill-magnet" style="display: none; font-size: 10px; font-weight: 800; color: #00f5d4; background: rgba(0,245,212,0.25); padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(0,245,212,0.55); box-shadow: 0 0 10px rgba(0,245,212,0.45);">
+          <div id="hud-pill-magnet" style="display: none; font-size: 9px; font-weight: 800; color: #00f5d4; background: rgba(0,245,212,0.25); padding: 2px 8px; border-radius: 8px; border: 1px solid rgba(0,245,212,0.55); box-shadow: 0 0 10px rgba(0,245,212,0.45);">
             🧲 VACUUM <span id="hud-pill-magnet-time">6s</span>
           </div>
         </div>
       </div>
 
-      <!-- Right: High-Glance Time Survived & Feathers -->
-      <div style="display: flex; gap: 8px; align-items: center;">
-        <div id="hud-time" role="status" aria-label="Time survived" style="display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 6px 12px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,0.2); box-shadow: 0 4px 16px rgba(0,0,0,0.4);">
-          <span style="font-size: 14px;">⏱️</span> <span id="hud-time-val" style="font-variant-numeric: tabular-nums;">00:00</span>
-        </div>
-        <div id="hud-feathers" role="status" aria-label="Feathers available" style="display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 900; color: #00e5ff; background: rgba(13, 17, 30, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 6px 14px; border-radius: 20px; border: 1.5px solid rgba(0,229,255,0.45); box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 12px rgba(0,229,255,0.25);">
-          <span style="font-size: 16px;">🪶</span> <span id="hud-feather-count" style="font-size: 14px; font-weight: 900; font-variant-numeric: tabular-nums;">0/3</span>
+      <!-- Right Anchor: Feathers Bank (Symmetric to left side) -->
+      <div id="hud-right" style="flex: 1; display: flex; justify-content: flex-end; align-items: center; min-width: 0;">
+        <div id="hud-feathers" role="status" aria-label="Feathers available" style="display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 900; color: #00e5ff; background: rgba(13, 17, 30, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 5px 12px; border-radius: 18px; border: 1.5px solid rgba(0,229,255,0.45); box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 12px rgba(0,229,255,0.25); box-sizing: border-box;">
+          <span style="font-size: 14px; line-height: 1;">🪶</span> <span id="hud-feather-count" style="font-size: 13px; font-weight: 900; font-variant-numeric: tabular-nums;">0/3</span>
         </div>
       </div>
     </div>
@@ -242,7 +245,12 @@ export function initHud(container: HTMLElement): HudApi {
       feverEl.style.display = active ? "block" : "none";
     },
     setBiomeBadge(name: string, emoji: string) {
-      biomeName.textContent = name;
+      const shortName = name
+        .replace("Emerald ", "")
+        .replace("Neon ", "")
+        .replace(" Kingdom", "")
+        .replace(" Rift", "");
+      biomeName.textContent = shortName;
       biomeEmoji.textContent = emoji;
     },
     setPowerUps(rainbowLeft: number, hasShield: boolean, magnetLeft: number) {
