@@ -83,18 +83,18 @@ export class MenuView {
           </div>
         </div>
 
-        <!-- Title & Sub-goals (Docked cleanly at top, 100% clearing middle 3D hero stage) -->
-        <div style="display: flex; flex-direction: column; align-items: center; margin-top: 6px; animation: titleFloat 2.5s ease-in-out infinite alternate;">
-          <h1 style="font-size: clamp(24px, 7vw, 36px); font-weight: 900; margin: 0 0 2px 0; background: linear-gradient(180deg, #ffffff 15%, #bae6fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 20px rgba(0, 229, 255, 0.45)); letter-spacing: -0.02em; text-align: center; line-height: 1.1;">
+        <!-- Title & Sub-goals (Positioned directly above the 3D hero stage) -->
+        <div style="display: flex; flex-direction: column; align-items: center; margin-top: clamp(24px, 7vh, 52px); animation: titleFloat 2.5s ease-in-out infinite alternate;">
+          <h1 style="font-size: clamp(28px, 8vw, 42px); font-weight: 900; margin: 0 0 4px 0; background: linear-gradient(180deg, #ffffff 15%, #bae6fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 20px rgba(0, 229, 255, 0.45)); letter-spacing: -0.02em; text-align: center; line-height: 1.1;">
             FLOPY.SPACE
           </h1>
           
           <!-- Best Score & Active Goal Row -->
           <div style="display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap;">
-            <div id="menu-best-label" style="font-size: 10px; font-weight: 800; color: #bae6fd; letter-spacing: 0.5px; text-transform: uppercase; background: rgba(13, 17, 30, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); padding: 2px 9px; border-radius: 10px; backdrop-filter: blur(8px);">
+            <div id="menu-best-label" style="font-size: 11px; font-weight: 800; color: #bae6fd; letter-spacing: 0.5px; text-transform: uppercase; background: rgba(13, 17, 30, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); padding: 3px 10px; border-radius: 12px; backdrop-filter: blur(8px);">
               BEST <span id="menu-best-val" style="color: #fff; margin-left: 2px;">0</span>
             </div>
-            <div id="menu-goal-pill" style="font-size: 10px; font-weight: 800; color: #00f5d4; background: rgba(13, 17, 30, 0.65); border: 1px solid rgba(0, 245, 212, 0.35); padding: 2px 9px; border-radius: 10px; backdrop-filter: blur(8px); box-shadow: 0 2px 10px rgba(0,245,212,0.2);">
+            <div id="menu-goal-pill" style="font-size: 11px; font-weight: 800; color: #00f5d4; background: rgba(13, 17, 30, 0.65); border: 1px solid rgba(0, 245, 212, 0.35); padding: 3px 10px; border-radius: 12px; backdrop-filter: blur(8px); box-shadow: 0 2px 10px rgba(0,245,212,0.2);">
               🎯 Next: 🐱 Neko (0/15)
             </div>
           </div>
