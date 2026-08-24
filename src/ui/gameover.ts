@@ -1,9 +1,7 @@
 import { CHARACTERS, type CharacterId, isCharacterUnlocked } from "../core/characters";
-import { BIOMES, type BiomeId } from "../core/biomes";
 import {
   loadAll,
   setCharacter,
-  setBiome,
   getStoredMissions,
   saveStoredMissions,
   addFeathers,
@@ -15,7 +13,6 @@ export interface GameOverCallbacks {
   onRetry: () => void;
   onMenu?: () => void;
   onCharacterChange?: (charId: CharacterId) => void;
-  onBiomeChange?: (biomeId: BiomeId | "auto") => void;
   onClaimQuest?: (rewardFeathers: number) => void;
 }
 
@@ -279,51 +276,6 @@ export class GameOverView {
           setCharacter(char.id);
           this.callbacks?.onCharacterChange?.(char.id);
           this.flashEquipToast(`${char.emoji} ${char.name} Ready for Next Run!`);
-          this.renderQuickSwap(loadAll(), bestScore);
-        }
-      };
-
-      this.quickSwapContainer.appendChild(chip);
-    });
-
-    // Render biomes
-    Object.values(BIOMES).forEach((b) => {
-      const isSelected = data.biome === b.id;
-      const isUnlocked = bestScore >= b.unlockScore;
-
-      const chip = document.createElement("button");
-      chip.className = "btn interactive";
-      chip.style.cssText = `
-        flex: 0 0 auto;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        background: ${isSelected ? "rgba(0, 229, 255, 0.22)" : "rgba(255, 255, 255, 0.06)"};
-        border: 1.5px solid ${isSelected ? "#00e5ff" : isUnlocked ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.05)"};
-        border-radius: 18px;
-        padding: 5px 10px;
-        color: ${isSelected ? "#00e5ff" : isUnlocked ? "#fff" : "#64748b"};
-        font-size: 11px;
-        font-weight: 800;
-        cursor: ${isUnlocked ? "pointer" : "default"};
-        opacity: ${isUnlocked ? "1" : "0.5"};
-        box-shadow: ${isSelected ? "0 0 12px rgba(0, 229, 255, 0.4)" : "none"};
-        touch-action: pan-x;
-        user-select: none;
-      `;
-
-      chip.innerHTML = `
-        <span style="font-size: 15px;">${b.emoji}</span>
-        <span>${b.name}</span>
-        ${isSelected ? '<span style="font-size: 10px; color: #00f5d4;">✓</span>' : !isUnlocked ? `<span style="font-size: 9px; color: #ff9e00;">🔒${b.unlockScore}</span>` : ""}
-      `;
-
-      chip.onclick = (e) => {
-        e.stopPropagation();
-        if (isUnlocked) {
-          setBiome(b.id);
-          this.callbacks?.onBiomeChange?.(b.id);
-          this.flashEquipToast(`${b.emoji} ${b.name} Active!`);
           this.renderQuickSwap(loadAll(), bestScore);
         }
       };

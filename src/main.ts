@@ -163,9 +163,6 @@ game.hooks = {
           onCharacterChange: (charId) => {
             game.setCharacter(charId);
           },
-          onBiomeChange: (biomeId) => {
-            game.setBiomeOverride(biomeId);
-          },
           onClaimQuest: () => {
             audio.milestone();
             hud.setFeathers(loadAll().feathers);
