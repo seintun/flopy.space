@@ -1,4 +1,9 @@
-import { INVULN_TICKS, REWINDS_MAX_PER_RUN } from "./constants";
+import {
+  INVULN_TICKS,
+  REWINDS_MAX_PER_RUN,
+  SLOWMO_HOLD_S,
+  MILESTONE_EVERY,
+} from "./constants";
 import { createWorld, type World, type HitType } from "./types";
 import { flap, stepBird } from "./physics";
 import { scrollForScore } from "./difficulty";
@@ -15,6 +20,7 @@ import { SkyDome } from "../render/sky";
 import { BirdView } from "../entities/birdView";
 import { PipesView } from "../entities/pipesView";
 import { PickupsView } from "../entities/pickupsView";
+import { Juice } from "../systems/juice";
 
 export type GameState =
   | "menu"
@@ -27,12 +33,15 @@ export type GameState =
 export interface GameHooks {
   onStateChange?: (state: GameState) => void;
   onScoreChange?: (score: number, combo: number, feathers: number) => void;
+  onSlowmoMeter?: (frac: number) => void;
   onPass?: (event: PassEvent) => void;
   onOrbCollect?: () => void;
   onHit?: (type: HitType) => void;
   onFlap?: () => void;
   onRewindStart?: () => void;
+  onRewindChoice?: (feathers: number) => void;
   onRewindComplete?: () => void;
+  onMilestone?: (score: number) => void;
   onGameOver?: (score: number) => void;
 }
 
@@ -47,9 +56,11 @@ export class Game {
   birdView: BirdView;
   pipesView: PipesView;
   pickupsView: PickupsView;
+  juice: Juice;
 
   private totalTime = 0;
   private lastTime = 0;
+  private lastMilestoneCrossed = 0;
   private replaySnapshots: World[] = [];
   private replayIndex = 0;
   private replayTimer = 0;
@@ -59,6 +70,7 @@ export class Game {
   constructor(
     public ctx: SceneCtx,
     public rig: CameraRig,
+    container: HTMLElement,
   ) {
     this.world = createWorld(Date.now());
 
@@ -70,6 +82,7 @@ export class Game {
 
     this.pipesView = new PipesView(ctx.scene);
     this.pickupsView = new PickupsView(ctx.scene);
+    this.juice = new Juice(ctx.scene, container);
   }
 
   setState(next: GameState): void {
@@ -83,9 +96,11 @@ export class Game {
     this.time = new TimeSystem();
     this.buf = new SnapshotBuffer();
     this.accumulator.reset();
+    this.lastMilestoneCrossed = 0;
     this.setState("playing");
     this.doFlap();
     this.hooks.onScoreChange?.(0, 0, 0);
+    this.hooks.onSlowmoMeter?.(0);
   }
 
   doFlap(): void {
@@ -121,6 +136,7 @@ export class Game {
     this.world.rewindsUsedRun++;
     this.time = new TimeSystem();
     this.accumulator.reset();
+    this.juice.popup("REWOUND!", "#00e5ff");
     this.setState("playing");
     this.hooks.onRewindComplete?.();
     this.hooks.onScoreChange?.(this.world.score, this.world.combo, this.world.feathersRun);
@@ -142,6 +158,8 @@ export class Game {
 
     this.time.update(realDt);
 
+    const shake = this.juice.update(realDt);
+
     let alpha = 1;
 
     switch (this.state) {
@@ -153,6 +171,10 @@ export class Game {
       }
 
       case "playing": {
+        // Update slowmo meter
+        const slowmoRemaining = this.time.slowmoRemaining();
+        this.hooks.onSlowmoMeter?.(slowmoRemaining / SLOWMO_HOLD_S);
+
         alpha = this.accumulator.step(realDt * this.time.scale, this.time.frozen, (dt) => {
           const w = this.world;
           w.scrollSpeed = scrollForScore(w.score);
@@ -168,6 +190,7 @@ export class Game {
               if (dx * dx + dy * dy < 0.81) {
                 orb.taken = true;
                 this.time.triggerSlowmo();
+                this.juice.popup("SLOW-MO", "#00e5ff");
                 this.hooks.onOrbCollect?.();
               }
             }
@@ -178,6 +201,8 @@ export class Game {
           if (hit) {
             w.bird.alive = false;
             this.time.hitstop(60);
+            this.juice.addTrauma(0.85);
+            this.juice.burst(0, w.bird.y, 0, 24, 0xff5252);
             this.setState("hitstop");
             this.hooks.onHit?.(hit);
             return;
@@ -187,10 +212,27 @@ export class Game {
           const passes = processPasses(w);
           for (const p of passes) {
             this.pipesView.flash(p.pipeId);
+            if (p.nearMiss) {
+              this.juice.popup("CLOSE!", "#ff2a6d");
+              this.time.triggerMicroFlash();
+            } else {
+              this.juice.popup(`+${p.points}`, p.points > 1 ? "#ffd700" : "#ffffff");
+            }
             this.hooks.onPass?.(p);
           }
+
           if (passes.length > 0) {
             this.hooks.onScoreChange?.(w.score, w.combo, w.feathersRun);
+
+            // Milestone check
+            const currentMilestone = Math.floor(w.score / MILESTONE_EVERY);
+            if (currentMilestone > this.lastMilestoneCrossed) {
+              this.lastMilestoneCrossed = currentMilestone;
+              this.rig.kick(3);
+              this.juice.confetti(0, w.bird.y, 0, 40);
+              this.juice.popup("MILESTONE!", "#ffd700");
+              this.hooks.onMilestone?.(w.score);
+            }
           }
 
           w.tick++;
@@ -200,7 +242,6 @@ export class Game {
 
       case "hitstop": {
         if (!this.time.frozen) {
-          // Check if rewind is eligible
           const canRewind =
             this.world.feathersRun > 0 &&
             this.world.rewindsUsedRun < REWINDS_MAX_PER_RUN &&
@@ -221,7 +262,6 @@ export class Game {
       }
 
       case "rewindReplay": {
-        // Play back snapshots in reverse over ~0.8s
         this.replayTimer += realDt;
         const targetIdx = Math.floor(
           (this.replayTimer / 0.8) * this.replaySnapshots.length,
@@ -236,13 +276,13 @@ export class Game {
           }
         } else {
           this.setState("rewindChoice");
+          this.hooks.onRewindChoice?.(this.world.feathersRun);
         }
         break;
       }
 
       case "rewindChoice":
       case "gameOver": {
-        // Bird continues falling to ground if not there
         if (this.world.bird.y > -5.5) {
           stepBird(this.world, realDt);
         }
@@ -257,6 +297,11 @@ export class Game {
     }
 
     this.rig.update(realDt, this.world.bird.y);
+
+    // Apply shake offset to camera
+    this.ctx.camera.position.x += shake.ox;
+    this.ctx.camera.position.y += shake.oy;
+
     const pal = dayNight(this.world.score);
     this.sky.update(pal, this.ctx.dirLight, this.ctx.fog);
 

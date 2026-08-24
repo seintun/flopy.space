@@ -3,7 +3,7 @@
 Plan: docs/superpowers/plans/2026-08-23-flappy3d.md
 Spec: docs/superpowers/specs/2026-08-23-flappy3d-design.md
 BaseSHA: 30887916934f0a5fc422e2d9b527aa922a8a393d (main)
-Updated: 2026-08-24T07:10Z
+Updated: 2026-08-24T07:11Z
 
 ## Resumption Invariant
 
@@ -29,13 +29,13 @@ Phase 2 — Render Layer: **complete**
 - [x] Task 10: Bird view
 - [x] Task 11: Pipes + orbs pooled views
 
-Phase 3 — Game Assembly: **in_progress**
-- [ ] Task 12: Input
-- [ ] Task 13: State machine + game loop wiring
-- [ ] Task 14: Death flow v1 + shake
-- [ ] Task 15: HUD
+Phase 3 — Game Assembly: **complete**
+- [x] Task 12: Input
+- [x] Task 13: State machine + game loop wiring
+- [x] Task 14: Death flow v1 + shake
+- [x] Task 15: HUD
 
-Phase 4 — Time Dimension Gameplay: **not started**
+Phase 4 — Time Dimension Gameplay: **in_progress**
 - [ ] Task 16: Slow-mo orb collection
 - [ ] Task 17: Rewind choice flow
 - [ ] Task 18: Live day/night integration
@@ -51,5 +51,5 @@ Phase 6 — Mobile Polish + Ship: **not started**
 
 ## Session Notes
 
-- Phase 2 render layer complete: scene, camera rig, sky dome, animated bird view, pooled pipes and orbs views.
-- Next: Phase 3 (Input, game loop assembly, death flow, HUD).
+- Phase 3 complete: Input, state machine loop assembly, juice shake & particles, gameover overlay, HUD overlay.
+- Next: Phase 4 (Time dimension gameplay: slow-mo orb integration, rewind choice UI, score-driven day/night).
