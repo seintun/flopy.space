@@ -14,6 +14,7 @@ import { CHARACTERS, type CharacterId, isCharacterUnlocked } from "../core/chara
 import { BIOMES, type BiomeId } from "../core/biomes";
 import { enableDragScroll } from "../utils/dom";
 import { formatDuration } from "../utils/time";
+import { InstallManager } from "./installManager";
 
 export interface MenuCallbacks {
   onStart: () => void;
@@ -67,6 +68,9 @@ export class MenuView {
           </div>
         </div>
         <div style="display: flex; gap: 6px; align-items: center;">
+          <button id="menu-install-btn" class="btn interactive" style="display: none; background: linear-gradient(135deg, #00ffc3, #00b4d8); color: #002233; font-weight: 800; font-size: 10px; border: none; border-radius: 14px; padding: 5px 10px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,255,195,0.4); touch-action: manipulation;">
+            📲 INSTALL
+          </button>
           <div id="menu-feathers" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(0, 229, 255, 0.35); font-weight: 800; font-size: 11px; color: #00e5ff; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
             🪶 <span id="menu-feather-count">0</span>
           </div>
@@ -122,6 +126,21 @@ export class MenuView {
     this.bestEl = this.el.querySelector("#menu-best-val")!;
     this.muteBtn = this.el.querySelector("#menu-mute-btn")!;
     this.tabContentEl = this.el.querySelector("#menu-tab-content")!;
+
+    // Install App CTA
+    const installBtn = this.el.querySelector("#menu-install-btn") as HTMLElement;
+    const installMgr = new InstallManager((canInstall) => {
+      if (installBtn) {
+        installBtn.style.display = canInstall ? "block" : "none";
+      }
+    });
+    if (installBtn) {
+      installBtn.style.display = installMgr.canInstall() ? "block" : "none";
+      installBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        installMgr.promptInstall();
+      });
+    }
 
     // Mute button click
     this.muteBtn.addEventListener("click", (e) => {
