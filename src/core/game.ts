@@ -486,13 +486,12 @@ export class Game {
             this.hooks.onScoreChange?.(w.score, w.combo, w.feathersRun, w.runDurationSec);
             this.hooks.onMissionProgress?.("scoreMilestone", w.score);
 
-            // Milestone check
-            const currentMilestone = Math.floor(w.score / MILESTONE_EVERY);
-            if (currentMilestone > this.lastMilestoneCrossed) {
+            // Rare, non-distracting milestone check (25, 50, 100, 150...)
+            const currentMilestone = w.score >= 25 ? Math.floor(w.score / MILESTONE_EVERY) + 1 : 0;
+            if (currentMilestone > this.lastMilestoneCrossed && w.score >= 25) {
               this.lastMilestoneCrossed = currentMilestone;
-              this.rig.kick(3);
-              this.juice.confetti(0, w.bird.y, 0, 40);
-              this.juice.popupAtWorld("★ MILESTONE! ★", -0.4, w.bird.y, 0, this.ctx.camera, "#ffd700", -1.1);
+              this.juice.confetti(0, w.bird.y, 0, 25);
+              this.juice.flashBorder("#ffd700", 200);
               this.hooks.onMilestone?.(w.score);
             }
           }
