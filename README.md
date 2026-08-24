@@ -25,24 +25,23 @@
 - **Death Rewind (Time Travel)**: Spend banked feathers $\🪶$ on collision to rewind time $1.5\text{s}$ into the past, resume with 1 second of invulnerability, and keep your run alive!
 - **Temporal Bullet-Time Orbs**: Pick up glowing clock orbs to ease the universe into cinematic slow-motion ($0.35\times$) for 3 real seconds while retaining snappy flight control.
 
-### 🐱 2. Hero Roster & Customization
-- **Classic Peep** 🐥 (OG Arcade Flyer)
-- **Flappy Neko** 🐱 (Lucky Cat with pointy ears & fluffy meows — Unlock at score 15)
-- **Shiba Doge** 🐶 (Hero cape & meme energy — Unlock at score 35)
-- **Astro Hammy** 🐹 (Space bubble saucer & jet thrusters — Unlock at score 60)
-- **Chibi Dragon** 🐲 (Flame Drake with fiery horns — Unlock at score 100)
+### 🐱 2. Spendable Token Economy & Interleaved Progression
+- **🪙 Token Vault**: Every run score earns spendable tokens (1 point = 1 🪙 token) deposited into your persistent vault.
+- **🪜 Interleaved Multiplier Ladder**: Unlock 11 unique Heroes, Skins, and Worlds with an escalating cost schedule:
+  - 🐱 **Flappy Neko** (25 🪙) $\to$ 🌸 **Sakura Blossom Skin** (50 🪙) $\to$ 🌆 **Neon Cyberpunk Scene** (75 🪙) $\to$ 🐶 **Shiba Doge** (110 🪙) $\to$ 🌌 **Midnight Obsidian Skin** (160 🪙) $\to$ 🍭 **Candy Kingdom Scene** (220 🪙) $\to$ 🐹 **Astro Hammy** (300 🪙) $\to$ 🔮 **Cosmic Starcat Skin** (400 🪙) $\to$ 🌋 **Volcanic Rift Scene** (520 🪙) $\to$ 🐲 **Chibi Dragon** (660 🪙) $\to$ 💎 **Prism Hologram Skin** (820 🪙).
+- **🎁 Manual Claim Dopamine**: Glowing claim cards with floating `-XX 🪙` deduction animations, 3D sparkle bursts, and fanfare audio.
 
 ### 🌍 3. Dynamic Atmospheric Worlds
-- Auto-rotates smoothly every **15 pipes passed**:
+- Auto-rotates smoothly every **15 pipes passed** or selectable in roster:
   - 🌿 **Emerald Meadow**: Sunny skies & drifting horizon clouds
   - 🌆 **Neon Cyberpunk**: Synthwave grid & sweeping laser searchlights
-  - 🍭 **Candy Kingdom**: Pastel cotton-candy plains
-  - 🌋 **Volcanic Rift**: Basalt obsidian crust & distant mountain peaks
+  - 🍭 **Candy Kingdom**: Pastel cotton-candy plains & peppermint pillars
+  - 🌋 **Volcanic Rift**: Basalt obsidian crust & glowing magma pillars
 
 ### 🎁 4. Addictive Meta Progression
-- **In-Situ Quick Swap**: Swap heroes and biomes directly on the post-run card with zero menu friction.
-- **Daily Quests & Streaks**: Earn feathers and bonuses with daily rotating mission challenges.
-- **Strict Run Integrity**: Multipliers and spree bonuses track $100\%$ cleanly to the active hero.
+- **In-Situ Quick Swap**: Swap heroes, skins, and biomes directly on the post-run card with zero menu friction.
+- **Daily Quests & Streaks**: Earn feathers and bonus tokens with daily rotating mission challenges.
+- **Strict Run Integrity**: Multipliers, spree bonuses, and token rewards track $100\%$ cleanly to the active run.
 
 ---
 

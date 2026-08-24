@@ -179,3 +179,41 @@ graph TD
 
 - **Rollup Three.js Chunking**: `vendor-three` ($122\text{kB}$ gzip) is separated from core gameplay code ($33\text{kB}$ gzip) to maximize browser cache hit rates across subsequent updates.
 - **HTTP Security Headers**: Enforces `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, and strict referrer policies via `vercel.json`.
+
+---
+
+## 9. Token Economy & Interleaved Progression Engine 🪙✨
+
+```mermaid
+flowchart TD
+    Run["Gameplay Run (Passing Pipes & Combos)"] --> Score["Run Score (Raw + Spree Bonus)"]
+    Score --> Deposit["Vault Deposit (1 Score = 1 🪙 Token)"]
+    Deposit --> Vault["LocalStorage Persistent Token Vault (f3d.tokens)"]
+    
+    Vault --> Shop["Catalog Redemption Check (tokens >= cost)"]
+    Shop --> Claim["Manual Claim Action (spendTokens)"]
+    
+    subgraph Ladder ["Interleaved Multiplier Progression Ladder"]
+        H1["🐱 Flappy Neko (25 🪙)"] --> S1["🌸 Sakura Blossom (50 🪙)"]
+        S1 --> W1["🌆 Neon Cyberpunk (75 🪙)"]
+        W1 --> H2["🐶 Shiba Doge (110 🪙)"]
+        H2 --> S2["🌌 Midnight Obsidian (160 🪙)"]
+        S2 --> W2["🍭 Candy Kingdom (220 🪙)"]
+        W2 --> H3["🐹 Astro Hammy (300 🪙)"]
+        H3 --> S3["🔮 Cosmic Starcat (400 🪙)"]
+        S3 --> W3["🌋 Volcanic Rift (520 🪙)"]
+        W3 --> H4["🐲 Chibi Dragon (660 🪙)"]
+        H4 --> S4["💎 Prism Hologram (820 🪙)"]
+    end
+
+    Claim --> Ladder
+    Ladder --> Equip["Active Roster Equipment & Celebration VFX"]
+```
+
+### 9.1 Economy Model & Invariants
+1. **Accrual**: Upon run termination (`gameOver`), the final run score is converted 1:1 into spendable 🪙 tokens and atomically deposited into `f3d.tokens`.
+2. **Interleaved Ladder**: Prevents milestone collisions by alternating unlock categories (`Hero` $\to$ `Skin` $\to$ `Scene`) with an escalating cost formula:
+   $$\text{Cost}(n) = \text{round}(25 \cdot n^{1.45})$$
+3. **Atomic Spend Operations**: `spendTokens(cost)` verifies balance before deduction and immediately writes to persistent storage.
+4. **Visual Telemetry & Feedback**: Real-time HUD token counter `[ 🪙 124 ] [ 🪶 2/3 ]`, dynamic `🎯 Next` target with percentage bar, and floating `-XX 🪙` upward-fading animation upon item redemption.
+
