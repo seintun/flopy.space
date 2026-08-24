@@ -82,7 +82,7 @@ describe("Devil's Advocate: 4D Snapshot & Rewind State Integrity", () => {
     const buf = new SnapshotBuffer();
 
     w.pipes.push({ id: 1, x: 10, gapCenter: 2, gapHeight: 4, scored: false });
-    w.orbs.push({ id: 1, x: 5, y: 1, taken: false });
+    w.orbs.push({ id: 1, type: "slowmo", x: 5, y: 1, taken: false });
     buf.record(w);
 
     // Mutate original world

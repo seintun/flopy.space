@@ -30,12 +30,15 @@ function spawnPipe(w: World): void {
   }
 }
 
+import { pickRandomPowerUp } from "./powerups";
+
 function spawnOrb(w: World, recentGapCenter: number): void {
   const y = Math.min(
     CEILING_Y - 1.5,
     Math.max(GROUND_Y + 1.5, recentGapCenter + (worldRand(w) * 2 - 1)),
   );
-  w.orbs.push({ id: w.nextOrbId++, x: SPAWN_X - PIPE_SPACING_DIST / 2, y, taken: false });
+  const pType = pickRandomPowerUp(w);
+  w.orbs.push({ id: w.nextOrbId++, type: pType, x: SPAWN_X - PIPE_SPACING_DIST / 2, y, taken: false });
 }
 
 export function advance(w: World, dt: number): void {

@@ -112,6 +112,10 @@ game.hooks = {
     hud.setFeverMeter(active, frac);
   },
 
+  onPowerUpsChange: (rainbowLeft, hasShield, magnetLeft) => {
+    hud.setPowerUps(rainbowLeft, hasShield, magnetLeft);
+  },
+
   onBiomeChange: (biome) => {
     hud.setBiomeBadge(biome.name, biome.emoji);
     audio.biomeWarp();
@@ -141,8 +145,30 @@ game.hooks = {
     }
   },
 
-  onOrbCollect: () => {
-    audio.collect();
+  onOrbCollect: (type) => {
+    switch (type) {
+      case "slowmo":
+        audio.collect();
+        break;
+      case "rainbow_trail":
+        audio.rainbowTrail();
+        break;
+      case "shield":
+        audio.shieldActive();
+        break;
+      case "magnet":
+        audio.magnetActive();
+        break;
+      case "star_gem":
+        audio.starGem();
+        break;
+      default:
+        audio.collect();
+    }
+  },
+
+  onShieldBreak: () => {
+    audio.shieldBreak();
   },
 
   onHit: () => {

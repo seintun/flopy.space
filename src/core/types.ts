@@ -1,4 +1,5 @@
 import { BASE_SCROLL, ORB_EVERY_PIPES_MIN } from "./constants";
+import type { PowerUpType } from "./powerups";
 
 export type HitType = "pipe" | "ground";
 
@@ -20,6 +21,7 @@ export interface Pipe {
 
 export interface Orb {
   id: number;
+  type: PowerUpType;
   x: number;
   y: number;
   taken: boolean;
@@ -36,13 +38,16 @@ export interface World {
   nextOrbId: number;
   lastGapCenter: number;
   nextPipeAtDist: number;
-  nextOrbPipesIn: number; // pipes remaining until next orb
+  nextOrbPipesIn: number;
   score: number;
   combo: number;
   feathersRun: number;
   rewindsUsedRun: number;
   rngState: number;
   spawnHistory: number[];
+  hasShield: boolean;
+  rainbowTrailTimer: number;
+  magnetTimer: number;
 }
 
 export function createWorld(seed: number): World {
@@ -64,5 +69,8 @@ export function createWorld(seed: number): World {
     rewindsUsedRun: 0,
     rngState: seed >>> 0,
     spawnHistory: [],
+    hasShield: false,
+    rainbowTrailTimer: 0,
+    magnetTimer: 0,
   };
 }

@@ -5,6 +5,7 @@ export interface HudApi {
   setSlowmoMeter: (frac: number) => void;
   setFeverMeter: (active: boolean, frac: number) => void;
   setBiomeBadge: (name: string, emoji: string) => void;
+  setPowerUps: (rainbowLeft: number, hasShield: boolean, magnetLeft: number) => void;
   showMenu: () => void;
   hideMenu: () => void;
   showRewindPrompt: (feathers: number, onRewind: () => void, onGiveUp: () => void) => void;
@@ -54,6 +55,17 @@ export function initHud(container: HTMLElement): HudApi {
         <div id="hud-fever" style="display: none; margin-top: 5px; background: linear-gradient(135deg, #ff007f, #7209b7); color: #fff; font-size: 11px; font-weight: 900; padding: 4px 14px; border-radius: 12px; letter-spacing: 1px; animation: softGlowPulse 0.8s infinite alternate; text-transform: uppercase; box-shadow: 0 0 16px #ff007f;">
           🔥 FEVER RUSH 2X
         </div>
+        <div id="hud-powerup-pills" style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; justify-content: center;">
+          <div id="hud-pill-rainbow" style="display: none; font-size: 11px; font-weight: 800; color: #fff; background: linear-gradient(135deg, rgba(255,0,127,0.7), rgba(0,212,255,0.7)); padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 0 10px rgba(255,0,127,0.4);">
+            🌈 RAINBOW <span id="hud-pill-rainbow-time">7s</span>
+          </div>
+          <div id="hud-pill-shield" style="display: none; font-size: 11px; font-weight: 800; color: #ffd700; background: rgba(255,215,0,0.25); padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(255,215,0,0.5); box-shadow: 0 0 10px rgba(255,215,0,0.4);">
+            🛡️ SHIELD
+          </div>
+          <div id="hud-pill-magnet" style="display: none; font-size: 11px; font-weight: 800; color: #00f5d4; background: rgba(0,245,212,0.25); padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(0,245,212,0.5); box-shadow: 0 0 10px rgba(0,245,212,0.4);">
+            🧲 MAGNET <span id="hud-pill-magnet-time">6s</span>
+          </div>
+        </div>
       </div>
 
       <!-- Right: Feathers -->
@@ -97,6 +109,12 @@ export function initHud(container: HTMLElement): HudApi {
   const rewindBtn = hud.querySelector("#hud-rewind-btn") as HTMLButtonElement;
   const giveUpBtn = hud.querySelector("#hud-giveup-btn") as HTMLButtonElement;
 
+  const rainbowPill = hud.querySelector("#hud-pill-rainbow") as HTMLElement;
+  const rainbowTime = hud.querySelector("#hud-pill-rainbow-time") as HTMLElement;
+  const shieldPill = hud.querySelector("#hud-pill-shield") as HTMLElement;
+  const magnetPill = hud.querySelector("#hud-pill-magnet") as HTMLElement;
+  const magnetTime = hud.querySelector("#hud-pill-magnet-time") as HTMLElement;
+
   return {
     setScore(score: number) {
       scoreEl.textContent = score.toString();
@@ -124,6 +142,23 @@ export function initHud(container: HTMLElement): HudApi {
     setBiomeBadge(name: string, emoji: string) {
       biomeName.textContent = name;
       biomeEmoji.textContent = emoji;
+    },
+    setPowerUps(rainbowLeft: number, hasShield: boolean, magnetLeft: number) {
+      if (rainbowLeft > 0) {
+        rainbowPill.style.display = "block";
+        rainbowTime.textContent = `${Math.ceil(rainbowLeft)}s`;
+      } else {
+        rainbowPill.style.display = "none";
+      }
+
+      shieldPill.style.display = hasShield ? "block" : "none";
+
+      if (magnetLeft > 0) {
+        magnetPill.style.display = "block";
+        magnetTime.textContent = `${Math.ceil(magnetLeft)}s`;
+      } else {
+        magnetPill.style.display = "none";
+      }
     },
     showMenu() {
       headerEl.style.opacity = "0";

@@ -18,6 +18,7 @@ import { type SceneCtx } from "../render/scene";
 import { type CameraRig } from "../render/camera";
 import { SkyDome } from "../render/sky";
 import { CharacterView } from "../entities/characterView";
+import { TrailView } from "../entities/trailView";
 import { PipesView } from "../entities/pipesView";
 import { PickupsView } from "../entities/pickupsView";
 import { Juice } from "../systems/juice";
@@ -26,6 +27,7 @@ import { getBiomeForScore, BIOMES, type BiomeDef, type BiomeId } from "./biomes"
 import { CHARACTERS, type CharacterId, type SoundType } from "./characters";
 import type { MissionEventType } from "./missions";
 import { loadAll } from "./storage";
+import type { PowerUpType } from "./powerups";
 
 export type GameState =
   | "menu"
@@ -40,10 +42,12 @@ export interface GameHooks {
   onScoreChange?: (score: number, combo: number, feathers: number) => void;
   onSlowmoMeter?: (frac: number) => void;
   onFeverChange?: (active: boolean, frac: number) => void;
+  onPowerUpsChange?: (rainbowLeft: number, hasShield: boolean, magnetLeft: number) => void;
   onBiomeChange?: (biome: BiomeDef) => void;
   onMissionProgress?: (event: MissionEventType, value?: number) => void;
   onPass?: (event: PassEvent) => void;
-  onOrbCollect?: () => void;
+  onOrbCollect?: (type: PowerUpType) => void;
+  onShieldBreak?: () => void;
   onHit?: (type: HitType) => void;
   onFlap?: (soundType: SoundType) => void;
   onRewindStart?: () => void;
@@ -63,6 +67,7 @@ export class Game {
 
   sky: SkyDome;
   characterView: CharacterView;
+  trailView: TrailView;
   pipesView: PipesView;
   pickupsView: PickupsView;
   juice: Juice;
@@ -93,6 +98,7 @@ export class Game {
     this.characterView = new CharacterView();
     ctx.scene.add(this.characterView.group);
 
+    this.trailView = new TrailView(ctx.scene);
     this.pipesView = new PipesView(ctx.scene);
     this.pickupsView = new PickupsView(ctx.scene);
     this.juice = new Juice(ctx.scene, container);
@@ -141,6 +147,7 @@ export class Game {
     this.hooks.onScoreChange?.(0, 0, this.world.feathersRun);
     this.hooks.onSlowmoMeter?.(0);
     this.hooks.onFeverChange?.(false, 0);
+    this.hooks.onPowerUpsChange?.(0, false, 0);
   }
 
   doFlap(): void {
@@ -237,6 +244,11 @@ export class Game {
         // Update slowmo meter
         const slowmoRemaining = this.time.slowmoRemaining();
         this.hooks.onSlowmoMeter?.(slowmoRemaining / SLOWMO_HOLD_S);
+        this.hooks.onPowerUpsChange?.(
+          this.world.rainbowTrailTimer,
+          this.world.hasShield,
+          this.world.magnetTimer,
+        );
 
         // Fever mode visual trail
         if (this.fever.isActive) {
@@ -248,6 +260,11 @@ export class Game {
         alpha = this.accumulator.step(realDt * this.time.scale, this.time.frozen, (dt) => {
           const w = this.world;
           w.scrollSpeed = scrollForScore(w.score);
+
+          // Update active power-up timers
+          if (w.rainbowTrailTimer > 0) w.rainbowTrailTimer = Math.max(0, w.rainbowTrailTimer - dt);
+          if (w.magnetTimer > 0) w.magnetTimer = Math.max(0, w.magnetTimer - dt);
+
           advance(w, dt);
           stepBird(w, dt);
           this.buf.record(w);
@@ -260,27 +277,64 @@ export class Game {
             this.juice.popup(`${targetBiome.emoji} ${targetBiome.name.toUpperCase()}`, "#00f5d4");
           }
 
-          // Orb pickup & Magnet check
+          // Power-up Pickups & Magnet Vacuum
+          const hasMagnet = w.magnetTimer > 0 || this.fever.isActive;
+          const magnetRadius = w.magnetTimer > 0 ? 8.0 : this.fever.magnetRadius;
+
           for (const orb of w.orbs) {
             if (!orb.taken) {
               const dx = orb.x - 0;
               const dy = orb.y - w.bird.y;
               const distSq = dx * dx + dy * dy;
 
-              // Fever magnet attraction
-              if (this.fever.isActive && distSq < this.fever.magnetRadius * this.fever.magnetRadius) {
-                orb.x += (0 - orb.x) * 6 * dt;
-                orb.y += (w.bird.y - orb.y) * 6 * dt;
+              // Magnet gravitational attraction
+              if (hasMagnet && distSq < magnetRadius * magnetRadius) {
+                orb.x += (0 - orb.x) * 8 * dt;
+                orb.y += (w.bird.y - orb.y) * 8 * dt;
               }
 
-              if (distSq < 0.81) {
+              if (distSq < 0.85) {
                 orb.taken = true;
-                this.time.triggerSlowmo();
-                const feverTriggered = this.fever.addEnergy(0.4);
-                this.juice.popup("SLOW-MO", "#00e5ff");
-                this.hooks.onOrbCollect?.();
-                this.hooks.onMissionProgress?.("slowmo");
+                const pType: PowerUpType = orb.type || "slowmo";
 
+                switch (pType) {
+                  case "slowmo": {
+                    this.time.triggerSlowmo();
+                    this.juice.popup("SLOW-MO ⏱️", "#00e5ff");
+                    this.hooks.onOrbCollect?.("slowmo");
+                    this.hooks.onMissionProgress?.("slowmo");
+                    break;
+                  }
+                  case "rainbow_trail": {
+                    w.rainbowTrailTimer = 7.0;
+                    this.juice.popup("🌈 RAINBOW TRAIL!", "#ff007f");
+                    this.juice.confetti(0, w.bird.y, 0, 35);
+                    this.hooks.onOrbCollect?.("rainbow_trail");
+                    break;
+                  }
+                  case "shield": {
+                    w.hasShield = true;
+                    this.juice.popup("🛡️ SHIELD ACTIVE!", "#ffd700");
+                    this.hooks.onOrbCollect?.("shield");
+                    break;
+                  }
+                  case "magnet": {
+                    w.magnetTimer = 6.0;
+                    this.juice.popup("🧲 SUPER MAGNET!", "#00f5d4");
+                    this.hooks.onOrbCollect?.("magnet");
+                    break;
+                  }
+                  case "star_gem": {
+                    w.score += 500;
+                    w.combo += 2;
+                    this.juice.popup("+500 STAR! ⭐", "#ffbe0b");
+                    this.juice.confetti(0, w.bird.y, 0, 25);
+                    this.hooks.onOrbCollect?.("star_gem");
+                    break;
+                  }
+                }
+
+                const feverTriggered = this.fever.addEnergy(0.35);
                 if (feverTriggered) {
                   this.juice.popup("🔥 FEVER RUSH!", "#ff007f");
                   this.rig.kick(4);
@@ -293,18 +347,28 @@ export class Game {
             }
           }
 
-          // Collisions
+          // Collisions (with Shield Defense)
           const hit = checkCollisions(w);
           if (hit) {
-            w.bird.alive = false;
-            this.time.hitstop(60);
-            this.fever.reset();
-            this.hooks.onFeverChange?.(false, 0);
-            this.juice.addTrauma(0.85);
-            this.juice.burst(0, w.bird.y, 0, 24, 0xff5252);
-            this.setState("hitstop");
-            this.hooks.onHit?.(hit);
-            return;
+            if (w.hasShield) {
+              w.hasShield = false;
+              w.bird.invulnUntilTick = w.tick + 90; // 0.75s immunity
+              this.time.hitstop(24);
+              this.juice.addTrauma(0.55);
+              this.juice.burst(0, w.bird.y, 0, 20, 0xffd700);
+              this.juice.popup("💥 SHIELD SAVED!", "#ffd700");
+              this.hooks.onShieldBreak?.();
+            } else {
+              w.bird.alive = false;
+              this.time.hitstop(60);
+              this.fever.reset();
+              this.hooks.onFeverChange?.(false, 0);
+              this.juice.addTrauma(0.85);
+              this.juice.burst(0, w.bird.y, 0, 24, 0xff5252);
+              this.setState("hitstop");
+              this.hooks.onHit?.(hit);
+              return;
+            }
           }
 
           // Passes & Scoring
@@ -312,8 +376,12 @@ export class Game {
           for (const p of passes) {
             this.pipesView.flash(p.pipeId);
 
-            // Bonus points during Fever mode
-            const bonusMult = this.fever.scoreMultiplier;
+            // Bonus points during Fever or Rainbow Trail mode
+            let bonusMult = this.fever.scoreMultiplier;
+            if (w.rainbowTrailTimer > 0) {
+              bonusMult *= 3;
+            }
+
             if (bonusMult > 1) {
               p.points *= bonusMult;
               w.score += p.points - (p.points / bonusMult);
@@ -434,6 +502,7 @@ export class Game {
       this.pickupsView.syncFrom(this.world, this.totalTime);
     }
 
+    this.trailView.update(this.world, realDt, this.totalTime);
     this.rig.update(realDt, this.world.bird.y);
 
     // Apply shake offset to camera
