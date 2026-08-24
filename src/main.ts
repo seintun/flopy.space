@@ -19,6 +19,9 @@ import {
 } from "./core/storage";
 import { multiplier } from "./core/scoring";
 import { recordMissionEvent } from "./core/missions";
+import { initAnalytics, trackEvent } from "./core/analytics";
+
+initAnalytics();
 
 const app = document.getElementById("app")!;
 const audio = new AudioSys();
@@ -41,12 +44,21 @@ const menuView = new MenuView(app, {
   onStart: () => {
     audio.unlock();
     resetSessionFeathers();
+    const current = loadAll();
+    trackEvent("game_start", {
+      character: current.character,
+      skin: current.skin,
+      biome: current.biome,
+      streak: current.streak.count,
+    });
     game.start(Date.now(), 0);
   },
   onCharacterChange: (charId) => {
+    trackEvent("character_selected", { character: charId });
     game.setCharacter(charId, loadAll().skin);
   },
   onSkinChange: (skinId) => {
+    trackEvent("skin_selected", { skin: skinId });
     const s = SKINS[skinId];
     if (s) {
       game.characterView.setSkin(s.bodyColor, s.bellyColor);
@@ -59,6 +71,7 @@ const menuView = new MenuView(app, {
     audio.setMuted(muted);
   },
   onMissionClaim: () => {
+    trackEvent("quest_claim");
     audio.missionComplete();
   },
   onToast: (msg) => {
@@ -109,6 +122,15 @@ game.hooks = {
       const timeSec = game.world.runDurationSec;
       recordPlaySession(timeSec, game.world.score);
       touchStreak();
+
+      trackEvent("game_over", {
+        score: game.world.score,
+        best,
+        pipesPassed: game.world.pipesPassed,
+        rewindsUsed: game.world.rewindsUsedRun,
+        duration: Math.round(timeSec),
+        character: loadAll().character,
+      });
 
       const hasNewUnlock = isNewBest && (
         (scoreBefore < 15 && best >= 15) ||
@@ -250,6 +272,7 @@ game.hooks = {
   },
 
   onRewindStart: () => {
+    trackEvent("rewind_used", { score: game.world.score });
     audio.rewind();
   },
 

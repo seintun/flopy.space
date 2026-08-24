@@ -1,3 +1,5 @@
+import { trackEvent } from "../core/analytics";
+
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
@@ -29,6 +31,7 @@ export class InstallManager {
       this.isInstalled = true;
       this.deferredPrompt = null;
       this.onStateChange?.(false);
+      trackEvent("pwa_install", { outcome: "completed" });
     });
   }
 
@@ -42,6 +45,7 @@ export class InstallManager {
     const choice = await this.deferredPrompt.userChoice;
     this.deferredPrompt = null;
     this.onStateChange?.(false);
+    trackEvent("pwa_install", { outcome: choice.outcome });
     return choice.outcome === "accepted";
   }
 }
