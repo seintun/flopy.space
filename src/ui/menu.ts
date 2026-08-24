@@ -32,6 +32,37 @@ import { enableDragScroll } from "../utils/dom";
 import { InstallManager } from "./installManager";
 import { getNextGoal } from "../core/goals";
 
+function showDeductionFlyout(targetEl: HTMLElement, cost: number): void {
+  const rect = targetEl.getBoundingClientRect();
+  const flyout = document.createElement("div");
+  flyout.style.cssText = `
+    position: fixed;
+    left: ${rect.left + rect.width / 2}px;
+    top: ${rect.top}px;
+    transform: translate(-50%, 0);
+    color: #ffd700;
+    font-size: 16px;
+    font-weight: 900;
+    text-shadow: 0 0 14px rgba(255, 215, 0, 0.95), 0 2px 6px rgba(0,0,0,0.9);
+    pointer-events: none;
+    z-index: 10000;
+    transition: transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.75s ease;
+    opacity: 1;
+    letter-spacing: 0.5px;
+  `;
+  flyout.textContent = `-${cost} 🪙`;
+  document.body.appendChild(flyout);
+
+  requestAnimationFrame(() => {
+    flyout.style.transform = "translate(-50%, -46px) scale(1.2)";
+    flyout.style.opacity = "0";
+  });
+
+  setTimeout(() => {
+    flyout.remove();
+  }, 800);
+}
+
 export interface MenuCallbacks {
   onStart: () => void;
   onCharacterChange: (charId: CharacterId) => void;
@@ -48,6 +79,7 @@ export class MenuView {
   private streakEl: HTMLElement;
   private feathersEl: HTMLElement;
   private tokensEl: HTMLElement;
+  private drawerTokensEl: HTMLElement;
   private playTimeEl: HTMLElement;
   private bestEl: HTMLElement;
   private muteBtn: HTMLElement;
@@ -138,6 +170,17 @@ export class MenuView {
 
         <!-- Bottom Drawer / Tabs Panel -->
         <div id="menu-drawer" class="interactive" style="width: 100%; max-width: min(380px, 94vw); display: flex; flex-direction: column; align-items: center; background: rgba(12, 16, 28, 0.85); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 20px; padding: 8px 10px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
+          
+          <!-- Drawer Header Bar with Available Tokens Pill -->
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 6px; padding: 0 2px;">
+            <div style="display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 0.5px; text-transform: uppercase;">
+              <span>🎁 UNLOCK ROSTER</span>
+            </div>
+            <div id="drawer-tokens-badge" style="display: flex; align-items: center; gap: 4px; background: rgba(255, 215, 0, 0.16); border: 1px solid rgba(255, 215, 0, 0.45); padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 900; color: #ffd700; box-shadow: 0 2px 8px rgba(255,215,0,0.2);">
+              <span>🪙</span> <span id="drawer-token-count">0</span> <span style="font-size: 9px; color: #bae6fd; font-weight: 700;">available</span>
+            </div>
+          </div>
+
           <!-- Tab navigation bar -->
           <div id="menu-tabs" style="display: flex; width: 100%; gap: 6px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
             <button data-tab="heroes" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
@@ -168,6 +211,7 @@ export class MenuView {
     this.playTimeEl = this.el.querySelector("#menu-playtime-count")!;
     this.feathersEl = this.el.querySelector("#menu-feather-count")!;
     this.tokensEl = this.el.querySelector("#menu-token-count")!;
+    this.drawerTokensEl = this.el.querySelector("#drawer-token-count")!;
     this.bestEl = this.el.querySelector("#menu-best-val")!;
     this.muteBtn = this.el.querySelector("#menu-mute-btn")!;
     this.tabContentEl = this.el.querySelector("#menu-tab-content")!;
@@ -229,6 +273,7 @@ export class MenuView {
     this.playTimeEl.textContent = `${Math.round(data.totalPlayTimeSec / 60)}`;
     this.feathersEl.textContent = data.feathers.toString();
     if (this.tokensEl) this.tokensEl.textContent = data.tokens.toString();
+    if (this.drawerTokensEl) this.drawerTokensEl.textContent = data.tokens.toString();
     this.bestEl.textContent = data.best.toString();
     this.muteBtn.textContent = data.muted ? "🔇" : "🔊";
 
@@ -319,6 +364,7 @@ export class MenuView {
         e.stopPropagation();
         if (isClaimable) {
           if (spendTokens(char.unlockValue)) {
+            showDeductionFlyout(card, char.unlockValue);
             claimCharacter(char.id);
             setCharacter(char.id);
             this.callbacks.onClaimUnlock?.("hero", char.id);
@@ -419,6 +465,7 @@ export class MenuView {
         e.stopPropagation();
         if (isClaimable) {
           if (spendTokens(b.unlockScore)) {
+            showDeductionFlyout(card, b.unlockScore);
             claimBiome(b.id);
             setBiome(b.id);
             this.callbacks.onClaimUnlock?.("scene", b.id);
@@ -549,6 +596,7 @@ export class MenuView {
         e.stopPropagation();
         if (isClaimable) {
           if (spendTokens(skin.unlockScore)) {
+            showDeductionFlyout(card, skin.unlockScore);
             claimSkin(skin.id);
             setSkin(skin.id);
             this.callbacks.onClaimUnlock?.("skin", skin.id);
