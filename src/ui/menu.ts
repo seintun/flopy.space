@@ -58,71 +58,79 @@ export class MenuView {
     `;
 
     this.el.innerHTML = `
-      <!-- Top header bar: Streak, Playtime, Feathers & Mute -->
-      <div id="menu-header" class="interactive" style="display: flex; justify-content: space-between; align-items: center; width: 100%; pointer-events: auto;">
-        <div style="display: flex; gap: 6px; align-items: center;">
-          <div id="menu-streak" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(255, 120, 0, 0.35); font-weight: 800; font-size: 11px; color: #ff9e00; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
-            🔥 <span id="menu-streak-count">1</span>d Streak
+      <!-- Top Zone: Header Bar + Title + Best/Goal Row -->
+      <div id="menu-top-section" style="width: 100%; display: flex; flex-direction: column; align-items: center; pointer-events: none;">
+        <!-- Top header bar: Streak, Playtime, Feathers & Mute -->
+        <div id="menu-header" class="interactive" style="display: flex; justify-content: space-between; align-items: center; width: 100%; pointer-events: auto;">
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <div id="menu-streak" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(255, 120, 0, 0.35); font-weight: 800; font-size: 11px; color: #ff9e00; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+              🔥 <span id="menu-streak-count">1</span>d Streak
+            </div>
+            <div id="menu-playtime" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(0, 245, 212, 0.35); font-weight: 800; font-size: 11px; color: #00f5d4; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+              ⏱️ <span id="menu-playtime-count">0</span>m
+            </div>
           </div>
-          <div id="menu-playtime" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(0, 245, 212, 0.35); font-weight: 800; font-size: 11px; color: #00f5d4; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
-            ⏱️ <span id="menu-playtime-count">0</span>m
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <button id="menu-install-btn" class="btn interactive" style="display: none; background: linear-gradient(135deg, #00ffc3, #00b4d8); color: #002233; font-weight: 800; font-size: 10px; border: none; border-radius: 14px; padding: 5px 10px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,255,195,0.4); touch-action: manipulation;">
+              📲 INSTALL
+            </button>
+            <div id="menu-feathers" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(0, 229, 255, 0.35); font-weight: 800; font-size: 11px; color: #00e5ff; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+              🪶 <span id="menu-feather-count">0</span>
+            </div>
+            <button id="menu-mute-btn" class="btn interactive" style="background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.16); color: #fff; font-size: 14px; width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-radius: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3); touch-action: manipulation;">
+              🔊
+            </button>
           </div>
         </div>
-        <div style="display: flex; gap: 6px; align-items: center;">
-          <button id="menu-install-btn" class="btn interactive" style="display: none; background: linear-gradient(135deg, #00ffc3, #00b4d8); color: #002233; font-weight: 800; font-size: 10px; border: none; border-radius: 14px; padding: 5px 10px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,255,195,0.4); touch-action: manipulation;">
-            📲 INSTALL
-          </button>
-          <div id="menu-feathers" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(0, 229, 255, 0.35); font-weight: 800; font-size: 11px; color: #00e5ff; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
-            🪶 <span id="menu-feather-count">0</span>
+
+        <!-- Title & Sub-goals (Docked cleanly at top, 100% clearing middle 3D hero stage) -->
+        <div style="display: flex; flex-direction: column; align-items: center; margin-top: 6px; animation: titleFloat 2.5s ease-in-out infinite alternate;">
+          <h1 style="font-size: clamp(24px, 7vw, 36px); font-weight: 900; margin: 0 0 2px 0; background: linear-gradient(180deg, #ffffff 15%, #bae6fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 20px rgba(0, 229, 255, 0.45)); letter-spacing: -0.02em; text-align: center; line-height: 1.1;">
+            FLOPY.SPACE
+          </h1>
+          
+          <!-- Best Score & Active Goal Row -->
+          <div style="display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap;">
+            <div id="menu-best-label" style="font-size: 10px; font-weight: 800; color: #bae6fd; letter-spacing: 0.5px; text-transform: uppercase; background: rgba(13, 17, 30, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); padding: 2px 9px; border-radius: 10px; backdrop-filter: blur(8px);">
+              BEST <span id="menu-best-val" style="color: #fff; margin-left: 2px;">0</span>
+            </div>
+            <div id="menu-goal-pill" style="font-size: 10px; font-weight: 800; color: #00f5d4; background: rgba(13, 17, 30, 0.65); border: 1px solid rgba(0, 245, 212, 0.35); padding: 2px 9px; border-radius: 10px; backdrop-filter: blur(8px); box-shadow: 0 2px 10px rgba(0,245,212,0.2);">
+              🎯 Next: 🐱 Neko (0/15)
+            </div>
           </div>
-          <button id="menu-mute-btn" class="btn interactive" style="background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.16); color: #fff; font-size: 14px; width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-radius: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3); touch-action: manipulation;">
-            🔊
-          </button>
         </div>
       </div>
 
-      <!-- Center Title, Goals & Tap Prompt -->
-      <div style="display: flex; flex-direction: column; align-items: center; pointer-events: none; margin-top: 4px; animation: titleFloat 2.5s ease-in-out infinite alternate;">
-        <h1 style="font-size: clamp(28px, 8vw, 42px); font-weight: 900; margin: 0 0 2px 0; background: linear-gradient(180deg, #ffffff 15%, #bae6fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 20px rgba(0, 229, 255, 0.45)); letter-spacing: -0.02em; text-align: center;">
-          FLOPY.SPACE
-        </h1>
+      <!-- Bottom Zone: Action CTA Prompt + Bottom Drawer / Tabs Panel -->
+      <div id="menu-bottom-section" style="width: 100%; display: flex; flex-direction: column; align-items: center; pointer-events: auto;">
         
-        <!-- Best Score & Active Goal Row -->
-        <div style="display: flex; gap: 6px; align-items: center; justify-content: center; margin-bottom: 14px; flex-wrap: wrap;">
-          <div id="menu-best-label" style="font-size: 11px; font-weight: 800; color: #bae6fd; letter-spacing: 1px; text-transform: uppercase; background: rgba(13, 17, 30, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); padding: 3px 10px; border-radius: 12px; backdrop-filter: blur(8px);">
-            BEST <span id="menu-best-val" style="color: #fff; margin-left: 2px;">0</span>
+        <!-- Action Pulse Prompt (Anchored right above drawer, clear of hero bird) -->
+        <div style="font-size: clamp(11px, 3.2vw, 13px); font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.75); border: 1.5px solid rgba(0, 229, 255, 0.55); padding: 6px 18px; border-radius: 20px; letter-spacing: 0.5px; animation: softGlowPulse 1.8s infinite alternate; text-shadow: 0 0 10px rgba(0,229,255,0.7); backdrop-filter: blur(12px); margin-bottom: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.4);">
+          ⚡ SPACE OR TAP TO FLY
+        </div>
+
+        <!-- Bottom Drawer / Tabs Panel -->
+        <div id="menu-drawer" class="interactive" style="width: 100%; max-width: min(380px, 94vw); display: flex; flex-direction: column; align-items: center; background: rgba(12, 16, 28, 0.85); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 20px; padding: 8px 10px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
+          <!-- Tab navigation bar -->
+          <div id="menu-tabs" style="display: flex; width: 100%; gap: 6px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
+            <button data-tab="heroes" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
+              🐱 HEROES
+            </button>
+            <button data-tab="scenes" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
+              🌄 SCENES
+            </button>
+            <button data-tab="quests" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
+              🎯 QUESTS
+            </button>
+            <button data-tab="skins" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
+              🎨 SKINS
+            </button>
           </div>
-          <div id="menu-goal-pill" style="font-size: 11px; font-weight: 800; color: #00f5d4; background: rgba(13, 17, 30, 0.65); border: 1px solid rgba(0, 245, 212, 0.35); padding: 3px 10px; border-radius: 12px; backdrop-filter: blur(8px); box-shadow: 0 2px 10px rgba(0,245,212,0.2);">
-            🎯 Next: 🐱 Neko (0/15)
+
+          <!-- Tab content area -->
+          <div id="menu-tab-content" style="width: 100%; min-height: 115px; max-height: 145px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+            <!-- Dynamically populated tab items -->
           </div>
-        </div>
-
-        <div style="font-size: clamp(12px, 3.6vw, 14px); font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.7); border: 1px solid rgba(0, 229, 255, 0.5); padding: 8px 20px; border-radius: 22px; letter-spacing: 0.5px; animation: softGlowPulse 1.8s infinite alternate; text-shadow: 0 0 10px rgba(0,229,255,0.7); backdrop-filter: blur(12px);">
-          SPACE OR TAP TO FLY
-        </div>
-      </div>
-
-      <!-- Bottom Drawer / Tabs Panel -->
-      <div id="menu-drawer" class="interactive" style="width: 100%; max-width: min(380px, 94vw); display: flex; flex-direction: column; align-items: center; pointer-events: auto; background: rgba(12, 16, 28, 0.85); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 20px; padding: 8px 10px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
-        <!-- Tab navigation bar -->
-        <div id="menu-tabs" style="display: flex; width: 100%; gap: 6px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
-          <button data-tab="heroes" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
-            🐱 HEROES
-          </button>
-          <button data-tab="scenes" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
-            🌄 SCENES
-          </button>
-          <button data-tab="quests" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
-            🎯 QUESTS
-          </button>
-          <button data-tab="skins" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
-            🎨 SKINS
-          </button>
-        </div>
-
-        <!-- Tab content area -->
-        <div id="menu-tab-content" style="width: 100%; min-height: 115px; max-height: 145px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
-          <!-- Dynamically populated tab items -->
         </div>
       </div>
     `;
