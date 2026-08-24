@@ -39,6 +39,8 @@ const gameoverView = new GameOverView(app);
 // Load initial save data
 const saved = loadAll();
 audio.setMuted(saved.muted);
+hud.setTokens(saved.tokens);
+hud.setFeathers(saved.feathers);
 
 // Initialize selected character & biome
 game.setCharacter(saved.character, saved.skin);
@@ -76,12 +78,14 @@ const menuView = new MenuView(app, {
   onMissionClaim: () => {
     trackEvent("quest_claim");
     audio.missionComplete();
+    hud.setTokens(loadAll().tokens);
   },
   onClaimUnlock: (category, id) => {
     trackEvent("unlock_claimed", { category, id });
     audio.milestone();
     game.juice.flashBorder("#ffd700", 250);
     game.juice.confetti(0, game.world.bird.y, 0, 45);
+    hud.setTokens(loadAll().tokens);
     hud.showPowerUpToast("🎁", "UNLOCKED & EQUIPPED!", `Claimed new ${category}!`, "#ffd700");
   },
   onToast: (msg) => {
@@ -94,6 +98,7 @@ game.hooks = {
     if (state === "menu") {
       menuView.show();
       hud.showMenu();
+      hud.setTokens(loadAll().tokens);
       gameoverView.hide();
       hud.hideRewindPrompt();
       hud.hideCountdown();
@@ -105,6 +110,7 @@ game.hooks = {
     } else if (state === "playing") {
       menuView.hide();
       hud.hideMenu();
+      hud.setTokens(loadAll().tokens);
       gameoverView.hide();
       hud.hideRewindPrompt();
       hud.hideCountdown();

@@ -2,11 +2,18 @@ export interface HudApi {
   setScore: (score: number, pipesPassed?: number, bonusScore?: number) => void;
   setCombo: (combo: number, multiplier: number) => void;
   setFeathers: (count: number) => void;
+  setTokens: (tokens: number) => void;
   setTimeSurvived: (seconds: number) => void;
   setSlowmoMeter: (frac: number) => void;
   setFeverMeter: (active: boolean, frac: number) => void;
   setBiomeBadge: (name: string, emoji: string) => void;
-  setPowerUps: (rainbowLeft: number, hasShield: boolean, magnetLeft: number) => void;
+  setPowerUps: (
+    rainbowLeft: number,
+    hasShield: boolean,
+    magnetLeft: number,
+    heavyGravityLeft?: number,
+    speedSurgeLeft?: number,
+  ) => void;
   showPowerUpToast: (icon: string, title: string, benefit: string, color: string) => void;
   showCountdown: (text: string) => void;
   hideCountdown: () => void;
@@ -74,7 +81,7 @@ export function initHud(container: HTMLElement): HudApi {
       </div>
     </div>
 
-    <!-- Header info: Left (Biome + Time) | Center (Score) | Right (Feathers) -->
+    <!-- Header info: Left (Biome + Time) | Center (Score) | Right (Tokens + Feathers) -->
     <div id="hud-header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; opacity: 0; transition: opacity 0.25s ease; box-sizing: border-box;">
       
       <!-- Left Anchor: Biome + Time Capsule (Symmetric to right side) -->
@@ -111,13 +118,22 @@ export function initHud(container: HTMLElement): HudApi {
           <div id="hud-pill-magnet" style="display: none; font-size: 9px; font-weight: 800; color: #00f5d4; background: rgba(0,245,212,0.25); padding: 2px 8px; border-radius: 8px; border: 1px solid rgba(0,245,212,0.55); box-shadow: 0 0 10px rgba(0,245,212,0.45);">
             🧲 VACUUM <span id="hud-pill-magnet-time">6s</span>
           </div>
+          <div id="hud-pill-gravity" style="display: none; font-size: 9px; font-weight: 800; color: #c77dff; background: rgba(157,78,221,0.28); padding: 2px 8px; border-radius: 8px; border: 1px solid rgba(157,78,221,0.65); box-shadow: 0 0 10px rgba(157,78,221,0.45);">
+            ⚓ HEAVY <span id="hud-pill-gravity-time">2s</span>
+          </div>
+          <div id="hud-pill-surge" style="display: none; font-size: 9px; font-weight: 800; color: #ffbe0b; background: rgba(255,136,0,0.28); padding: 2px 8px; border-radius: 8px; border: 1px solid rgba(255,136,0,0.65); box-shadow: 0 0 10px rgba(255,136,0,0.45);">
+            ⚡ SURGE 3X <span id="hud-pill-surge-time">2s</span>
+          </div>
         </div>
       </div>
 
-      <!-- Right Anchor: Feathers Bank (Symmetric to left side) -->
-      <div id="hud-right" style="flex: 1; display: flex; justify-content: flex-end; align-items: center; min-width: 0;">
-        <div id="hud-feathers" role="status" aria-label="Feathers available" style="display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 900; color: #00e5ff; background: rgba(13, 17, 30, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 5px 12px; border-radius: 18px; border: 1.5px solid rgba(0,229,255,0.45); box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 12px rgba(0,229,255,0.25); box-sizing: border-box;">
-          <span style="font-size: 14px; line-height: 1;">🪶</span> <span id="hud-feather-count" style="font-size: 13px; font-weight: 900; font-variant-numeric: tabular-nums;">0/3</span>
+      <!-- Right Anchor: Tokens + Feathers Bank (Symmetric to left side) -->
+      <div id="hud-right" style="flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 6px; min-width: 0;">
+        <div id="hud-tokens" role="status" aria-label="Tokens bank" style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 900; color: #ffd700; background: rgba(13, 17, 30, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 5px 10px; border-radius: 18px; border: 1.5px solid rgba(255,215,0,0.45); box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 12px rgba(255,215,0,0.2); box-sizing: border-box;">
+          <span style="font-size: 13px; line-height: 1;">🪙</span> <span id="hud-token-count" style="font-size: 12px; font-weight: 900; font-variant-numeric: tabular-nums;">0</span>
+        </div>
+        <div id="hud-feathers" role="status" aria-label="Feathers available" style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 900; color: #00e5ff; background: rgba(13, 17, 30, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 5px 10px; border-radius: 18px; border: 1.5px solid rgba(0,229,255,0.45); box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 12px rgba(0,229,255,0.25); box-sizing: border-box;">
+          <span style="font-size: 13px; line-height: 1;">🪶</span> <span id="hud-feather-count" style="font-size: 12px; font-weight: 900; font-variant-numeric: tabular-nums;">0/3</span>
         </div>
       </div>
     </div>
@@ -126,8 +142,13 @@ export function initHud(container: HTMLElement): HudApi {
     <div id="hud-rewind-panel" style="display: none; position: absolute; inset: 0; pointer-events: auto; z-index: 48; flex-direction: column; align-items: center; justify-content: flex-end; background: linear-gradient(180deg, transparent 40%, rgba(8, 12, 24, 0.75) 100%); padding: max(16px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); box-sizing: border-box;">
       <div style="text-align: center; max-width: 320px; width: 90%; animation: popIn 0.28s cubic-bezier(0.2, 0.8, 0.4, 1); display: flex; flex-direction: column; align-items: center;">
         
+        <!-- High-Impact Primary CTA (Positioned on top for fast ergonomic thumb reach) -->
+        <button id="hud-rewind-btn" class="btn interactive" style="width: 100%; height: 52px; font-size: 15px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #00f5d4); border: none; border-radius: 26px; color: #002233; cursor: pointer; box-shadow: 0 0 24px rgba(0, 229, 255, 0.6); letter-spacing: 0.5px; animation: softGlowPulse 1.2s infinite alternate; touch-action: manipulation; margin-bottom: 12px;">
+          ⚡ REWIND & RESUME (−1 🪶)
+        </button>
+
         <!-- High-Glance Score & Stat Capsule -->
-        <div style="background: rgba(10, 16, 32, 0.88); border: 1.5px solid rgba(0, 229, 255, 0.45); border-radius: 20px; padding: 14px 18px; width: 100%; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.6), inset 0 0 16px rgba(0,229,255,0.14); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);">
+        <div style="background: rgba(10, 16, 32, 0.88); border: 1.5px solid rgba(0, 229, 255, 0.45); border-radius: 20px; padding: 14px 18px; width: 100%; box-sizing: border-box; box-shadow: 0 12px 32px rgba(0,0,0,0.6), inset 0 0 16px rgba(0,229,255,0.14); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; flex-direction: column; align-items: flex-start;">
               <span style="font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: 1.5px; text-transform: uppercase;">Total Score</span>
@@ -152,13 +173,8 @@ export function initHud(container: HTMLElement): HudApi {
           </div>
         </div>
 
-        <!-- High-Impact Primary CTA -->
-        <button id="hud-rewind-btn" class="btn interactive" style="width: 100%; height: 50px; font-size: 15px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #00f5d4); border: none; border-radius: 25px; color: #002233; cursor: pointer; box-shadow: 0 0 24px rgba(0, 229, 255, 0.6); letter-spacing: 0.5px; animation: softGlowPulse 1.2s infinite alternate; touch-action: manipulation;">
-          ⚡ REWIND (−1 🪶)
-        </button>
-
-        <!-- Tap-Friendly Secondary Give Up Button (Min 44px) -->
-        <button id="hud-giveup-btn" class="btn interactive" style="width: 100%; height: 44px; min-height: 44px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 22px; color: #b0b8d0; font-size: 12px; font-weight: 800; margin-top: 6px; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
+        <!-- Tap-Friendly Secondary Give Up Button (Min 44px, safely spaced below scoreboard) -->
+        <button id="hud-giveup-btn" class="btn interactive" style="width: 100%; height: 44px; min-height: 44px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 22px; color: #b0b8d0; font-size: 12px; font-weight: 800; margin-top: 10px; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
           GIVE UP & END RUN
         </button>
       </div>
@@ -187,6 +203,7 @@ export function initHud(container: HTMLElement): HudApi {
   const feverEl = hud.querySelector("#hud-fever") as HTMLElement;
   const timeVal = hud.querySelector("#hud-time-val") as HTMLElement;
   const featherEl = hud.querySelector("#hud-feather-count")!;
+  const tokenEl = hud.querySelector("#hud-token-count")!;
   const biomeEmoji = hud.querySelector("#hud-biome-emoji")!;
   const biomeName = hud.querySelector("#hud-biome-name")!;
   const slowmoBar = hud.querySelector("#slowmo-meter-bar") as HTMLElement;
@@ -208,6 +225,10 @@ export function initHud(container: HTMLElement): HudApi {
   const shieldPill = hud.querySelector("#hud-pill-shield") as HTMLElement;
   const magnetPill = hud.querySelector("#hud-pill-magnet") as HTMLElement;
   const magnetTime = hud.querySelector("#hud-pill-magnet-time") as HTMLElement;
+  const gravityPill = hud.querySelector("#hud-pill-gravity") as HTMLElement;
+  const gravityTime = hud.querySelector("#hud-pill-gravity-time") as HTMLElement;
+  const surgePill = hud.querySelector("#hud-pill-surge") as HTMLElement;
+  const surgeTime = hud.querySelector("#hud-pill-surge-time") as HTMLElement;
 
   return {
     setScore(score: number, pipesPassed = score, bonusScore = 0) {
@@ -233,6 +254,9 @@ export function initHud(container: HTMLElement): HudApi {
     setFeathers(count: number) {
       featherEl.textContent = `${count}/3`;
     },
+    setTokens(tokens: number) {
+      if (tokenEl) tokenEl.textContent = tokens.toString();
+    },
     setTimeSurvived(seconds: number) {
       timeVal.textContent = formatTime(seconds);
     },
@@ -254,7 +278,13 @@ export function initHud(container: HTMLElement): HudApi {
       biomeName.textContent = shortName;
       biomeEmoji.textContent = emoji;
     },
-    setPowerUps(rainbowLeft: number, hasShield: boolean, magnetLeft: number) {
+    setPowerUps(
+      rainbowLeft: number,
+      hasShield: boolean,
+      magnetLeft: number,
+      heavyGravityLeft = 0,
+      speedSurgeLeft = 0,
+    ) {
       if (rainbowLeft > 0) {
         rainbowPill.style.display = "block";
         rainbowTime.textContent = `${Math.ceil(rainbowLeft)}s`;
@@ -269,6 +299,20 @@ export function initHud(container: HTMLElement): HudApi {
         magnetTime.textContent = `${Math.ceil(magnetLeft)}s`;
       } else {
         magnetPill.style.display = "none";
+      }
+
+      if (heavyGravityLeft > 0) {
+        gravityPill.style.display = "block";
+        gravityTime.textContent = `${Math.ceil(heavyGravityLeft)}s`;
+      } else {
+        gravityPill.style.display = "none";
+      }
+
+      if (speedSurgeLeft > 0) {
+        surgePill.style.display = "block";
+        surgeTime.textContent = `${Math.ceil(speedSurgeLeft)}s`;
+      } else {
+        surgePill.style.display = "none";
       }
     },
     showPowerUpToast(icon: string, title: string, benefit: string, color: string) {

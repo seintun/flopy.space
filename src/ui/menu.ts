@@ -9,9 +9,25 @@ import {
   getStoredMissions,
   saveStoredMissions,
   addFeathers,
+  spendTokens,
+  claimCharacter,
+  claimSkin,
+  claimBiome,
+  isSkinUnlocked,
+  isSkinClaimable,
 } from "../core/storage";
-import { CHARACTERS, type CharacterId, isCharacterUnlocked } from "../core/characters";
-import { BIOMES, type BiomeId } from "../core/biomes";
+import {
+  CHARACTERS,
+  type CharacterId,
+  isCharacterUnlocked,
+  isCharacterClaimable,
+} from "../core/characters";
+import {
+  BIOMES,
+  type BiomeId,
+  isBiomeUnlocked,
+  isBiomeClaimable,
+} from "../core/biomes";
 import { enableDragScroll } from "../utils/dom";
 import { InstallManager } from "./installManager";
 import { getNextGoal } from "../core/goals";
@@ -23,6 +39,7 @@ export interface MenuCallbacks {
   onBiomeChange: (biomeId: BiomeId | "auto") => void;
   onMuteToggle: (muted: boolean) => void;
   onMissionClaim?: () => void;
+  onClaimUnlock?: (category: "hero" | "scene" | "skin", id: string) => void;
   onToast?: (msg: string) => void;
 }
 
@@ -30,6 +47,7 @@ export class MenuView {
   private el: HTMLElement;
   private streakEl: HTMLElement;
   private feathersEl: HTMLElement;
+  private tokensEl: HTMLElement;
   private playTimeEl: HTMLElement;
   private bestEl: HTMLElement;
   private muteBtn: HTMLElement;
@@ -74,6 +92,9 @@ export class MenuView {
             <button id="menu-install-btn" class="btn interactive" style="display: none; background: linear-gradient(135deg, #00ffc3, #00b4d8); color: #002233; font-weight: 800; font-size: 10px; border: none; border-radius: 14px; padding: 5px 10px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,255,195,0.4); touch-action: manipulation;">
               📲 INSTALL
             </button>
+            <div id="menu-tokens" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(255, 215, 0, 0.4); font-weight: 800; font-size: 11px; color: #ffd700; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+              🪙 <span id="menu-token-count">0</span>
+            </div>
             <div id="menu-feathers" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(0, 229, 255, 0.35); font-weight: 800; font-size: 11px; color: #00e5ff; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
               🪶 <span id="menu-feather-count">0</span>
             </div>
@@ -85,16 +106,22 @@ export class MenuView {
 
         <!-- Title & Sub-goals (Positioned directly above the 3D hero stage) -->
         <div style="display: flex; flex-direction: column; align-items: center; margin-top: clamp(24px, 7vh, 52px); animation: titleFloat 2.5s ease-in-out infinite alternate;">
-          <h1 style="font-size: clamp(28px, 8vw, 42px); font-weight: 900; margin: 0 0 4px 0; background: linear-gradient(180deg, #ffffff 15%, #bae6fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 20px rgba(0, 229, 255, 0.45)); letter-spacing: -0.02em; text-align: center; line-height: 1.1;">
+          <h1 style="font-size: clamp(28px, 8vw, 42px); font-weight: 900; margin: 0 0 6px 0; background: linear-gradient(180deg, #ffffff 15%, #bae6fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 20px rgba(0, 229, 255, 0.45)); letter-spacing: -0.02em; text-align: center; line-height: 1.1;">
             FLOPY.SPACE
           </h1>
           
-          <!-- Best Score & Active Goal Row -->
-          <div style="display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap;">
-            <div id="menu-best-label" style="font-size: 11px; font-weight: 800; color: #bae6fd; letter-spacing: 0.5px; text-transform: uppercase; background: rgba(13, 17, 30, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); padding: 3px 10px; border-radius: 12px; backdrop-filter: blur(8px);">
-              BEST <span id="menu-best-val" style="color: #fff; margin-left: 2px;">0</span>
+          <!-- Distinct Two-Row Stats Area: Celebratory Record on Line 1, Milestone Goal on Line 2 -->
+          <div style="display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; width: 100%; margin-top: 2px;">
+            
+            <!-- Line 1: Celebratory High Score Badge with Trophy & Ambient Glow -->
+            <div id="menu-best-label" style="display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, rgba(255, 215, 0, 0.24), rgba(255, 158, 0, 0.18)); border: 1.5px solid #ffd700; padding: 4px 16px; border-radius: 20px; box-shadow: 0 4px 18px rgba(255, 215, 0, 0.35), inset 0 0 12px rgba(255,215,0,0.18); animation: softGlowPulse 1.4s infinite alternate; letter-spacing: 0.5px;">
+              <span style="font-size: 15px; filter: drop-shadow(0 0 8px rgba(255,215,0,0.8));">👑</span>
+              <span style="font-size: 11px; font-weight: 900; color: #ffd700; text-transform: uppercase;">RECORD</span>
+              <span id="menu-best-val" style="font-size: 18px; font-weight: 900; color: #fff; text-shadow: 0 0 14px rgba(255, 215, 0, 0.9); font-variant-numeric: tabular-nums; line-height: 1;">0</span>
             </div>
-            <div id="menu-goal-pill" style="font-size: 11px; font-weight: 800; color: #00f5d4; background: rgba(13, 17, 30, 0.65); border: 1px solid rgba(0, 245, 212, 0.35); padding: 3px 10px; border-radius: 12px; backdrop-filter: blur(8px); box-shadow: 0 2px 10px rgba(0,245,212,0.2);">
+
+            <!-- Line 2: Distinct Next Milestone Target Pill -->
+            <div id="menu-goal-pill" style="font-size: 11px; font-weight: 800; color: #00f5d4; background: rgba(13, 17, 30, 0.75); border: 1px solid rgba(0, 245, 212, 0.4); padding: 4px 14px; border-radius: 16px; backdrop-filter: blur(12px); box-shadow: 0 2px 12px rgba(0,245,212,0.2); display: flex; align-items: center; gap: 5px;">
               🎯 Next: 🐱 Neko (0/15)
             </div>
           </div>
@@ -140,6 +167,7 @@ export class MenuView {
     this.streakEl = this.el.querySelector("#menu-streak-count")!;
     this.playTimeEl = this.el.querySelector("#menu-playtime-count")!;
     this.feathersEl = this.el.querySelector("#menu-feather-count")!;
+    this.tokensEl = this.el.querySelector("#menu-token-count")!;
     this.bestEl = this.el.querySelector("#menu-best-val")!;
     this.muteBtn = this.el.querySelector("#menu-mute-btn")!;
     this.tabContentEl = this.el.querySelector("#menu-tab-content")!;
@@ -200,12 +228,13 @@ export class MenuView {
     this.streakEl.textContent = streak.toString();
     this.playTimeEl.textContent = `${Math.round(data.totalPlayTimeSec / 60)}`;
     this.feathersEl.textContent = data.feathers.toString();
+    if (this.tokensEl) this.tokensEl.textContent = data.tokens.toString();
     this.bestEl.textContent = data.best.toString();
     this.muteBtn.textContent = data.muted ? "🔇" : "🔊";
 
-    const goal = getNextGoal(data.best);
+    const goal = getNextGoal(data.tokens, data);
     if (this.goalPillEl) {
-      this.goalPillEl.innerHTML = `🎯 Next: <strong style="color: #fff;">${goal.emoji} ${goal.name}</strong> (${data.best}/${goal.targetScore})`;
+      this.goalPillEl.innerHTML = `🎯 Next: <strong style="color: #fff;">${goal.emoji} ${goal.name}</strong> (${data.tokens}/${goal.targetScore} 🪙)`;
     }
 
     this.renderTabContent();
@@ -243,35 +272,32 @@ export class MenuView {
   }
 
   // 1. HEROES TAB
-  private renderHeroesTab(data: ReturnType<typeof loadAll>, streak: number): void {
+  private renderHeroesTab(data: ReturnType<typeof loadAll>, _streak: number): void {
     const heroesContainer = document.createElement("div");
     heroesContainer.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px 2px; width: 100%; box-sizing: border-box;";
 
     Object.values(CHARACTERS).forEach((char) => {
-      const isUnlocked = isCharacterUnlocked(char.id, data.best, streak, data.unlockedChars, data.totalPlayTimeSec);
+      const isUnlocked = isCharacterUnlocked(char.id, data.unlockedChars);
+      const isClaimable = isCharacterClaimable(char.id, data.tokens, data.unlockedChars);
       const isSelected = data.character === char.id;
-
-      const progressPct = char.unlockType === "score"
-        ? Math.min(100, Math.round((data.best / char.unlockValue) * 100))
-        : char.unlockType === "streak"
-          ? Math.min(100, Math.round((streak / char.unlockValue) * 100))
-          : 100;
+      const progressPct = Math.min(100, Math.round((data.tokens / (char.unlockValue || 1)) * 100));
 
       const card = document.createElement("div");
       card.className = "btn interactive";
       card.style.cssText = `
         flex: 0 0 102px;
-        background: ${isSelected ? "rgba(0, 229, 255, 0.18)" : "rgba(255, 255, 255, 0.05)"};
-        border: 1.5px solid ${isSelected ? "#00e5ff" : isUnlocked ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.06)"};
+        background: ${isSelected ? "rgba(0, 229, 255, 0.18)" : isClaimable ? "rgba(255, 215, 0, 0.18)" : "rgba(255, 255, 255, 0.05)"};
+        border: 1.5px solid ${isSelected ? "#00e5ff" : isClaimable ? "#ffd700" : isUnlocked ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.06)"};
         border-radius: 16px;
         padding: 8px 4px;
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
-        cursor: ${isUnlocked ? "pointer" : "default"};
-        opacity: ${isUnlocked ? "1" : "0.55"};
-        box-shadow: ${isSelected ? "0 0 16px rgba(0, 229, 255, 0.3)" : "none"};
+        cursor: ${isUnlocked || isClaimable ? "pointer" : "default"};
+        opacity: ${isUnlocked || isClaimable ? "1" : "0.55"};
+        box-shadow: ${isSelected ? "0 0 16px rgba(0, 229, 255, 0.3)" : isClaimable ? "0 0 18px rgba(255, 215, 0, 0.45)" : "none"};
+        animation: ${isClaimable ? "softGlowPulse 1.2s infinite alternate" : "none"};
         touch-action: pan-x;
         user-select: none;
       `;
@@ -279,24 +305,32 @@ export class MenuView {
       card.innerHTML = `
         <div style="font-size: 26px; margin-bottom: 2px;">${char.emoji}</div>
         <div style="font-size: 11px; font-weight: 800; color: #fff; letter-spacing: -0.01em;">${char.name}</div>
-        <div style="font-size: 9px; font-weight: 700; color: ${isSelected ? "#00e5ff" : isUnlocked ? "#38bdf8" : "#ff9e00"}; margin-top: 4px;">
-          ${isSelected ? "✓ ACTIVE" : isUnlocked ? "SELECT" : `🔒 Score ${char.unlockValue}`}
+        <div style="font-size: 9px; font-weight: 700; color: ${isSelected ? "#00e5ff" : isClaimable ? "#ffd700" : isUnlocked ? "#38bdf8" : "#ff9e00"}; margin-top: 4px;">
+          ${isSelected ? "✓ ACTIVE" : isClaimable ? `🎁 CLAIM ${char.unlockValue}🪙` : isUnlocked ? "SELECT" : `🔒 ${char.unlockValue} 🪙`}
         </div>
-        ${!isUnlocked ? `
+        ${!isUnlocked && !isClaimable ? `
           <div style="width: 80%; height: 3px; background: rgba(0,0,0,0.5); border-radius: 2px; margin-top: 3px; overflow: hidden;">
-            <div style="width: ${progressPct}%; height: 100%; background: #ff9e00;"></div>
+            <div style="width: ${progressPct}%; height: 100%; background: #ffd700;"></div>
           </div>
         ` : ""}
       `;
 
       card.onclick = (e) => {
         e.stopPropagation();
-        if (isUnlocked) {
+        if (isClaimable) {
+          if (spendTokens(char.unlockValue)) {
+            claimCharacter(char.id);
+            setCharacter(char.id);
+            this.callbacks.onClaimUnlock?.("hero", char.id);
+            this.callbacks.onCharacterChange(char.id);
+            this.refresh();
+          }
+        } else if (isUnlocked) {
           setCharacter(char.id);
           this.callbacks.onCharacterChange(char.id);
           this.refresh();
         } else {
-          this.callbacks.onToast?.(`🔒 Locked: Score ${char.unlockValue} to unlock ${char.name}!`);
+          this.callbacks.onToast?.(`🔒 Locked: Requires ${char.unlockValue} 🪙 to unlock ${char.name}!`);
         }
       };
 
@@ -346,47 +380,57 @@ export class MenuView {
     // Biomes
     Object.values(BIOMES).forEach((b) => {
       const isSelected = data.biome === b.id;
-      const isUnlocked = data.best >= b.unlockScore;
-      const progressPct = Math.min(100, Math.round((data.best / (b.unlockScore || 1)) * 100));
+      const isUnlocked = isBiomeUnlocked(b.id, data.unlockedBiomes);
+      const isClaimable = isBiomeClaimable(b.id, data.tokens, data.unlockedBiomes);
+      const progressPct = Math.min(100, Math.round((data.tokens / (b.unlockScore || 1)) * 100));
 
       const card = document.createElement("div");
       card.className = "btn interactive";
       card.style.cssText = `
         flex: 0 0 96px;
-        background: ${isSelected ? "rgba(0, 229, 255, 0.18)" : "rgba(255, 255, 255, 0.05)"};
-        border: 1.5px solid ${isSelected ? "#00e5ff" : isUnlocked ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.06)"};
+        background: ${isSelected ? "rgba(0, 229, 255, 0.18)" : isClaimable ? "rgba(255, 215, 0, 0.18)" : "rgba(255, 255, 255, 0.05)"};
+        border: 1.5px solid ${isSelected ? "#00e5ff" : isClaimable ? "#ffd700" : isUnlocked ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.06)"};
         border-radius: 16px;
         padding: 8px 4px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        cursor: ${isUnlocked ? "pointer" : "default"};
-        opacity: ${isUnlocked ? "1" : "0.55"};
-        box-shadow: ${isSelected ? "0 0 16px rgba(0, 229, 255, 0.3)" : "none"};
+        cursor: ${isUnlocked || isClaimable ? "pointer" : "default"};
+        opacity: ${isUnlocked || isClaimable ? "1" : "0.55"};
+        box-shadow: ${isSelected ? "0 0 16px rgba(0, 229, 255, 0.3)" : isClaimable ? "0 0 18px rgba(255, 215, 0, 0.45)" : "none"};
+        animation: ${isClaimable ? "softGlowPulse 1.2s infinite alternate" : "none"};
         touch-action: pan-x;
         user-select: none;
       `;
       card.innerHTML = `
         <div style="font-size: 22px;">${b.emoji}</div>
         <div style="font-size: 10px; font-weight: 800; color: #fff;">${b.name}</div>
-        <div style="font-size: 9px; font-weight: 700; color: ${isSelected ? "#00e5ff" : isUnlocked ? "#38bdf8" : "#ff9e00"}; margin-top: 4px;">
-          ${isSelected ? "✓ ACTIVE" : isUnlocked ? "SELECT" : `🔒 Score ${b.unlockScore}`}
+        <div style="font-size: 9px; font-weight: 700; color: ${isSelected ? "#00e5ff" : isClaimable ? "#ffd700" : isUnlocked ? "#38bdf8" : "#ff9e00"}; margin-top: 4px;">
+          ${isSelected ? "✓ ACTIVE" : isClaimable ? `🎁 CLAIM ${b.unlockScore}🪙` : isUnlocked ? "SELECT" : `🔒 ${b.unlockScore} 🪙`}
         </div>
-        ${!isUnlocked ? `
+        ${!isUnlocked && !isClaimable ? `
           <div style="width: 80%; height: 3px; background: rgba(0,0,0,0.5); border-radius: 2px; margin-top: 3px; overflow: hidden;">
-            <div style="width: ${progressPct}%; height: 100%; background: #ff9e00;"></div>
+            <div style="width: ${progressPct}%; height: 100%; background: #ffd700;"></div>
           </div>
         ` : ""}
       `;
 
       card.onclick = (e) => {
         e.stopPropagation();
-        if (isUnlocked) {
+        if (isClaimable) {
+          if (spendTokens(b.unlockScore)) {
+            claimBiome(b.id);
+            setBiome(b.id);
+            this.callbacks.onClaimUnlock?.("scene", b.id);
+            this.callbacks.onBiomeChange(b.id);
+            this.refresh();
+          }
+        } else if (isUnlocked) {
           setBiome(b.id);
           this.callbacks.onBiomeChange(b.id);
           this.refresh();
         } else {
-          this.callbacks.onToast?.(`🔒 Locked: Reach Score ${b.unlockScore} to unlock ${b.name}!`);
+          this.callbacks.onToast?.(`🔒 Locked: Requires ${b.unlockScore} 🪙 to unlock ${b.name}!`);
         }
       };
 
@@ -461,27 +505,29 @@ export class MenuView {
     list.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px 2px; width: 100%; box-sizing: border-box;";
 
     Object.values(SKINS).forEach((skin) => {
-      const isUnlocked = data.best >= skin.unlockScore || data.unlocked.includes(skin.id);
+      const isUnlocked = isSkinUnlocked(skin.id, data.unlocked);
+      const isClaimable = isSkinClaimable(skin.id, data.tokens, data.unlocked);
       const isSelected = data.skin === skin.id;
       const bodyHex = skin.bodyColor.toString(16).padStart(6, "0");
       const bellyHex = skin.bellyColor.toString(16).padStart(6, "0");
-      const progressPct = Math.min(100, Math.round((data.best / (skin.unlockScore || 1)) * 100));
+      const progressPct = Math.min(100, Math.round((data.tokens / (skin.unlockScore || 1)) * 100));
 
       const card = document.createElement("div");
       card.className = "btn interactive";
       card.style.cssText = `
         flex: 0 0 102px;
-        background: ${isSelected ? "rgba(0, 229, 255, 0.18)" : "rgba(255, 255, 255, 0.05)"};
-        border: 1.5px solid ${isSelected ? "#00e5ff" : isUnlocked ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.06)"};
+        background: ${isSelected ? "rgba(0, 229, 255, 0.18)" : isClaimable ? "rgba(255, 215, 0, 0.18)" : "rgba(255, 255, 255, 0.05)"};
+        border: 1.5px solid ${isSelected ? "#00e5ff" : isClaimable ? "#ffd700" : isUnlocked ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.06)"};
         border-radius: 16px;
         padding: 8px 4px;
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
-        cursor: ${isUnlocked ? "pointer" : "default"};
-        opacity: ${isUnlocked ? "1" : "0.55"};
-        box-shadow: ${isSelected ? "0 0 16px rgba(0, 229, 255, 0.3)" : "none"};
+        cursor: ${isUnlocked || isClaimable ? "pointer" : "default"};
+        opacity: ${isUnlocked || isClaimable ? "1" : "0.55"};
+        box-shadow: ${isSelected ? "0 0 16px rgba(0, 229, 255, 0.3)" : isClaimable ? "0 0 18px rgba(255, 215, 0, 0.45)" : "none"};
+        animation: ${isClaimable ? "softGlowPulse 1.2s infinite alternate" : "none"};
         touch-action: pan-x;
         user-select: none;
       `;
@@ -489,24 +535,32 @@ export class MenuView {
       card.innerHTML = `
         <div style="width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #${bodyHex}, #${bellyHex}); border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 4px 12px #${bodyHex}66, inset 0 2px 4px rgba(255,255,255,0.7); margin-bottom: 3px;"></div>
         <div style="font-size: 10px; font-weight: 800; color: #fff; letter-spacing: -0.01em; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${skin.name}</div>
-        <div style="font-size: 9px; font-weight: 700; color: ${isSelected ? "#00e5ff" : isUnlocked ? "#38bdf8" : "#ff9e00"}; margin-top: 3px;">
-          ${isSelected ? "✓ ACTIVE" : isUnlocked ? "SELECT" : `🔒 Score ${skin.unlockScore}`}
+        <div style="font-size: 9px; font-weight: 700; color: ${isSelected ? "#00e5ff" : isClaimable ? "#ffd700" : isUnlocked ? "#38bdf8" : "#ff9e00"}; margin-top: 3px;">
+          ${isSelected ? "✓ ACTIVE" : isClaimable ? `🎁 CLAIM ${skin.unlockScore}🪙` : isUnlocked ? "SELECT" : `🔒 ${skin.unlockScore} 🪙`}
         </div>
-        ${!isUnlocked ? `
+        ${!isUnlocked && !isClaimable ? `
           <div style="width: 80%; height: 3px; background: rgba(0,0,0,0.5); border-radius: 2px; margin-top: 3px; overflow: hidden;">
-            <div style="width: ${progressPct}%; height: 100%; background: #ff9e00;"></div>
+            <div style="width: ${progressPct}%; height: 100%; background: #ffd700;"></div>
           </div>
         ` : ""}
       `;
 
       card.onclick = (e) => {
         e.stopPropagation();
-        if (isUnlocked) {
+        if (isClaimable) {
+          if (spendTokens(skin.unlockScore)) {
+            claimSkin(skin.id);
+            setSkin(skin.id);
+            this.callbacks.onClaimUnlock?.("skin", skin.id);
+            this.callbacks.onSkinChange(skin.id);
+            this.refresh();
+          }
+        } else if (isUnlocked) {
           setSkin(skin.id);
           this.callbacks.onSkinChange(skin.id);
           this.refresh();
         } else {
-          this.callbacks.onToast?.(`🔒 Locked: Reach Score ${skin.unlockScore} to unlock ${skin.name}!`);
+          this.callbacks.onToast?.(`🔒 Locked: Requires ${skin.unlockScore} 🪙 to unlock ${skin.name}!`);
         }
       };
 
