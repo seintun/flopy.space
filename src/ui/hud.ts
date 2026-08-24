@@ -288,9 +288,10 @@ export function initHud(container: HTMLElement): HudApi {
       onRewind: () => void,
       onGiveUp: () => void,
     ) {
+      const effectiveBest = Math.max(score, best);
       rewindScore.textContent = score.toString();
-      rewindBest.textContent = best.toString();
-      rewindFeathers.textContent = `🪶 ${feathers}`;
+      rewindBest.textContent = effectiveBest.toString();
+      rewindFeathers.textContent = feathers.toString();
 
       // Minimal, glanceable context tag
       if (combo >= 3) {
