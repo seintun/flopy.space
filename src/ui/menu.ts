@@ -124,8 +124,8 @@ export class MenuView {
 
       <!-- Center Title & Tap Prompt -->
       <div style="display: flex; flex-direction: column; align-items: center; pointer-events: none; margin-top: 4px; animation: titleFloat 2.5s ease-in-out infinite alternate;">
-        <h1 style="font-size: clamp(30px, 8.5vw, 44px); font-weight: 900; margin: 0 0 2px 0; background: linear-gradient(180deg, #ffffff 15%, #bae6fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 20px rgba(0, 229, 255, 0.45)); letter-spacing: -0.02em; text-align: center;">
-          FLAPPY 3D
+        <h1 style="font-size: clamp(28px, 8vw, 42px); font-weight: 900; margin: 0 0 2px 0; background: linear-gradient(180deg, #ffffff 15%, #bae6fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 20px rgba(0, 229, 255, 0.45)); letter-spacing: -0.02em; text-align: center;">
+          FLOPY.SPACE
         </h1>
         <div id="menu-best-label" style="font-size: 11px; font-weight: 800; color: #bae6fd; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 14px; background: rgba(13, 17, 30, 0.6); border: 1px solid rgba(255, 255, 255, 0.12); padding: 3px 12px; border-radius: 12px; backdrop-filter: blur(8px);">
           BEST <span id="menu-best-val" style="color: #fff; margin-left: 2px;">0</span>
