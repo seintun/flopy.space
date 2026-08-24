@@ -3,7 +3,7 @@
 Plan: docs/superpowers/plans/2026-08-23-flappy3d.md
 Spec: docs/superpowers/specs/2026-08-23-flappy3d-design.md
 BaseSHA: 30887916934f0a5fc422e2d9b527aa922a8a393d (main)
-Updated: 2026-08-24T07:05Z
+Updated: 2026-08-24T07:09Z
 
 ## Resumption Invariant
 
@@ -13,17 +13,17 @@ tasks marked complete.
 
 ## Progress
 
-Phase 1 — Scaffold + Headless Core: **not started**
-- [ ] Task 0: Project scaffold (vite+ts+three+vitest)
-- [ ] Task 1: Constants, types, seeded RNG
-- [ ] Task 2: Physics (stepBird, flap)
-- [ ] Task 3: Difficulty curves
-- [ ] Task 4: Spawner (pooled pipes/orbs)
-- [ ] Task 5: Collision
-- [ ] Task 6: Scoring/combo/feathers
-- [ ] Task 7: TimeSystem + SnapshotBuffer
+Phase 1 — Scaffold + Headless Core: **complete**
+- [x] Task 0: Project scaffold (vite+ts+three+vitest)
+- [x] Task 1: Constants, types, seeded RNG
+- [x] Task 2: Physics (stepBird, flap)
+- [x] Task 3: Difficulty curves
+- [x] Task 4: Spawner (pooled pipes/orbs)
+- [x] Task 5: Collision
+- [x] Task 6: Scoring/combo/feathers
+- [x] Task 7: TimeSystem + SnapshotBuffer
 
-Phase 2 — Render Layer: **not started**
+Phase 2 — Render Layer: **in_progress**
 - [ ] Task 8: Renderer bootstrap + portrait camera rig
 - [ ] Task 9: Day/night palette (pure fn) + sky dome
 - [ ] Task 10: Bird view
@@ -51,8 +51,6 @@ Phase 6 — Mobile Polish + Ship: **not started**
 
 ## Session Notes
 
-- Design fully approved by user in brainstorm (all sections).
-- User priorities locked: Three.js+WebGL; time-manipulation "4D"; stylized realism;
-  core juice + progression (no backend); desktop + mobile with MOBILE-PORTRAIT FIRST.
-- Next action on resume: execute Task 0 exactly as specified in plan, then proceed
-  task-by-task with TDD steps and per-task commits.
+- Phase 1 all headless core modules complete with 100% test coverage (8 test suites, 25 tests passing).
+- Chrome open to live dev server at http://localhost:3000.
+- Next: Phase 2 (Three.js render layer).
