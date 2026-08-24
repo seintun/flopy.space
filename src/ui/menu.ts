@@ -61,7 +61,7 @@ export class MenuView {
           <div id="menu-feathers" style="display: flex; align-items: center; gap: 5px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 12px; border-radius: 18px; border: 1px solid rgba(0, 229, 255, 0.35); font-weight: 800; font-size: 12px; color: #00e5ff; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
             🪶 <span id="menu-feather-count">0</span>
           </div>
-          <button id="menu-mute-btn" class="btn interactive" style="background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.16); color: #fff; font-size: 14px; width: 34px; height: 34px; border-radius: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+          <button id="menu-mute-btn" class="btn interactive" style="background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.16); color: #fff; font-size: 15px; width: 38px; height: 38px; min-width: 38px; min-height: 38px; border-radius: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3); touch-action: manipulation;">
             🔊
           </button>
         </div>
@@ -84,16 +84,16 @@ export class MenuView {
       <div style="width: 100%; max-width: min(380px, 94vw); display: flex; flex-direction: column; align-items: center; pointer-events: auto; background: rgba(12, 16, 28, 0.85); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 20px; padding: 8px 10px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
         <!-- Tab navigation bar -->
         <div id="menu-tabs" style="display: flex; width: 100%; gap: 6px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
-          <button data-tab="heroes" class="btn interactive tab-btn" style="flex: 1; padding: 7px 2px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px;">
+          <button data-tab="heroes" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
             🐱 HEROES
           </button>
-          <button data-tab="scenes" class="btn interactive tab-btn" style="flex: 1; padding: 7px 2px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px;">
+          <button data-tab="scenes" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
             🌄 SCENES
           </button>
-          <button data-tab="quests" class="btn interactive tab-btn" style="flex: 1; padding: 7px 2px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px;">
+          <button data-tab="quests" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
             🎯 QUESTS
           </button>
-          <button data-tab="skins" class="btn interactive tab-btn" style="flex: 1; padding: 7px 2px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px;">
+          <button data-tab="skins" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
             🎨 SKINS
           </button>
         </div>

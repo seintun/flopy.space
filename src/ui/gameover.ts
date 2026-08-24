@@ -29,7 +29,7 @@ export class GameOverView {
       -webkit-backdrop-filter: blur(16px);
       z-index: 50;
       color: #fff;
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
       box-sizing: border-box;
     `;
 
