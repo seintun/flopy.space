@@ -1,15 +1,18 @@
 {
-  "name": "Flappy3D",
-  "short_name": "Flappy3D",
-  "start_url": "/",
-  "display": "fullscreen",
+  "name": "FLOPY.SPACE — 3D Time Arcade",
+  "short_name": "FLOPY.SPACE",
+  "description": "Addictive 3D arcade flyer with cute heroes, 4D time rewind, and dynamic worlds.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0a1024",
-  "theme_color": "#ffd700",
+  "theme_color": "#0a1024",
+  "categories": ["games", "arcade"],
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "any",
+      "src": "icon.svg",
+      "sizes": "192x192 512x512 any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
