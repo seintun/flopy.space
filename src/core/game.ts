@@ -538,6 +538,14 @@ export class Game {
           this.world.feathersRun = Math.max(0, feathersBefore - 1);
           this.world.rewindsUsedRun = rewindsBefore + 1;
 
+          // Reset combo spree back to 0 (starts from +1 base on next pass)
+          this.world.combo = 0;
+
+          // Clear all active power-ups upon rewind
+          this.world.rainbowTrailTimer = 0;
+          this.world.hasShield = false;
+          this.world.magnetTimer = 0;
+
           // Bullet-Time Readjustment: Slow pace to 45% speed for 1.8s easing smoothly back to 100%
           this.time = new TimeSystem();
           this.time.scale = 0.45;
@@ -548,9 +556,11 @@ export class Game {
           this.juice.popupAtWorld("⚡ BULLET TIME", 0, this.world.bird.y, 0, this.ctx.camera, "#00e5ff", 0.85);
           this.setState("playing");
           this.hooks.onRewindComplete?.();
+          this.hooks.onFeverChange?.(false, 0);
+          this.hooks.onPowerUpsChange?.(0, false, 0);
           this.hooks.onScoreChange?.(
             this.world.score,
-            this.world.combo,
+            0,
             this.world.feathersRun,
             this.world.runDurationSec,
           );
