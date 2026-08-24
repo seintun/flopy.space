@@ -15,6 +15,8 @@ interface Particle {
 
 export type BorderFxType = "fever" | "rainbow" | "shield" | "magnet" | "slowmo" | "none";
 
+const _worldPopupVec = new THREE.Vector3();
+
 export class Juice {
   trauma = 0;
   private time = 0;
@@ -238,13 +240,13 @@ export class Juice {
 
   // Popup positioned directly above/below bird or object in 3D world space
   popupAtWorld(text: string, wx: number, wy: number, wz: number, camera: THREE.Camera, color = "#ffd700", offsetY = 0.85): void {
-    const vec = new THREE.Vector3(wx, wy + offsetY, wz);
-    vec.project(camera);
+    _worldPopupVec.set(wx, wy + offsetY, wz);
+    _worldPopupVec.project(camera);
 
-    const sx = (vec.x * 0.5 + 0.5) * 100;
-    const sy = (-vec.y * 0.5 + 0.5) * 100;
+    const sx = (_worldPopupVec.x * 0.5 + 0.5) * 100;
+    const sy = (-_worldPopupVec.y * 0.5 + 0.5) * 100;
 
-    if (vec.z < 1) {
+    if (_worldPopupVec.z < 1) {
       this.popup(text, color, Math.max(6, Math.min(94, sx)), Math.max(8, Math.min(88, sy)));
     }
   }

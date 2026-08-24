@@ -62,13 +62,11 @@ export function createScene(container: HTMLElement, camera: THREE.PerspectiveCam
 
   const setBiomeGround = (groundHex: number, gridHex = 0x5a8f3b) => {
     (ground.material as THREE.MeshStandardMaterial).color.setHex(groundHex);
-    // update grid colors
-    if (gridHelper) {
-      gridHelper.material = new THREE.LineBasicMaterial({
-        color: gridHex,
-        transparent: true,
-        opacity: 0.35,
-      });
+    // update grid colors without allocating new materials
+    if (gridHelper && gridHelper.material) {
+      (gridHelper.material as THREE.LineBasicMaterial).color.setHex(gridHex);
+      (gridHelper.material as THREE.LineBasicMaterial).transparent = true;
+      (gridHelper.material as THREE.LineBasicMaterial).opacity = 0.35;
     }
   };
 
