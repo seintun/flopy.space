@@ -473,11 +473,7 @@ export class Game {
 
             // Pass score popup directly above the bird's head
             const popupColor = p.nearMiss ? "#ff2a6d" : p.points > 1 ? "#ffd700" : "#ffffff";
-            const popupText = p.nearMiss
-              ? "CLOSE! +2"
-              : p.points > 1
-                ? `+${p.points} <span style="font-size:12px;opacity:0.75;font-weight:700;margin-left:1px;">×${p.points}</span>`
-                : `+1`;
+            const popupText = p.nearMiss ? "CLOSE! +2" : `+${p.points}`;
             this.juice.popupAtWorld(popupText, 0, w.bird.y, 0, this.ctx.camera, popupColor, 0.85);
 
             if (p.nearMiss) {
