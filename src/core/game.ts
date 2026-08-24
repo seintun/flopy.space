@@ -26,7 +26,7 @@ import { FeverSystem } from "./fever";
 import { getBiomeForScore, BIOMES, type BiomeDef, type BiomeId } from "./biomes";
 import { CHARACTERS, type CharacterId, type SoundType } from "./characters";
 import type { MissionEventType } from "./missions";
-import { loadAll } from "./storage";
+import { loadAll, spendFeathers } from "./storage";
 import type { PowerUpType } from "./powerups";
 
 export type GameState =
@@ -584,6 +584,7 @@ export class Game {
           this.world.bird.alive = true;
           this.world.bird.invulnUntilTick = this.world.tick + INVULN_TICKS;
           this.world.feathersRun = Math.max(0, feathersBefore - 1);
+          spendFeathers(1);
           this.world.rewindsUsedRun = rewindsBefore + 1;
 
           // Reset combo spree back to 0 (starts from +1 base on next pass)

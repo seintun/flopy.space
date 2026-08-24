@@ -10,7 +10,6 @@ import { GameOverView } from "./ui/gameover";
 import {
   loadAll,
   saveBest,
-  resetSessionFeathers,
   touchStreak,
   recordPlaySession,
   SKINS,
@@ -43,7 +42,6 @@ game.setBiomeOverride(saved.biome);
 const menuView = new MenuView(app, {
   onStart: () => {
     audio.unlock();
-    resetSessionFeathers();
     const current = loadAll();
     trackEvent("game_start", {
       character: current.character,
@@ -51,7 +49,7 @@ const menuView = new MenuView(app, {
       biome: current.biome,
       streak: current.streak.count,
     });
-    game.start(Date.now(), 0);
+    game.start(Date.now());
   },
   onCharacterChange: (charId) => {
     trackEvent("character_selected", { character: charId });
@@ -116,7 +114,6 @@ game.hooks = {
       hud.hideRewindPrompt();
       hud.hideCountdown();
       const currentFeathers = game.world.feathersRun;
-      resetSessionFeathers();
       const scoreBefore = loadAll().best;
       const { best, isNewBest } = saveBest(game.world.score);
       const timeSec = game.world.runDurationSec;
@@ -153,8 +150,7 @@ game.hooks = {
         game.world.bonusScore,
         {
           onRetry: () => {
-            resetSessionFeathers();
-            game.start(Date.now(), 0);
+            game.start(Date.now());
           },
           onMenu: () => {
             gameoverView.hide();
@@ -275,6 +271,7 @@ game.hooks = {
 
   onRewindComplete: () => {
     hud.hideRewindPrompt();
+    hud.setFeathers(game.world.feathersRun);
     audio.rewindResume();
     hud.showPowerUpToast("⚡", "BULLET-TIME READY", "Speed slowed to 45% for easy sync", "#00e5ff");
   },
@@ -321,14 +318,6 @@ requestAnimationFrame(animate);
 
 // Prevent right-click / context menu on mobile
 window.addEventListener("contextmenu", (e) => e.preventDefault());
-
-// Reset feathers & spree when user leaves browser or navigates away
-window.addEventListener("beforeunload", () => {
-  resetSessionFeathers();
-});
-window.addEventListener("pagehide", () => {
-  resetSessionFeathers();
-});
 
 // Offline PWA Service Worker Registration
 if ("serviceWorker" in navigator) {
