@@ -54,52 +54,52 @@ export class MenuView {
     this.el.innerHTML = `
       <!-- Top header bar: Streak, Feathers & Mute -->
       <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; pointer-events: auto;">
-        <div id="menu-streak" style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.45); backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 18px; border: 1px solid rgba(255,120,0,0.35); font-weight: 800; font-size: 13px; color: #ff9e00;">
+        <div id="menu-streak" style="display: flex; align-items: center; gap: 6px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255, 120, 0, 0.35); font-weight: 800; font-size: 13px; color: #ff9e00; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
           🔥 <span id="menu-streak-count">1</span>d Streak
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
-          <div id="menu-feathers" style="display: flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.45); backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 18px; border: 1px solid rgba(0,229,255,0.35); font-weight: 800; font-size: 13px; color: #00e5ff;">
+          <div id="menu-feathers" style="display: flex; align-items: center; gap: 6px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(0, 229, 255, 0.35); font-weight: 800; font-size: 13px; color: #00e5ff; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
             🪶 <span id="menu-feather-count">0</span>
           </div>
-          <button id="menu-mute-btn" class="btn interactive" style="background: rgba(0,0,0,0.45); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 16px; width: 38px; height: 38px; border-radius: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+          <button id="menu-mute-btn" class="btn interactive" style="background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.16); color: #fff; font-size: 16px; width: 38px; height: 38px; border-radius: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
             🔊
           </button>
         </div>
       </div>
 
       <!-- Center Title & Tap Prompt -->
-      <div style="display: flex; flex-direction: column; align-items: center; pointer-events: none; margin-top: -10px;">
-        <h1 style="font-size: 42px; font-weight: 900; margin: 0 0 4px 0; color: #ffd700; letter-spacing: 2px; text-shadow: 0 4px 24px rgba(255,215,0,0.6); text-align: center;">
+      <div style="display: flex; flex-direction: column; align-items: center; pointer-events: none; margin-top: 10px; animation: titleFloat 2.5s ease-in-out infinite alternate;">
+        <h1 style="font-size: 46px; font-weight: 900; margin: 0 0 4px 0; background: linear-gradient(180deg, #ffffff 15%, #bae6fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 20px rgba(0, 229, 255, 0.45)); letter-spacing: -0.02em; text-align: center;">
           FLAPPY 3D
         </h1>
-        <div id="menu-best-label" style="font-size: 13px; font-weight: 800; color: #00e5ff; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; background: rgba(0,0,0,0.35); padding: 3px 12px; border-radius: 12px;">
-          Best: <span id="menu-best-val">0</span>
+        <div id="menu-best-label" style="font-size: 12px; font-weight: 800; color: #bae6fd; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 22px; background: rgba(13, 17, 30, 0.6); border: 1px solid rgba(255, 255, 255, 0.12); padding: 4px 14px; border-radius: 14px; backdrop-filter: blur(8px);">
+          BEST <span id="menu-best-val" style="color: #fff; margin-left: 2px;">0</span>
         </div>
-        <div style="font-size: 16px; font-weight: 800; color: #fff; background: rgba(0,229,255,0.25); border: 1px solid rgba(0,229,255,0.45); padding: 8px 22px; border-radius: 20px; letter-spacing: 1px; animation: pulse 1.4s infinite alternate; text-shadow: 0 0 10px rgba(0,229,255,0.8);">
-          TAP SCREEN TO FLY
+        <div style="font-size: 14px; font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.7); border: 1px solid rgba(0, 229, 255, 0.5); padding: 10px 24px; border-radius: 24px; letter-spacing: 0.5px; animation: softGlowPulse 1.8s infinite alternate; text-shadow: 0 0 10px rgba(0,229,255,0.7); backdrop-filter: blur(12px);">
+          SPACE OR TAP TO FLY
         </div>
       </div>
 
       <!-- Bottom Drawer / Tabs Panel -->
-      <div style="width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; pointer-events: auto; background: rgba(10, 15, 30, 0.88); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 10px; backdrop-filter: blur(12px); box-shadow: 0 8px 32px rgba(0,0,0,0.5);">
+      <div style="width: 100%; max-width: 380px; display: flex; flex-direction: column; align-items: center; pointer-events: auto; background: rgba(12, 16, 28, 0.82); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 22px; padding: 10px 12px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
         <!-- Tab navigation bar -->
-        <div id="menu-tabs" style="display: flex; width: 100%; gap: 4px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px;">
-          <button data-tab="heroes" class="btn interactive tab-btn" style="flex: 1; padding: 6px 2px; border: none; border-radius: 10px; font-size: 11px; font-weight: 800; cursor: pointer;">
+        <div id="menu-tabs" style="display: flex; width: 100%; gap: 6px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
+          <button data-tab="heroes" class="btn interactive tab-btn" style="flex: 1; padding: 7px 2px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px;">
             🐱 HEROES
           </button>
-          <button data-tab="scenes" class="btn interactive tab-btn" style="flex: 1; padding: 6px 2px; border: none; border-radius: 10px; font-size: 11px; font-weight: 800; cursor: pointer;">
+          <button data-tab="scenes" class="btn interactive tab-btn" style="flex: 1; padding: 7px 2px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px;">
             🌄 SCENES
           </button>
-          <button data-tab="quests" class="btn interactive tab-btn" style="flex: 1; padding: 6px 2px; border: none; border-radius: 10px; font-size: 11px; font-weight: 800; cursor: pointer;">
+          <button data-tab="quests" class="btn interactive tab-btn" style="flex: 1; padding: 7px 2px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px;">
             🎯 QUESTS
           </button>
-          <button data-tab="skins" class="btn interactive tab-btn" style="flex: 1; padding: 6px 2px; border: none; border-radius: 10px; font-size: 11px; font-weight: 800; cursor: pointer;">
+          <button data-tab="skins" class="btn interactive tab-btn" style="flex: 1; padding: 7px 2px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px;">
             🎨 SKINS
           </button>
         </div>
 
         <!-- Tab content area -->
-        <div id="menu-tab-content" style="width: 100%; min-height: 110px; max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+        <div id="menu-tab-content" style="width: 100%; min-height: 115px; max-height: 145px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
           <!-- Dynamically populated tab items -->
         </div>
       </div>
@@ -156,9 +156,9 @@ export class MenuView {
     const tabButtons = this.el.querySelectorAll(".tab-btn");
     tabButtons.forEach((btn) => {
       const isSelected = (btn as HTMLElement).dataset.tab === this.activeTab;
-      (btn as HTMLElement).style.background = isSelected ? "rgba(0,229,255,0.25)" : "transparent";
-      (btn as HTMLElement).style.color = isSelected ? "#00e5ff" : "rgba(255,255,255,0.6)";
-      (btn as HTMLElement).style.border = isSelected ? "1px solid rgba(0,229,255,0.4)" : "none";
+      (btn as HTMLElement).style.background = isSelected ? "rgba(0, 229, 255, 0.2)" : "transparent";
+      (btn as HTMLElement).style.color = isSelected ? "#00e5ff" : "rgba(255, 255, 255, 0.55)";
+      (btn as HTMLElement).style.border = isSelected ? "1px solid rgba(0, 229, 255, 0.45)" : "1px solid transparent";
     });
 
     this.tabContentEl.innerHTML = "";
@@ -191,23 +191,24 @@ export class MenuView {
       const card = document.createElement("div");
       card.className = "btn interactive";
       card.style.cssText = `
-        flex: 0 0 100px;
-        background: ${isSelected ? "rgba(0,229,255,0.2)" : "rgba(255,255,255,0.06)"};
-        border: 2px solid ${isSelected ? "#00e5ff" : isUnlocked ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.06)"};
-        border-radius: 14px;
+        flex: 0 0 102px;
+        background: ${isSelected ? "rgba(0, 229, 255, 0.18)" : "rgba(255, 255, 255, 0.05)"};
+        border: 1.5px solid ${isSelected ? "#00e5ff" : isUnlocked ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.06)"};
+        border-radius: 16px;
         padding: 8px 4px;
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
         cursor: ${isUnlocked ? "pointer" : "default"};
-        opacity: ${isUnlocked ? "1" : "0.6"};
+        opacity: ${isUnlocked ? "1" : "0.55"};
+        box-shadow: ${isSelected ? "0 0 16px rgba(0, 229, 255, 0.3)" : "none"};
       `;
 
       card.innerHTML = `
-        <div style="font-size: 24px; margin-bottom: 2px;">${char.emoji}</div>
-        <div style="font-size: 11px; font-weight: 800; color: #fff;">${char.name}</div>
-        <div style="font-size: 9px; color: ${isUnlocked ? "#00e5ff" : "#ff9e00"}; margin-top: 4px;">
+        <div style="font-size: 26px; margin-bottom: 2px;">${char.emoji}</div>
+        <div style="font-size: 11px; font-weight: 800; color: #fff; letter-spacing: -0.01em;">${char.name}</div>
+        <div style="font-size: 9px; font-weight: 700; color: ${isSelected ? "#00e5ff" : isUnlocked ? "#38bdf8" : "#ff9e00"}; margin-top: 4px;">
           ${isSelected ? "✓ ACTIVE" : isUnlocked ? "SELECT" : `🔒 ${char.unlockType === "score" ? `Score ${char.unlockValue}` : `${char.unlockValue}d Streak`}`}
         </div>
       `;
@@ -230,27 +231,28 @@ export class MenuView {
   // 2. SCENES TAB
   private renderScenesTab(data: ReturnType<typeof loadAll>): void {
     const scenesContainer = document.createElement("div");
-    scenesContainer.style.cssText = "display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;";
+    scenesContainer.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;";
 
-    // Auto option
+    // Auto Dynamic option
     const autoSelected = data.biome === "auto";
     const autoCard = document.createElement("div");
     autoCard.className = "btn interactive";
     autoCard.style.cssText = `
-      flex: 0 0 90px;
-      background: ${autoSelected ? "rgba(0,229,255,0.2)" : "rgba(255,255,255,0.06)"};
-      border: 2px solid ${autoSelected ? "#00e5ff" : "rgba(255,255,255,0.2)"};
-      border-radius: 12px;
+      flex: 0 0 96px;
+      background: ${autoSelected ? "rgba(0, 229, 255, 0.18)" : "rgba(255, 255, 255, 0.05)"};
+      border: 1.5px solid ${autoSelected ? "#00e5ff" : "rgba(255, 255, 255, 0.16)"};
+      border-radius: 16px;
       padding: 8px 4px;
       display: flex;
       flex-direction: column;
       align-items: center;
       cursor: pointer;
+      box-shadow: ${autoSelected ? "0 0 16px rgba(0, 229, 255, 0.3)" : "none"};
     `;
     autoCard.innerHTML = `
-      <div style="font-size: 20px;">🌀</div>
-      <div style="font-size: 11px; font-weight: 800;">Dynamic</div>
-      <div style="font-size: 9px; color: #00e5ff; margin-top: 4px;">${autoSelected ? "✓ ACTIVE" : "SELECT"}</div>
+      <div style="font-size: 22px;">🌀</div>
+      <div style="font-size: 11px; font-weight: 800; color: #fff;">Dynamic</div>
+      <div style="font-size: 9px; font-weight: 700; color: #00e5ff; margin-top: 4px;">${autoSelected ? "✓ ACTIVE" : "SELECT"}</div>
     `;
     autoCard.onclick = (e) => {
       e.stopPropagation();
@@ -268,21 +270,22 @@ export class MenuView {
       const card = document.createElement("div");
       card.className = "btn interactive";
       card.style.cssText = `
-        flex: 0 0 95px;
-        background: ${isSelected ? "rgba(0,229,255,0.2)" : "rgba(255,255,255,0.06)"};
-        border: 2px solid ${isSelected ? "#00e5ff" : isUnlocked ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.06)"};
-        border-radius: 12px;
+        flex: 0 0 96px;
+        background: ${isSelected ? "rgba(0, 229, 255, 0.18)" : "rgba(255, 255, 255, 0.05)"};
+        border: 1.5px solid ${isSelected ? "#00e5ff" : isUnlocked ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.06)"};
+        border-radius: 16px;
         padding: 8px 4px;
         display: flex;
         flex-direction: column;
         align-items: center;
         cursor: ${isUnlocked ? "pointer" : "default"};
-        opacity: ${isUnlocked ? "1" : "0.6"};
+        opacity: ${isUnlocked ? "1" : "0.55"};
+        box-shadow: ${isSelected ? "0 0 16px rgba(0, 229, 255, 0.3)" : "none"};
       `;
       card.innerHTML = `
-        <div style="font-size: 20px;">${b.emoji}</div>
-        <div style="font-size: 10px; font-weight: 800;">${b.name}</div>
-        <div style="font-size: 9px; color: ${isUnlocked ? "#00e5ff" : "#ff9e00"}; margin-top: 4px;">
+        <div style="font-size: 22px;">${b.emoji}</div>
+        <div style="font-size: 10px; font-weight: 800; color: #fff;">${b.name}</div>
+        <div style="font-size: 9px; font-weight: 700; color: ${isSelected ? "#00e5ff" : isUnlocked ? "#38bdf8" : "#ff9e00"}; margin-top: 4px;">
           ${isSelected ? "✓ ACTIVE" : isUnlocked ? "SELECT" : `🔒 Score ${b.unlockScore}`}
         </div>
       `;
@@ -313,10 +316,10 @@ export class MenuView {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: rgba(255,255,255,0.06);
-        border: 1px solid ${m.completed ? "rgba(0,255,160,0.4)" : "rgba(255,255,255,0.1)"};
-        border-radius: 10px;
-        padding: 6px 10px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid ${m.completed ? "rgba(0, 255, 195, 0.35)" : "rgba(255, 255, 255, 0.08)"};
+        border-radius: 12px;
+        padding: 6px 12px;
       `;
 
       const progressPct = Math.min(100, Math.round((m.current / m.goal) * 100));
@@ -324,17 +327,17 @@ export class MenuView {
       item.innerHTML = `
         <div style="flex: 1;">
           <div style="font-size: 11px; font-weight: 800; color: #fff;">${m.title}</div>
-          <div style="font-size: 9px; color: #aaa;">${m.description} (${m.current}/${m.goal})</div>
-          <div style="width: 100%; height: 4px; background: rgba(0,0,0,0.4); border-radius: 2px; margin-top: 4px; overflow: hidden;">
-            <div style="width: ${progressPct}%; height: 100%; background: ${m.completed ? "#00ffc3" : "#00e5ff"};"></div>
+          <div style="font-size: 9px; color: #94a3b8;">${m.description} (${m.current}/${m.goal})</div>
+          <div style="width: 100%; height: 3px; background: rgba(0,0,0,0.5); border-radius: 2px; margin-top: 4px; overflow: hidden;">
+            <div style="width: ${progressPct}%; height: 100%; background: ${m.completed ? "linear-gradient(90deg, #00ffc3, #00b4d8)" : "#00e5ff"};"></div>
           </div>
         </div>
         <div style="margin-left: 10px;">
           ${
             m.claimed
-              ? '<span style="font-size: 10px; color: #888; font-weight: 800;">CLAIMED</span>'
+              ? '<span style="font-size: 10px; color: #64748b; font-weight: 800;">CLAIMED</span>'
               : m.completed
-                ? `<button class="btn interactive claim-btn" data-id="${m.id}" style="background: linear-gradient(135deg, #00ffc3, #00b4d8); color: #002233; font-weight: 900; font-size: 10px; border: none; border-radius: 10px; padding: 4px 8px; cursor: pointer;">CLAIM +${m.rewardFeathers}🪶</button>`
+                ? `<button class="btn interactive claim-btn" data-id="${m.id}" style="background: linear-gradient(135deg, #00ffc3, #00b4d8); color: #002233; font-weight: 800; font-size: 10px; border: none; border-radius: 10px; padding: 4px 10px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,255,195,0.4);">CLAIM +${m.rewardFeathers}🪶</button>`
                 : `<span style="font-size: 10px; color: #00e5ff; font-weight: 800;">+${m.rewardFeathers} 🪶</span>`
           }
         </div>
@@ -370,21 +373,22 @@ export class MenuView {
       const chip = document.createElement("button");
       chip.className = "btn interactive";
       chip.style.cssText = `
-        border: 2px solid ${isSelected ? "#00e5ff" : isUnlocked ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.08)"};
-        background: ${isSelected ? "rgba(0,229,255,0.2)" : "rgba(0,0,0,0.5)"};
-        color: ${isUnlocked ? "#fff" : "#778"};
-        padding: 6px 10px;
-        border-radius: 12px;
+        border: 1.5px solid ${isSelected ? "#00e5ff" : isUnlocked ? "rgba(255, 255, 255, 0.18)" : "rgba(255, 255, 255, 0.06)"};
+        background: ${isSelected ? "rgba(0, 229, 255, 0.18)" : "rgba(255, 255, 255, 0.04)"};
+        color: ${isUnlocked ? "#fff" : "#64748b"};
+        padding: 6px 12px;
+        border-radius: 14px;
         font-size: 11px;
         font-weight: 800;
         cursor: ${isUnlocked ? "pointer" : "default"};
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
+        box-shadow: ${isSelected ? "0 0 12px rgba(0, 229, 255, 0.3)" : "none"};
       `;
 
       chip.innerHTML = `
-        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#${skin.bodyColor.toString(16).padStart(6, "0")};"></span>
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#${skin.bodyColor.toString(16).padStart(6, "0")}; box-shadow: 0 0 6px #${skin.bodyColor.toString(16).padStart(6, "0")};"></span>
         ${skin.name} ${isUnlocked ? "" : `🔒${skin.unlockScore}`}
       `;
 

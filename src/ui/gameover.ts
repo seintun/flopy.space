@@ -24,9 +24,9 @@ export class GameOverView {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(8, 12, 28, 0.78);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(8, 12, 24, 0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       z-index: 50;
       color: #fff;
       padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
@@ -34,34 +34,37 @@ export class GameOverView {
     `;
 
     this.overlay.innerHTML = `
-      <div style="text-align:center; max-width: 320px; width: 85%; animation: popIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);">
-        <h2 style="font-size: 34px; margin: 0 0 16px 0; font-weight: 900; letter-spacing: 1px; color: #ff5252; text-shadow: 0 2px 12px rgba(255,82,82,0.4);">
+      <div style="text-align:center; max-width: 340px; width: 88%; animation: popIn 0.35s cubic-bezier(0.2, 0.8, 0.4, 1);">
+        <h2 style="font-size: 32px; margin: 0 0 12px 0; font-weight: 900; letter-spacing: -0.02em; color: #ff4d6d; text-shadow: 0 4px 20px rgba(255, 77, 109, 0.4);">
           GAME OVER
         </h2>
 
-        <div id="go-badge" style="display:none; margin: 0 auto 12px auto; background: #ffd700; color: #111; font-weight: 900; font-size: 13px; padding: 4px 12px; border-radius: 20px; width: fit-content; text-transform: uppercase; letter-spacing: 1px;">
-          ★ New Best! ★
+        <div id="go-badge" style="display:none; margin: 0 auto 14px auto; background: linear-gradient(135deg, #ffd700, #ff9e00); color: #0f172a; font-weight: 900; font-size: 12px; padding: 4px 14px; border-radius: 20px; width: fit-content; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 2px 12px rgba(255,215,0,0.4);">
+          ★ NEW BEST RECORD ★
         </div>
 
-        <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; padding: 20px; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
-          <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; margin-bottom: 4px;">Score</div>
-          <div id="go-score" style="font-size: 48px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 16px; color: #fff;">0</div>
+        <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 22px 20px; margin-bottom: 20px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px);">
+          <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; font-weight: 700; margin-bottom: 4px;">Score</div>
+          <div id="go-score" style="font-size: 56px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 18px; color: #fff; letter-spacing: -0.02em;">0</div>
           
-          <div style="display: flex; justify-content: space-around; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px;">
+          <div style="display: flex; justify-content: space-around; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
             <div>
-              <div style="font-size: 11px; opacity: 0.7; text-transform: uppercase;">Best</div>
+              <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Best</div>
               <div id="go-best" style="font-size: 22px; font-weight: 800; color: #ffd700;">0</div>
             </div>
             <div>
-              <div style="font-size: 11px; opacity: 0.7; text-transform: uppercase;">Feathers</div>
+              <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Feathers</div>
               <div id="go-feathers" style="font-size: 22px; font-weight: 800; color: #00e5ff;">🪶 0</div>
             </div>
           </div>
         </div>
 
-        <button id="go-retry-btn" class="btn interactive" style="width: 100%; height: 60px; font-size: 20px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #0099cc); border: none; border-radius: 30px; color: #002233; cursor: pointer; box-shadow: 0 6px 20px rgba(0,229,255,0.4); margin-bottom: 12px; transition: transform 0.1s;">
+        <button id="go-retry-btn" class="btn interactive" style="width: 100%; height: 56px; font-size: 17px; font-weight: 800; background: linear-gradient(135deg, #00e5ff, #0099cc); border: none; border-radius: 28px; color: #002233; cursor: pointer; box-shadow: 0 6px 24px rgba(0, 229, 255, 0.4); margin-bottom: 8px; letter-spacing: 0.5px;">
           PLAY AGAIN
         </button>
+        <div style="font-size: 11px; color: #64748b; font-weight: 700; letter-spacing: 0.5px;">
+          PRESS SPACEBAR OR CLICK TO RETRY
+        </div>
       </div>
     `;
 
