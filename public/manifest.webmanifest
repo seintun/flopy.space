@@ -1,20 +1,32 @@
 {
+  "id": "space.flopy.arcade",
   "name": "FLOPY.SPACE — 3D Time Arcade",
   "short_name": "FLOPY.SPACE",
   "description": "Addictive 3D arcade flyer with cute heroes, 4D time rewind, and dynamic worlds.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay", "minimal-ui"],
   "orientation": "portrait",
   "background_color": "#0a1024",
   "theme_color": "#0a1024",
-  "categories": ["games", "arcade"],
+  "categories": ["games", "arcade", "action"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "icon.svg",
       "sizes": "192x192 512x512 any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Play",
+      "short_name": "Play",
+      "description": "Start flying immediately",
+      "url": "./?action=play",
+      "icons": [{ "src": "icon.svg", "sizes": "192x192" }]
     }
   ]
 }

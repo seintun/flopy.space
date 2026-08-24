@@ -309,3 +309,10 @@ window.addEventListener("beforeunload", () => {
 window.addEventListener("pagehide", () => {
   resetSessionFeathers();
 });
+
+// Offline PWA Service Worker Registration
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
