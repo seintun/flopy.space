@@ -71,12 +71,27 @@ canvas {
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* Hide scrollbars in menu tabs */
+/* Hide scrollbars in menu tabs and drag containers */
 #menu-tab-content::-webkit-scrollbar,
-#menu-tabs::-webkit-scrollbar {
+#menu-tabs::-webkit-scrollbar,
+.drag-scroll::-webkit-scrollbar {
   display: none;
 }
-#menu-tab-content {
+#menu-tab-content,
+.drag-scroll {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.drag-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.drag-scroll:active {
+  cursor: grabbing;
 }

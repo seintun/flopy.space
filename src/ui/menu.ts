@@ -23,6 +23,54 @@ export interface MenuCallbacks {
   onToast?: (msg: string) => void;
 }
 
+function enableDragScroll(el: HTMLElement): void {
+  let isDown = false;
+  let startX = 0;
+  let scrollLeft = 0;
+  let hasMoved = false;
+
+  el.classList.add("drag-scroll");
+
+  el.addEventListener("pointerdown", (e: PointerEvent) => {
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    isDown = true;
+    hasMoved = false;
+    startX = e.pageX - el.offsetLeft;
+    scrollLeft = el.scrollLeft;
+  });
+
+  const onPointerMove = (e: PointerEvent) => {
+    if (!isDown) return;
+    const x = e.pageX - el.offsetLeft;
+    const walk = x - startX;
+    if (Math.abs(walk) > 5) {
+      hasMoved = true;
+    }
+    el.scrollLeft = scrollLeft - walk;
+  };
+
+  const onPointerUp = () => {
+    if (!isDown) return;
+    isDown = false;
+  };
+
+  window.addEventListener("pointermove", onPointerMove);
+  window.addEventListener("pointerup", onPointerUp);
+  window.addEventListener("pointercancel", onPointerUp);
+
+  el.addEventListener(
+    "click",
+    (e) => {
+      if (hasMoved) {
+        e.stopPropagation();
+        e.preventDefault();
+        hasMoved = false;
+      }
+    },
+    true,
+  );
+}
+
 export class MenuView {
   private el: HTMLElement;
   private streakEl: HTMLElement;
@@ -191,7 +239,7 @@ export class MenuView {
   // 1. HEROES TAB
   private renderHeroesTab(data: ReturnType<typeof loadAll>, streak: number): void {
     const heroesContainer = document.createElement("div");
-    heroesContainer.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;";
+    heroesContainer.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px 2px; width: 100%; box-sizing: border-box;";
 
     Object.values(CHARACTERS).forEach((char) => {
       const isUnlocked = isCharacterUnlocked(char.id, data.best, streak, data.unlockedChars, data.totalPlayTimeSec);
@@ -218,6 +266,8 @@ export class MenuView {
         cursor: ${isUnlocked ? "pointer" : "default"};
         opacity: ${isUnlocked ? "1" : "0.55"};
         box-shadow: ${isSelected ? "0 0 16px rgba(0, 229, 255, 0.3)" : "none"};
+        touch-action: pan-x;
+        user-select: none;
       `;
 
       card.innerHTML = `
@@ -248,12 +298,13 @@ export class MenuView {
     });
 
     this.tabContentEl.appendChild(heroesContainer);
+    enableDragScroll(heroesContainer);
   }
 
   // 2. SCENES TAB
   private renderScenesTab(data: ReturnType<typeof loadAll>): void {
     const scenesContainer = document.createElement("div");
-    scenesContainer.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;";
+    scenesContainer.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px 2px; width: 100%; box-sizing: border-box;";
 
     // Auto Dynamic option
     const autoSelected = data.biome === "auto";
@@ -270,6 +321,8 @@ export class MenuView {
       align-items: center;
       cursor: pointer;
       box-shadow: ${autoSelected ? "0 0 16px rgba(0, 229, 255, 0.3)" : "none"};
+      touch-action: pan-x;
+      user-select: none;
     `;
     autoCard.innerHTML = `
       <div style="font-size: 22px;">🌀</div>
@@ -304,6 +357,8 @@ export class MenuView {
         cursor: ${isUnlocked ? "pointer" : "default"};
         opacity: ${isUnlocked ? "1" : "0.55"};
         box-shadow: ${isSelected ? "0 0 16px rgba(0, 229, 255, 0.3)" : "none"};
+        touch-action: pan-x;
+        user-select: none;
       `;
       card.innerHTML = `
         <div style="font-size: 22px;">${b.emoji}</div>
@@ -333,6 +388,7 @@ export class MenuView {
     });
 
     this.tabContentEl.appendChild(scenesContainer);
+    enableDragScroll(scenesContainer);
   }
 
   // 3. DAILY QUESTS TAB
@@ -395,7 +451,7 @@ export class MenuView {
   // 4. SKINS TAB
   private renderSkinsTab(data: ReturnType<typeof loadAll>): void {
     const list = document.createElement("div");
-    list.style.cssText = "display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;";
+    list.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px 2px; width: 100%; box-sizing: border-box;";
 
     Object.values(SKINS).forEach((skin) => {
       const isUnlocked = data.unlocked.includes(skin.id);
@@ -404,10 +460,12 @@ export class MenuView {
       const chip = document.createElement("button");
       chip.className = "btn interactive";
       chip.style.cssText = `
+        flex: 0 0 auto;
+        white-space: nowrap;
         border: 1.5px solid ${isSelected ? "#00e5ff" : isUnlocked ? "rgba(255, 255, 255, 0.18)" : "rgba(255, 255, 255, 0.06)"};
         background: ${isSelected ? "rgba(0, 229, 255, 0.18)" : "rgba(255, 255, 255, 0.04)"};
         color: ${isUnlocked ? "#fff" : "#64748b"};
-        padding: 6px 12px;
+        padding: 8px 14px;
         border-radius: 14px;
         font-size: 11px;
         font-weight: 800;
@@ -416,6 +474,8 @@ export class MenuView {
         align-items: center;
         gap: 6px;
         box-shadow: ${isSelected ? "0 0 12px rgba(0, 229, 255, 0.3)" : "none"};
+        touch-action: pan-x;
+        user-select: none;
       `;
 
       chip.innerHTML = `
@@ -438,6 +498,7 @@ export class MenuView {
     });
 
     this.tabContentEl.appendChild(list);
+    enableDragScroll(list);
   }
 
   show(): void {
