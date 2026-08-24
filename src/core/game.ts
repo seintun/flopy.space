@@ -572,19 +572,17 @@ export class Game {
       }
     }
 
-    if (this.state === "rewindReplay" || this.state === "rewindChoice") {
-      const snap =
-        this.state === "rewindChoice"
-          ? this.replaySnapshots[this.replaySnapshots.length - 1]
-          : this.replaySnapshots[this.replayIndex];
+    if (this.state === "rewindReplay") {
+      const snap = this.replaySnapshots[this.replayIndex];
       if (snap) {
         this.characterView.syncFrom(snap, 1, realDt);
         this.pipesView.syncFrom(snap, 1, realDt);
         this.pickupsView.syncFrom(snap, this.totalTime);
       }
     } else {
-      this.characterView.syncFrom(this.world, alpha, realDt);
-      this.pipesView.syncFrom(this.world, alpha, realDt);
+      // Synchronize exact collision frame during rewindChoice pause
+      this.characterView.syncFrom(this.world, alpha, this.state === "rewindChoice" ? 0 : realDt);
+      this.pipesView.syncFrom(this.world, alpha, this.state === "rewindChoice" ? 0 : realDt);
       this.pickupsView.syncFrom(this.world, this.totalTime);
     }
 
