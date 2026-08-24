@@ -134,6 +134,21 @@ game.hooks = {
             resetSessionFeathers();
             game.start(Date.now(), 0);
           },
+          onMenu: () => {
+            gameoverView.hide();
+            game.setState("menu");
+          },
+          onCharacterChange: (charId) => {
+            game.setCharacter(charId);
+          },
+          onBiomeChange: (biomeId) => {
+            game.setBiomeOverride(biomeId);
+          },
+          onClaimQuest: () => {
+            audio.milestone();
+            hud.setFeathers(loadAll().feathers);
+            menuView.refresh();
+          },
         },
       );
     }
