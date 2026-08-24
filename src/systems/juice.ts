@@ -13,6 +13,8 @@ interface Particle {
   active: boolean;
 }
 
+export type BorderFxType = "fever" | "rainbow" | "shield" | "magnet" | "slowmo" | "none";
+
 export class Juice {
   trauma = 0;
   private time = 0;
@@ -21,6 +23,8 @@ export class Juice {
   private pool: Particle[] = [];
   private particleGeo: THREE.PlaneGeometry;
   private popupContainer: HTMLElement;
+  private borderFxEl: HTMLElement;
+  private currentBorderFx: BorderFxType = "none";
 
   constructor(scene: THREE.Scene, container: HTMLElement) {
     this.particleGroup = new THREE.Group();
@@ -54,7 +58,24 @@ export class Juice {
       });
     }
 
-    // Popup container
+    // Border FX Overlay
+    this.borderFxEl = document.createElement("div");
+    this.borderFxEl.id = "screen-border-fx";
+    this.borderFxEl.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 15;
+      box-sizing: border-box;
+      transition: box-shadow 0.3s ease, border-color 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+    `;
+    container.appendChild(this.borderFxEl);
+
+    // Popup container (Positioned high up to avoid blocking heroes & flight gaps)
     this.popupContainer = document.createElement("div");
     this.popupContainer.id = "juice-popups";
     this.popupContainer.style.cssText = `
@@ -65,13 +86,63 @@ export class Juice {
       height: 100%;
       pointer-events: none;
       overflow: hidden;
-      z-index: 20;
+      z-index: 25;
     `;
     container.appendChild(this.popupContainer);
   }
 
   addTrauma(amount: number): void {
     this.trauma = Math.min(1, this.trauma + amount);
+  }
+
+  setBorderFx(type: BorderFxType): void {
+    if (this.currentBorderFx === type) return;
+    this.currentBorderFx = type;
+
+    switch (type) {
+      case "fever":
+        this.borderFxEl.style.boxShadow = "inset 0 0 45px rgba(255, 0, 127, 0.75), inset 0 0 90px rgba(255, 110, 0, 0.4)";
+        this.borderFxEl.style.border = "3px solid rgba(255, 0, 127, 0.85)";
+        this.borderFxEl.style.opacity = "1";
+        break;
+      case "rainbow":
+        this.borderFxEl.style.boxShadow = "inset 0 0 45px rgba(0, 229, 255, 0.6), inset 0 0 90px rgba(255, 0, 127, 0.4)";
+        this.borderFxEl.style.border = "3px solid rgba(0, 229, 255, 0.85)";
+        this.borderFxEl.style.opacity = "1";
+        break;
+      case "shield":
+        this.borderFxEl.style.boxShadow = "inset 0 0 40px rgba(255, 215, 0, 0.55), inset 0 0 80px rgba(255, 170, 0, 0.25)";
+        this.borderFxEl.style.border = "3px solid rgba(255, 215, 0, 0.8)";
+        this.borderFxEl.style.opacity = "1";
+        break;
+      case "magnet":
+        this.borderFxEl.style.boxShadow = "inset 0 0 35px rgba(0, 245, 212, 0.55), inset 0 0 70px rgba(0, 187, 249, 0.3)";
+        this.borderFxEl.style.border = "2.5px solid rgba(0, 245, 212, 0.8)";
+        this.borderFxEl.style.opacity = "1";
+        break;
+      case "slowmo":
+        this.borderFxEl.style.boxShadow = "inset 0 0 50px rgba(0, 229, 255, 0.65), inset 0 0 100px rgba(0, 136, 204, 0.4)";
+        this.borderFxEl.style.border = "3px solid rgba(0, 229, 255, 0.9)";
+        this.borderFxEl.style.opacity = "1";
+        break;
+      case "none":
+      default:
+        this.borderFxEl.style.opacity = "0";
+        break;
+    }
+  }
+
+  flashBorder(colorHex: string, durationMs = 150): void {
+    this.borderFxEl.style.boxShadow = `inset 0 0 40px ${colorHex}aa`;
+    this.borderFxEl.style.border = `2px solid ${colorHex}`;
+    this.borderFxEl.style.opacity = "1";
+    setTimeout(() => {
+      if (this.currentBorderFx === "none") {
+        this.borderFxEl.style.opacity = "0";
+      } else {
+        this.setBorderFx(this.currentBorderFx);
+      }
+    }, durationMs);
   }
 
   burst(x: number, y: number, z = 0, count = 20, colorHex = 0xf4c430): void {
@@ -134,32 +205,35 @@ export class Juice {
     }
   }
 
-  popup(text: string, color = "#ffeb3b", screenXPercent = 50, screenYPercent = 40): void {
+  // Positioned strictly above the hero / gap (default top: 16% near HUD score)
+  popup(text: string, color = "#ffeb3b", screenXPercent = 50, screenYPercent = 16): void {
     const el = document.createElement("div");
     el.textContent = text;
     el.style.cssText = `
       position: absolute;
       left: ${screenXPercent}%;
       top: ${screenYPercent}%;
-      transform: translate(-50%, -50%) scale(0.6);
+      transform: translate(-50%, 0) scale(0.75);
       color: ${color};
-      font-size: 26px;
+      font-size: 22px;
       font-weight: 900;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.8), 0 0 12px ${color};
-      transition: transform 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.6s ease-out;
+      letter-spacing: -0.01em;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.85), 0 0 16px ${color}88;
+      transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.45s ease-out;
       opacity: 1;
       pointer-events: none;
+      white-space: nowrap;
     `;
     this.popupContainer.appendChild(el);
 
     requestAnimationFrame(() => {
-      el.style.transform = `translate(-50%, -120%) scale(1.1)`;
+      el.style.transform = `translate(-50%, -18px) scale(1.05)`;
     });
 
     setTimeout(() => {
       el.style.opacity = "0";
-      setTimeout(() => el.remove(), 600);
-    }, 450);
+      setTimeout(() => el.remove(), 450);
+    }, 380);
   }
 
   update(dt: number): { ox: number; oy: number } {

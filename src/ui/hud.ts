@@ -54,25 +54,25 @@ export function initHud(container: HTMLElement): HudApi {
         <span id="hud-biome-emoji">🌿</span> <span id="hud-biome-name">Meadow</span>
       </div>
 
-      <!-- Center: Big Score + Combo Badge + Fever Alert + Power-up Badges -->
+      <!-- Center: Compact Score + Combo Badge + Fever Alert + Power-up Badges -->
       <div style="display: flex; flex-direction: column; align-items: center; pointer-events: none;">
-        <div id="hud-score" style="font-size: 58px; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; line-height: 1; text-shadow: 0 4px 20px rgba(0,0,0,0.7); letter-spacing: -0.02em;">
+        <div id="hud-score" style="font-size: clamp(42px, 11vw, 56px); font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; line-height: 0.95; text-shadow: 0 4px 20px rgba(0,0,0,0.7); letter-spacing: -0.02em;">
           0
         </div>
-        <div id="hud-combo" style="display: none; margin-top: 6px; background: linear-gradient(135deg, #ff2a6d, #ff6200); color: #fff; font-size: 13px; font-weight: 800; padding: 4px 14px; border-radius: 12px; letter-spacing: 0.5px; box-shadow: 0 2px 12px rgba(255,42,109,0.5); text-transform: uppercase;">
+        <div id="hud-combo" style="display: none; margin-top: 4px; background: linear-gradient(135deg, #ff2a6d, #ff6200); color: #fff; font-size: 11px; font-weight: 800; padding: 3px 12px; border-radius: 10px; letter-spacing: 0.5px; box-shadow: 0 2px 10px rgba(255,42,109,0.5); text-transform: uppercase;">
           COMBO ×1
         </div>
-        <div id="hud-fever" style="display: none; margin-top: 5px; background: linear-gradient(135deg, #ff007f, #7209b7); color: #fff; font-size: 11px; font-weight: 900; padding: 4px 14px; border-radius: 12px; letter-spacing: 1px; animation: softGlowPulse 0.8s infinite alternate; text-transform: uppercase; box-shadow: 0 0 16px #ff007f;">
+        <div id="hud-fever" style="display: none; margin-top: 3px; background: linear-gradient(135deg, #ff007f, #7209b7); color: #fff; font-size: 10px; font-weight: 900; padding: 3px 10px; border-radius: 10px; letter-spacing: 1px; animation: softGlowPulse 0.8s infinite alternate; text-transform: uppercase; box-shadow: 0 0 14px #ff007f;">
           🔥 FEVER RUSH 2X
         </div>
-        <div id="hud-powerup-pills" style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; justify-content: center;">
-          <div id="hud-pill-rainbow" style="display: none; font-size: 11px; font-weight: 800; color: #fff; background: linear-gradient(135deg, rgba(255,0,127,0.75), rgba(0,212,255,0.75)); padding: 4px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.35); box-shadow: 0 0 12px rgba(255,0,127,0.45);">
+        <div id="hud-powerup-pills" style="display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; justify-content: center;">
+          <div id="hud-pill-rainbow" style="display: none; font-size: 10px; font-weight: 800; color: #fff; background: linear-gradient(135deg, rgba(255,0,127,0.75), rgba(0,212,255,0.75)); padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.35); box-shadow: 0 0 10px rgba(255,0,127,0.45);">
             🌈 TRAIL 3X <span id="hud-pill-rainbow-time">7s</span>
           </div>
-          <div id="hud-pill-shield" style="display: none; font-size: 11px; font-weight: 800; color: #ffd700; background: rgba(255,215,0,0.25); padding: 4px 12px; border-radius: 12px; border: 1px solid rgba(255,215,0,0.55); box-shadow: 0 0 12px rgba(255,215,0,0.45);">
+          <div id="hud-pill-shield" style="display: none; font-size: 10px; font-weight: 800; color: #ffd700; background: rgba(255,215,0,0.25); padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(255,215,0,0.55); box-shadow: 0 0 10px rgba(255,215,0,0.45);">
             🛡️ 1-HIT GUARD
           </div>
-          <div id="hud-pill-magnet" style="display: none; font-size: 11px; font-weight: 800; color: #00f5d4; background: rgba(0,245,212,0.25); padding: 4px 12px; border-radius: 12px; border: 1px solid rgba(0,245,212,0.55); box-shadow: 0 0 12px rgba(0,245,212,0.45);">
+          <div id="hud-pill-magnet" style="display: none; font-size: 10px; font-weight: 800; color: #00f5d4; background: rgba(0,245,212,0.25); padding: 3px 10px; border-radius: 10px; border: 1px solid rgba(0,245,212,0.55); box-shadow: 0 0 10px rgba(0,245,212,0.45);">
             🧲 VACUUM <span id="hud-pill-magnet-time">6s</span>
           </div>
         </div>

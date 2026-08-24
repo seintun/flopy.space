@@ -199,7 +199,7 @@ export class Game {
     this.time = new TimeSystem();
     this.fever.reset();
     this.accumulator.reset();
-    this.juice.popup("REWOUND!", "#00e5ff");
+    this.juice.popup("REWOUND!", "#00e5ff", 50, 16);
     this.setState("playing");
     this.hooks.onRewindComplete?.();
     this.hooks.onScoreChange?.(this.world.score, this.world.combo, this.world.feathersRun);
@@ -234,6 +234,7 @@ export class Game {
 
     switch (this.state) {
       case "menu": {
+        this.juice.setBorderFx("none");
         // Idle gentle hover
         this.world.bird.y = 1.5 + Math.sin(this.totalTime * 2.5) * 0.25;
         this.world.bird.pitch = Math.cos(this.totalTime * 2.5) * 8;
@@ -249,6 +250,21 @@ export class Game {
           this.world.hasShield,
           this.world.magnetTimer,
         );
+
+        // Synchronize ambient border FX
+        const slowmoActive = this.time.scale < 0.9 && !this.time.frozen;
+        const borderType = this.fever.isActive
+          ? "fever"
+          : this.world.rainbowTrailTimer > 0
+            ? "rainbow"
+            : this.world.hasShield
+              ? "shield"
+              : this.world.magnetTimer > 0
+                ? "magnet"
+                : slowmoActive
+                  ? "slowmo"
+                  : "none";
+        this.juice.setBorderFx(borderType);
 
         // Fever mode visual trail
         if (this.fever.isActive) {
@@ -274,7 +290,7 @@ export class Game {
           if (targetBiome.id !== this.currentBiome.id) {
             this.applyBiome(targetBiome);
             this.juice.confetti(0, w.bird.y, 0, 30);
-            this.juice.popup(`${targetBiome.emoji} ${targetBiome.name.toUpperCase()}`, "#00f5d4");
+            this.juice.popup(`${targetBiome.emoji} ${targetBiome.name.toUpperCase()}`, "#00f5d4", 50, 16);
           }
 
           // Power-up Pickups & Magnet Vacuum
@@ -300,34 +316,30 @@ export class Game {
                 switch (pType) {
                   case "slowmo": {
                     this.time.triggerSlowmo();
-                    this.juice.popup("SLOW-MO ⏱️", "#00e5ff");
                     this.hooks.onOrbCollect?.("slowmo");
                     this.hooks.onMissionProgress?.("slowmo");
                     break;
                   }
                   case "rainbow_trail": {
                     w.rainbowTrailTimer = 7.0;
-                    this.juice.popup("🌈 RAINBOW TRAIL!", "#ff007f");
                     this.juice.confetti(0, w.bird.y, 0, 35);
                     this.hooks.onOrbCollect?.("rainbow_trail");
                     break;
                   }
                   case "shield": {
                     w.hasShield = true;
-                    this.juice.popup("🛡️ SHIELD ACTIVE!", "#ffd700");
                     this.hooks.onOrbCollect?.("shield");
                     break;
                   }
                   case "magnet": {
                     w.magnetTimer = 6.0;
-                    this.juice.popup("🧲 SUPER MAGNET!", "#00f5d4");
                     this.hooks.onOrbCollect?.("magnet");
                     break;
                   }
                   case "star_gem": {
                     w.score += 500;
                     w.combo += 2;
-                    this.juice.popup("+500 STAR! ⭐", "#ffbe0b");
+                    this.juice.popup("+500 STAR! ⭐", "#ffbe0b", 50, 16);
                     this.juice.confetti(0, w.bird.y, 0, 25);
                     this.hooks.onOrbCollect?.("star_gem");
                     break;
@@ -336,7 +348,6 @@ export class Game {
 
                 const feverTriggered = this.fever.addEnergy(0.35);
                 if (feverTriggered) {
-                  this.juice.popup("🔥 FEVER RUSH!", "#ff007f");
                   this.rig.kick(4);
                   this.hooks.onFeverChange?.(true, 1);
                   this.hooks.onMissionProgress?.("fever");
@@ -356,7 +367,7 @@ export class Game {
               this.time.hitstop(24);
               this.juice.addTrauma(0.55);
               this.juice.burst(0, w.bird.y, 0, 20, 0xffd700);
-              this.juice.popup("💥 SHIELD SAVED!", "#ffd700");
+              this.juice.popup("💥 SHIELD SAVED!", "#ffd700", 50, 16);
               this.hooks.onShieldBreak?.();
             } else {
               w.bird.alive = false;
@@ -365,6 +376,7 @@ export class Game {
               this.hooks.onFeverChange?.(false, 0);
               this.juice.addTrauma(0.85);
               this.juice.burst(0, w.bird.y, 0, 24, 0xff5252);
+              this.juice.setBorderFx("none");
               this.setState("hitstop");
               this.hooks.onHit?.(hit);
               return;
@@ -387,18 +399,22 @@ export class Game {
               w.score += p.points - (p.points / bonusMult);
             }
 
+            // High-up, unobstructed score popup
+            const popupColor = p.nearMiss ? "#ff2a6d" : p.points > 1 ? "#ffd700" : "#ffffff";
+            const popupText = p.nearMiss ? "CLOSE! +2" : `+${p.points}`;
+            this.juice.popup(popupText, popupColor, 50, 16);
+
             if (p.nearMiss) {
-              this.juice.popup("CLOSE!", "#ff2a6d");
+              this.juice.flashBorder("#ff2a6d", 120);
               this.time.triggerMicroFlash();
               this.hooks.onMissionProgress?.("nearMiss");
             } else {
-              this.juice.popup(`+${p.points}`, p.points > 1 ? "#ffd700" : "#ffffff");
+              this.juice.flashBorder("#ffd700", 90);
             }
 
             // Add Fever energy on pass
             const feverTriggered = this.fever.addEnergy(p.nearMiss ? 0.25 : 0.12);
             if (feverTriggered) {
-              this.juice.popup("🔥 FEVER RUSH!", "#ff007f");
               this.rig.kick(4);
               this.hooks.onFeverChange?.(true, 1);
               this.hooks.onMissionProgress?.("fever");
@@ -423,7 +439,7 @@ export class Game {
               this.lastMilestoneCrossed = currentMilestone;
               this.rig.kick(3);
               this.juice.confetti(0, w.bird.y, 0, 40);
-              this.juice.popup("MILESTONE!", "#ffd700");
+              this.juice.popup("★ MILESTONE! ★", "#ffd700", 50, 16);
               this.hooks.onMilestone?.(w.score);
             }
           }
@@ -434,6 +450,7 @@ export class Game {
       }
 
       case "hitstop": {
+        this.juice.setBorderFx("none");
         if (!this.time.frozen) {
           const canRewind =
             this.world.feathersRun > 0 &&
@@ -455,6 +472,7 @@ export class Game {
       }
 
       case "rewindReplay": {
+        this.juice.setBorderFx("slowmo");
         this.replayTimer += realDt;
         const targetIdx = Math.floor(
           (this.replayTimer / 0.8) * this.replaySnapshots.length,
@@ -475,10 +493,12 @@ export class Game {
       }
 
       case "rewindChoice": {
+        this.juice.setBorderFx("slowmo");
         break;
       }
 
       case "gameOver": {
+        this.juice.setBorderFx("none");
         if (this.world.bird.y > -5.5) {
           stepBird(this.world, realDt);
         }
