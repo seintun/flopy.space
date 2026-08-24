@@ -85,8 +85,14 @@ game.hooks = {
       hud.hideRewindPrompt();
       hud.hideCountdown();
     } else if (state === "rewindChoice") {
+      const savedData = loadAll();
       hud.showRewindPrompt(
+        game.world.score,
+        savedData.best,
+        game.world.combo,
+        multiplier(game.world.combo),
         game.world.feathersRun,
+        game.world.runDurationSec,
         () => game.chooseRewind(),
         () => game.acceptDeath(),
       );
