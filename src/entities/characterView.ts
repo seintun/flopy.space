@@ -315,62 +315,75 @@ export class CharacterView {
 
   // 4. ASTRO HAMSTER
   private buildHamster(): void {
-    // Glass Saucer/Helmet
-    const glassGeo = new THREE.SphereGeometry(BIRD_VISUAL_RADIUS * 1.15, 16, 12);
-    const glassMat = new THREE.MeshPhysicalMaterial({
-      color: 0xccffff,
-      transparent: true,
-      opacity: 0.35,
-      roughness: 0.1,
-      metalness: 0.2,
-      transmission: 0.8,
-    });
-    const glassDome = new THREE.Mesh(glassGeo, glassMat);
-    this.charGroup.add(glassDome);
-
-    // Hamster inside
-    const bodyGeo = new THREE.SphereGeometry(BIRD_VISUAL_RADIUS * 0.85, 12, 8);
+    // Solid Hamster Body
+    const bodyGeo = new THREE.SphereGeometry(BIRD_VISUAL_RADIUS, 14, 10);
     const body = new THREE.Mesh(bodyGeo, this.primaryMat);
+    body.scale.set(1.06, 0.98, 0.95);
     this.charGroup.add(body);
 
-    const belly = new THREE.Mesh(new THREE.SphereGeometry(BIRD_VISUAL_RADIUS * 0.6, 8, 6), this.bellyMat);
-    belly.position.set(0.08, -0.08, 0);
+    const belly = new THREE.Mesh(
+      new THREE.SphereGeometry(BIRD_VISUAL_RADIUS * 0.72, 10, 8),
+      this.bellyMat,
+    );
+    belly.position.set(0.08, -0.1, 0);
+    belly.scale.set(0.9, 0.75, 0.8);
     this.charGroup.add(belly);
 
-    // Round Hamster Ears
-    const earGeo = new THREE.SphereGeometry(0.12, 8, 8);
-    const earMat = new THREE.MeshStandardMaterial({ color: 0xff99bb, roughness: 0.5 });
+    // Round Cute Hamster Ears
+    const earGeo = new THREE.SphereGeometry(0.13, 8, 8);
+    const earMat = new THREE.MeshStandardMaterial({ color: 0xffa0bc, roughness: 0.5 });
     const lEar = new THREE.Mesh(earGeo, earMat);
-    lEar.position.set(0.05, 0.3, 0.22);
-    this.charGroup.add(lEar);
+    lEar.position.set(0.06, 0.35, 0.22);
+    this.leftEarGroup.add(lEar);
+    this.charGroup.add(this.leftEarGroup);
 
     const rEar = new THREE.Mesh(earGeo, earMat);
-    rEar.position.set(0.05, 0.3, -0.22);
-    this.charGroup.add(rEar);
+    rEar.position.set(0.06, 0.35, -0.22);
+    this.rightEarGroup.add(rEar);
+    this.charGroup.add(this.rightEarGroup);
 
-    this.addEyes();
+    // Chubby Cheeks & Cute Pink Nose
+    this.addEyesAndCheeks();
 
     // Cyber Jetpack Ring & Thrusters
-    const saucerGeo = new THREE.TorusGeometry(0.48, 0.06, 8, 20);
-    const saucerMat = new THREE.MeshStandardMaterial({ color: 0x00f5d4, emissive: 0x0099cc, roughness: 0.2 });
+    const saucerGeo = new THREE.TorusGeometry(0.46, 0.05, 8, 20);
+    const saucerMat = new THREE.MeshStandardMaterial({
+      color: 0x00f5d4,
+      emissive: 0x008877,
+      roughness: 0.2,
+    });
     const saucer = new THREE.Mesh(saucerGeo, saucerMat);
     saucer.rotation.x = Math.PI / 2;
-    saucer.position.y = -0.15;
+    saucer.position.y = -0.18;
     this.charGroup.add(saucer);
 
-    // Thruster flames
+    // Jet Thruster Flames
     const thrusterGeo = new THREE.ConeGeometry(0.12, 0.35, 8);
     const thrusterMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
 
     this.thrusterLeft = new THREE.Mesh(thrusterGeo, thrusterMat);
-    this.thrusterLeft.position.set(-0.25, -0.32, 0.3);
+    this.thrusterLeft.position.set(-0.25, -0.32, 0.26);
     this.thrusterLeft.rotation.z = Math.PI;
     this.charGroup.add(this.thrusterLeft);
 
     this.thrusterRight = new THREE.Mesh(thrusterGeo, thrusterMat);
-    this.thrusterRight.position.set(-0.25, -0.32, -0.3);
+    this.thrusterRight.position.set(-0.25, -0.32, -0.26);
     this.thrusterRight.rotation.z = Math.PI;
     this.charGroup.add(this.thrusterRight);
+
+    // Crystal Clear Helmet Bubble (Rendered last with depthWrite: false to eliminate opacity glitches)
+    const glassGeo = new THREE.SphereGeometry(BIRD_VISUAL_RADIUS * 1.16, 16, 12);
+    const glassMat = new THREE.MeshStandardMaterial({
+      color: 0xaaffff,
+      transparent: true,
+      opacity: 0.2,
+      roughness: 0.1,
+      metalness: 0.4,
+      depthWrite: false,
+    });
+    const glassDome = new THREE.Mesh(glassGeo, glassMat);
+    glassDome.renderOrder = 10;
+    this.charGroup.add(glassDome);
   }
 
   // 5. CLASSIC BIRD
