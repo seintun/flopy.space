@@ -3,7 +3,7 @@
 Plan: docs/superpowers/plans/2026-08-23-flappy3d.md
 Spec: docs/superpowers/specs/2026-08-23-flappy3d-design.md
 BaseSHA: 30887916934f0a5fc422e2d9b527aa922a8a393d (main)
-Updated: 2026-08-24T07:09Z
+Updated: 2026-08-24T07:10Z
 
 ## Resumption Invariant
 
@@ -23,13 +23,13 @@ Phase 1 — Scaffold + Headless Core: **complete**
 - [x] Task 6: Scoring/combo/feathers
 - [x] Task 7: TimeSystem + SnapshotBuffer
 
-Phase 2 — Render Layer: **in_progress**
-- [ ] Task 8: Renderer bootstrap + portrait camera rig
-- [ ] Task 9: Day/night palette (pure fn) + sky dome
-- [ ] Task 10: Bird view
-- [ ] Task 11: Pipes + orbs pooled views
+Phase 2 — Render Layer: **complete**
+- [x] Task 8: Renderer bootstrap + portrait camera rig
+- [x] Task 9: Day/night palette (pure fn) + sky dome
+- [x] Task 10: Bird view
+- [x] Task 11: Pipes + orbs pooled views
 
-Phase 3 — Game Assembly: **not started**
+Phase 3 — Game Assembly: **in_progress**
 - [ ] Task 12: Input
 - [ ] Task 13: State machine + game loop wiring
 - [ ] Task 14: Death flow v1 + shake
@@ -51,6 +51,5 @@ Phase 6 — Mobile Polish + Ship: **not started**
 
 ## Session Notes
 
-- Phase 1 all headless core modules complete with 100% test coverage (8 test suites, 25 tests passing).
-- Chrome open to live dev server at http://localhost:3000.
-- Next: Phase 2 (Three.js render layer).
+- Phase 2 render layer complete: scene, camera rig, sky dome, animated bird view, pooled pipes and orbs views.
+- Next: Phase 3 (Input, game loop assembly, death flow, HUD).
