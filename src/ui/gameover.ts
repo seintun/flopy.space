@@ -8,6 +8,7 @@ import {
 } from "../core/storage";
 import { enableDragScroll } from "../utils/dom";
 import { formatDuration } from "../utils/time";
+import { getNextGoal } from "../core/goals";
 
 export interface GameOverCallbacks {
   onRetry: () => void;
@@ -171,33 +172,20 @@ export class GameOverView {
   }
 
   private renderNextUnlockProgress(best: number): void {
-    // Find next locked character
-    const lockedChars = Object.values(CHARACTERS).filter((c) => c.unlockType === "score" && c.unlockValue > best);
-    lockedChars.sort((a, b) => a.unlockValue - b.unlockValue);
+    const goal = getNextGoal(best);
 
-    if (lockedChars.length > 0) {
-      const nextChar = lockedChars[0]!;
-      const needed = nextChar.unlockValue - best;
-      const pct = Math.min(100, Math.max(8, Math.round((best / nextChar.unlockValue) * 100)));
-
-      this.nextUnlockContainer.innerHTML = `
-        <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 800; margin-bottom: 4px;">
-          <span style="color: #94a3b8;">🎯 Next: <strong style="color: #fff;">${nextChar.emoji} ${nextChar.name}</strong></span>
-          <span style="color: #00f5d4;">${needed} pts away (${pct}%)</span>
-        </div>
-        <div style="width: 100%; height: 5px; background: rgba(0,0,0,0.5); border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08);">
-          <div style="width: ${pct}%; height: 100%; background: linear-gradient(90deg, #00e5ff, #00f5d4); border-radius: 3px; transition: width 0.6s cubic-bezier(0.2, 0.8, 0.4, 1);"></div>
-        </div>
-      `;
-      this.nextUnlockContainer.style.display = "block";
-    } else {
-      this.nextUnlockContainer.innerHTML = `
-        <div style="font-size: 11px; font-weight: 800; color: #ffd700; text-align: center;">
-          👑 MASTER FLYER • ALL CHARACTERS UNLOCKED!
-        </div>
-      `;
-      this.nextUnlockContainer.style.display = "block";
-    }
+    this.nextUnlockContainer.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: 800; margin-bottom: 5px;">
+        <span style="color: #94a3b8; display: flex; align-items: center; gap: 4px;">
+          🎯 Next: <strong style="color: #fff;">${goal.emoji} ${goal.name}</strong> <span style="font-size: 9px; color: #38bdf8; background: rgba(56, 189, 248, 0.15); padding: 1px 6px; border-radius: 6px;">${goal.category}</span>
+        </span>
+        <span style="color: #00f5d4; font-weight: 900; text-shadow: 0 0 8px rgba(0,245,212,0.4);">${goal.needed} pts away (${goal.progressPct}%)</span>
+      </div>
+      <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.6); border-radius: 4px; overflow: hidden; border: 1px solid rgba(255,255,255,0.12); box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);">
+        <div style="width: ${goal.progressPct}%; height: 100%; background: linear-gradient(90deg, #00e5ff 0%, #00f5d4 100%); border-radius: 4px; box-shadow: 0 0 10px rgba(0, 229, 255, 0.7); transition: width 0.8s cubic-bezier(0.2, 0.8, 0.4, 1);"></div>
+      </div>
+    `;
+    this.nextUnlockContainer.style.display = "block";
   }
 
   private renderQuestClaimBanner(): void {

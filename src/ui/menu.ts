@@ -14,6 +14,7 @@ import { CHARACTERS, type CharacterId, isCharacterUnlocked } from "../core/chara
 import { BIOMES, type BiomeId } from "../core/biomes";
 import { enableDragScroll } from "../utils/dom";
 import { InstallManager } from "./installManager";
+import { getNextGoal } from "../core/goals";
 
 export interface MenuCallbacks {
   onStart: () => void;
@@ -33,6 +34,7 @@ export class MenuView {
   private bestEl: HTMLElement;
   private muteBtn: HTMLElement;
   private tabContentEl: HTMLElement;
+  private goalPillEl: HTMLElement;
   private activeTab: "heroes" | "scenes" | "quests" | "skins" = "heroes";
 
   constructor(container: HTMLElement, private callbacks: MenuCallbacks) {
@@ -79,14 +81,22 @@ export class MenuView {
         </div>
       </div>
 
-      <!-- Center Title & Tap Prompt -->
+      <!-- Center Title, Goals & Tap Prompt -->
       <div style="display: flex; flex-direction: column; align-items: center; pointer-events: none; margin-top: 4px; animation: titleFloat 2.5s ease-in-out infinite alternate;">
         <h1 style="font-size: clamp(28px, 8vw, 42px); font-weight: 900; margin: 0 0 2px 0; background: linear-gradient(180deg, #ffffff 15%, #bae6fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 4px 20px rgba(0, 229, 255, 0.45)); letter-spacing: -0.02em; text-align: center;">
           FLOPY.SPACE
         </h1>
-        <div id="menu-best-label" style="font-size: 11px; font-weight: 800; color: #bae6fd; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 14px; background: rgba(13, 17, 30, 0.6); border: 1px solid rgba(255, 255, 255, 0.12); padding: 3px 12px; border-radius: 12px; backdrop-filter: blur(8px);">
-          BEST <span id="menu-best-val" style="color: #fff; margin-left: 2px;">0</span>
+        
+        <!-- Best Score & Active Goal Row -->
+        <div style="display: flex; gap: 6px; align-items: center; justify-content: center; margin-bottom: 14px; flex-wrap: wrap;">
+          <div id="menu-best-label" style="font-size: 11px; font-weight: 800; color: #bae6fd; letter-spacing: 1px; text-transform: uppercase; background: rgba(13, 17, 30, 0.65); border: 1px solid rgba(255, 255, 255, 0.12); padding: 3px 10px; border-radius: 12px; backdrop-filter: blur(8px);">
+            BEST <span id="menu-best-val" style="color: #fff; margin-left: 2px;">0</span>
+          </div>
+          <div id="menu-goal-pill" style="font-size: 11px; font-weight: 800; color: #00f5d4; background: rgba(13, 17, 30, 0.65); border: 1px solid rgba(0, 245, 212, 0.35); padding: 3px 10px; border-radius: 12px; backdrop-filter: blur(8px); box-shadow: 0 2px 10px rgba(0,245,212,0.2);">
+            🎯 Next: 🐱 Neko (0/15)
+          </div>
         </div>
+
         <div style="font-size: clamp(12px, 3.6vw, 14px); font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.7); border: 1px solid rgba(0, 229, 255, 0.5); padding: 8px 20px; border-radius: 22px; letter-spacing: 0.5px; animation: softGlowPulse 1.8s infinite alternate; text-shadow: 0 0 10px rgba(0,229,255,0.7); backdrop-filter: blur(12px);">
           SPACE OR TAP TO FLY
         </div>
@@ -125,6 +135,7 @@ export class MenuView {
     this.bestEl = this.el.querySelector("#menu-best-val")!;
     this.muteBtn = this.el.querySelector("#menu-mute-btn")!;
     this.tabContentEl = this.el.querySelector("#menu-tab-content")!;
+    this.goalPillEl = this.el.querySelector("#menu-goal-pill")!;
 
     // Install App CTA
     const installBtn = this.el.querySelector("#menu-install-btn") as HTMLElement;
@@ -183,6 +194,11 @@ export class MenuView {
     this.feathersEl.textContent = data.feathers.toString();
     this.bestEl.textContent = data.best.toString();
     this.muteBtn.textContent = data.muted ? "🔇" : "🔊";
+
+    const goal = getNextGoal(data.best);
+    if (this.goalPillEl) {
+      this.goalPillEl.innerHTML = `🎯 Next: <strong style="color: #fff;">${goal.emoji} ${goal.name}</strong> (${data.best}/${goal.targetScore})`;
+    }
 
     this.renderTabContent();
   }
