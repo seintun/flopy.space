@@ -2,7 +2,8 @@
 
 > **The next-generation 3D arcade flyer with 4D time manipulation, cute animal heroes, and procedural WebAudio.**
 
-[![Live Web & Mobile](https://img.shields.io/badge/Play_Live-flopy.space-00f5d4?style=for-the-badge&logo=google-chrome&logoColor=black)](https://seintun.github.io/flopy.space/)
+[![Live Web & Mobile](https://img.shields.io/badge/Play_Live-flopy.space-00f5d4?style=for-the-badge&logo=google-chrome&logoColor=black)](https://flopy.space/)
+[![Deployed on Vercel](https://img.shields.io/badge/Vercel-Edge_Deployed-white?style=for-the-badge&logo=vercel&logoColor=black)](https://flopy.space/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-ffd166.svg?style=for-the-badge)](LICENSE)
 [![Built With Three.js](https://img.shields.io/badge/Engine-Three.js_r174-00e5ff?style=for-the-badge)](https://threejs.org/)
 
@@ -13,7 +14,8 @@
 📱 **Mobile Optimized**: Add to Home Screen as a standalone PWA with 0ms touch latency.  
 💻 **Desktop**: Full 120Hz/60Hz keyboard and spacebar support.
 
-👉 **[https://seintun.github.io/flopy.space/](https://seintun.github.io/flopy.space/)**
+- 🌐 **Primary Domain**: **[https://flopy.space/](https://flopy.space/)**
+- 🚀 **GitHub Mirror**: **[https://seintun.github.io/flopy.space/](https://seintun.github.io/flopy.space/)**
 
 ---
 

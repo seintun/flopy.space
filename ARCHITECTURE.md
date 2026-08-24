@@ -132,3 +132,50 @@ flowchart TD
 - **Precached Core**: `index.html`, `manifest.webmanifest`, `icon.svg`, and hashed Vite bundles.
 - **Font Caching**: Cache-first for Google WebFonts (`.woff2`) and stale-while-revalidate for stylesheets.
 - **Native Installation**: Intercepts `beforeinstallprompt` on Android Chromium and provides custom Add-to-Home-Screen instructions on iOS Safari.
+
+---
+
+## 7. Analytics, Telemetry & Web Vitals
+
+```mermaid
+flowchart LR
+    Event["Gameplay Event Trigger"] --> Dispatcher["src/core/analytics.ts"]
+    Dispatcher --> VercelAnalytics["@vercel/analytics (Traffic & OS Demographics)"]
+    Dispatcher --> SpeedInsights["@vercel/speed-insights (Core Web Vitals)"]
+    Dispatcher --> CustomTelemetry["Custom Metrics (Runs, Rewinds, Installs)"]
+```
+
+- **Zero-PII Compliance**: No cookies or sensitive user telemetry collected (GDPR compliant).
+- **Tracked Custom Invariants**:
+  - `game_start`: Character, skin, biome, daily streak count.
+  - `game_over`: Score, best, pipes passed, duration, rewinds used.
+  - `pwa_install`: Install prompt acceptance vs dismissal rate.
+  - `rewind_used`: 4D temporal rewind engagement point.
+  - `quest_claim`: Daily quest completion and feather accumulation.
+
+---
+
+## 8. Edge Hosting & DNS Architecture
+
+```mermaid
+graph TD
+    User["User Client Request (flopy.space)"]
+    
+    subgraph DNS ["Namecheap Advanced DNS"]
+        Apex["A Record (@) -> 76.76.21.21"]
+        WWW["CNAME (www) -> cname.vercel-dns.com"]
+    end
+    
+    subgraph VercelEdge ["Vercel Global Anycast Edge Network"]
+        EdgeSSL["Automatic Let's Encrypt TLS"]
+        Brotli["Automatic Brotli/Gzip Compression"]
+        AssetCache["Immutable Bundle Cache (max-age=31536000)"]
+        SWBypass["Service Worker Revalidation (max-age=0)"]
+    end
+
+    User --> DNS
+    DNS --> VercelEdge
+```
+
+- **Rollup Three.js Chunking**: `vendor-three` ($122\text{kB}$ gzip) is separated from core gameplay code ($33\text{kB}$ gzip) to maximize browser cache hit rates across subsequent updates.
+- **HTTP Security Headers**: Enforces `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, and strict referrer policies via `vercel.json`.
