@@ -451,39 +451,49 @@ export class MenuView {
   // 4. SKINS TAB
   private renderSkinsTab(data: ReturnType<typeof loadAll>): void {
     const list = document.createElement("div");
+    list.className = "drag-scroll";
     list.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px 2px; width: 100%; box-sizing: border-box;";
 
     Object.values(SKINS).forEach((skin) => {
-      const isUnlocked = data.unlocked.includes(skin.id);
+      const isUnlocked = data.best >= skin.unlockScore || data.unlocked.includes(skin.id);
       const isSelected = data.skin === skin.id;
+      const bodyHex = skin.bodyColor.toString(16).padStart(6, "0");
+      const bellyHex = skin.bellyColor.toString(16).padStart(6, "0");
+      const progressPct = Math.min(100, Math.round((data.best / (skin.unlockScore || 1)) * 100));
 
-      const chip = document.createElement("button");
-      chip.className = "btn interactive";
-      chip.style.cssText = `
-        flex: 0 0 auto;
-        white-space: nowrap;
-        border: 1.5px solid ${isSelected ? "#00e5ff" : isUnlocked ? "rgba(255, 255, 255, 0.18)" : "rgba(255, 255, 255, 0.06)"};
-        background: ${isSelected ? "rgba(0, 229, 255, 0.18)" : "rgba(255, 255, 255, 0.04)"};
-        color: ${isUnlocked ? "#fff" : "#64748b"};
-        padding: 8px 14px;
-        border-radius: 14px;
-        font-size: 11px;
-        font-weight: 800;
-        cursor: ${isUnlocked ? "pointer" : "default"};
+      const card = document.createElement("div");
+      card.className = "btn interactive";
+      card.style.cssText = `
+        flex: 0 0 102px;
+        background: ${isSelected ? "rgba(0, 229, 255, 0.18)" : "rgba(255, 255, 255, 0.05)"};
+        border: 1.5px solid ${isSelected ? "#00e5ff" : isUnlocked ? "rgba(255, 255, 255, 0.16)" : "rgba(255, 255, 255, 0.06)"};
+        border-radius: 16px;
+        padding: 8px 4px;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 6px;
-        box-shadow: ${isSelected ? "0 0 12px rgba(0, 229, 255, 0.3)" : "none"};
+        text-align: center;
+        cursor: ${isUnlocked ? "pointer" : "default"};
+        opacity: ${isUnlocked ? "1" : "0.55"};
+        box-shadow: ${isSelected ? "0 0 16px rgba(0, 229, 255, 0.3)" : "none"};
         touch-action: pan-x;
         user-select: none;
       `;
 
-      chip.innerHTML = `
-        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#${skin.bodyColor.toString(16).padStart(6, "0")}; box-shadow: 0 0 6px #${skin.bodyColor.toString(16).padStart(6, "0")};"></span>
-        ${skin.name} ${isUnlocked ? "" : `🔒${skin.unlockScore}`}
+      card.innerHTML = `
+        <div style="width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #${bodyHex}, #${bellyHex}); border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 4px 12px #${bodyHex}66, inset 0 2px 4px rgba(255,255,255,0.7); margin-bottom: 3px;"></div>
+        <div style="font-size: 10px; font-weight: 800; color: #fff; letter-spacing: -0.01em; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${skin.name}</div>
+        <div style="font-size: 9px; font-weight: 700; color: ${isSelected ? "#00e5ff" : isUnlocked ? "#38bdf8" : "#ff9e00"}; margin-top: 3px;">
+          ${isSelected ? "✓ ACTIVE" : isUnlocked ? "SELECT" : `🔒 Score ${skin.unlockScore}`}
+        </div>
+        ${!isUnlocked ? `
+          <div style="width: 80%; height: 3px; background: rgba(0,0,0,0.5); border-radius: 2px; margin-top: 3px; overflow: hidden;">
+            <div style="width: ${progressPct}%; height: 100%; background: #ff9e00;"></div>
+          </div>
+        ` : ""}
       `;
 
-      chip.onclick = (e) => {
+      card.onclick = (e) => {
         e.stopPropagation();
         if (isUnlocked) {
           setSkin(skin.id);
@@ -494,7 +504,7 @@ export class MenuView {
         }
       };
 
-      list.appendChild(chip);
+      list.appendChild(card);
     });
 
     this.tabContentEl.appendChild(list);
