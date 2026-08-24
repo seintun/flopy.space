@@ -38,19 +38,19 @@ export function initHud(container: HTMLElement): HudApi {
       <div id="fever-meter-bar" style="position: absolute; top: 0; left: 0; width: 0%; height: 100%; background: linear-gradient(90deg, #ff007f, #ffd166, #00f5d4); box-shadow: 0 0 14px #ff007f; transition: width 0.05s linear;"></div>
     </div>
 
-    <!-- Power-Up Pickup Toast Banner (Top Center, Non-Distracting) -->
-    <div id="hud-powerup-toast" style="position: absolute; top: 22px; left: 50%; transform: translateX(-50%) translateY(-20px); opacity: 0; pointer-events: none; z-index: 35; transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.25s ease; display: flex; align-items: center; gap: 8px; background: rgba(10, 15, 30, 0.9); border: 1.5px solid #00e5ff; border-radius: 20px; padding: 6px 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 20px rgba(0,229,255,0.3); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);">
-      <span id="hud-toast-icon" style="font-size: 20px;">🛡️</span>
+    <!-- Power-Up Pickup Toast Banner (Bottom Center, Zero Top/Hero Overlap) -->
+    <div id="hud-powerup-toast" style="position: absolute; bottom: max(24px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%) translateY(20px); opacity: 0; pointer-events: none; z-index: 35; transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.4, 1), opacity 0.25s ease; display: flex; align-items: center; gap: 8px; background: rgba(10, 15, 30, 0.92); border: 1.5px solid #00e5ff; border-radius: 20px; padding: 6px 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.6), 0 0 20px rgba(0,229,255,0.3); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); white-space: nowrap;">
+      <span id="hud-toast-icon" style="font-size: 18px;">🛡️</span>
       <div style="display: flex; flex-direction: column;">
-        <span id="hud-toast-title" style="font-size: 12px; font-weight: 900; color: #fff; letter-spacing: 0.5px; text-transform: uppercase;">SHIELD ACTIVE</span>
-        <span id="hud-toast-benefit" style="font-size: 10px; font-weight: 700; color: #00e5ff; letter-spacing: 0.2px;">Blocks 1 fatal crash</span>
+        <span id="hud-toast-title" style="font-size: 11px; font-weight: 900; color: #fff; letter-spacing: 0.5px; text-transform: uppercase;">SHIELD ACTIVE</span>
+        <span id="hud-toast-benefit" style="font-size: 9px; font-weight: 700; color: #00e5ff; letter-spacing: 0.2px;">Blocks 1 fatal crash</span>
       </div>
     </div>
 
     <!-- Header info: Biome badge, Score, Combo, Feathers -->
     <div id="hud-header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; opacity: 0; transition: opacity 0.25s ease;">
-      <!-- Left: Biome badge -->
-      <div id="hud-biome" style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #fff; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+      <!-- Left: Compact Biome badge -->
+      <div id="hud-biome" style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 4px 10px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 4px 16px rgba(0,0,0,0.3); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
         <span id="hud-biome-emoji">🌿</span> <span id="hud-biome-name">Meadow</span>
       </div>
 
@@ -191,7 +191,7 @@ export function initHud(container: HTMLElement): HudApi {
 
       toastTimeout = setTimeout(() => {
         toastEl.style.opacity = "0";
-        toastEl.style.transform = "translateX(-50%) translateY(-20px)";
+        toastEl.style.transform = "translateX(-50%) translateY(20px)";
       }, 1400);
     },
     showMenu() {

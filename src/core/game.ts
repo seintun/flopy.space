@@ -290,7 +290,7 @@ export class Game {
           if (targetBiome.id !== this.currentBiome.id) {
             this.applyBiome(targetBiome);
             this.juice.confetti(0, w.bird.y, 0, 30);
-            this.juice.popup(`${targetBiome.emoji} ${targetBiome.name.toUpperCase()}`, "#00f5d4", 50, 16);
+            this.juice.flashBorder("#00f5d4", 250);
           }
 
           // Power-up Pickups & Magnet Vacuum
