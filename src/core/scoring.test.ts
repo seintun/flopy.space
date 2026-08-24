@@ -39,14 +39,38 @@ describe("processPasses", () => {
     expect(w.score).toBe(2);
   });
 
-  it("feather every 10 points", () => {
+  it("progressive feather thresholds and 15-pipe cooldown", () => {
     const w = createWorld(1);
-    w.score = 9;
-    w.pipesPassed = 9;
+    w.pipesPassed = 14;
+    w.bonusScore = 5;
+    w.score = 19;
+    w.lastFeatherPipe = 0;
     w.feathersRun = 0;
     w.pipes.push({ id: 1, x: -1, gapCenter: 1, gapHeight: 9, scored: false });
+    
+    // Pipe 15 reached score 20 (15 pipes + 5 bonus) -> awards first feather!
     processPasses(w);
-    expect(w.score).toBe(10);
+    expect(w.score).toBe(20);
+    expect(w.pipesPassed).toBe(15);
     expect(w.feathersRun).toBe(1);
+    expect(w.lastFeatherPipe).toBe(15);
+
+    // Score 55 reached but only 10 pipes since last feather -> NOT awarded yet (cooldown active)
+    w.pipesPassed = 24; // 24 - 15 = 9 (< 15)
+    w.bonusScore = 30; // 24 + 30 = 54
+    w.score = 54;
+    w.pipes.push({ id: 2, x: -1, gapCenter: 1, gapHeight: 9, scored: false });
+    const ev2 = processPasses(w)[0]!;
+    expect(ev2.earnedFeather).toBe(false);
+    expect(w.feathersRun).toBe(1);
+
+    // Pipes passed reaches 30 (>= 15 since pipe 15) and score >= 55 -> awards 2nd feather!
+    w.pipesPassed = 29;
+    w.bonusScore = 25; // 29 + 25 = 54, next pipe makes 30 + 25 = 55
+    w.pipes.push({ id: 3, x: -1, gapCenter: 1, gapHeight: 9, scored: false });
+    const ev3 = processPasses(w)[0]!;
+    expect(ev3.earnedFeather).toBe(true);
+    expect(w.feathersRun).toBe(2);
+    expect(w.lastFeatherPipe).toBe(30);
   });
 });

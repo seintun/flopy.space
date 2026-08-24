@@ -10,7 +10,10 @@ export function flap(w: World): void {
 
 export function stepBird(w: World, dt: number): void {
   const b = w.bird;
-  b.vy = Math.max(TERMINAL_VY, b.vy + GRAVITY * dt);
+  const gravityMultiplier = w.heavyGravityTimer > 0 ? 1.4 : 1.0;
+  const effGravity = GRAVITY * gravityMultiplier;
+  const terminalVy = w.heavyGravityTimer > 0 ? TERMINAL_VY * 1.2 : TERMINAL_VY;
+  b.vy = Math.max(terminalVy, b.vy + effGravity * dt);
   b.y += b.vy * dt;
   if (b.y > CEILING_Y - HITBOX_RADIUS) b.y = CEILING_Y - HITBOX_RADIUS;
   // target pitch: +25deg rising, easing to -90deg at terminal dive

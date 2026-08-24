@@ -44,4 +44,15 @@ describe("stepBird", () => {
     for (let i = 0; i < 240; i++) stepBird(w, DT);
     expect(w.bird.pitch).toBeLessThan(-80);
   });
+
+  it("applies heavier downward acceleration when heavyGravityTimer > 0", () => {
+    const wNormal = createWorld(1);
+    const wHeavy = createWorld(1);
+    wHeavy.heavyGravityTimer = 2.0;
+
+    stepBird(wNormal, 0.1);
+    stepBird(wHeavy, 0.1);
+
+    expect(wHeavy.bird.vy).toBeLessThan(wNormal.bird.vy);
+  });
 });

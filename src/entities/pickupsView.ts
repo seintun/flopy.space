@@ -8,13 +8,9 @@ interface PooledPickup {
   shieldGroup: THREE.Group;
   magnetGroup: THREE.Group;
   starGroup: THREE.Group;
-
-  // In-world floating label sprites
-  clockSprite: THREE.Sprite;
-  rainbowSprite: THREE.Sprite;
-  shieldSprite: THREE.Sprite;
-  magnetSprite: THREE.Sprite;
-  starSprite: THREE.Sprite;
+  hazardMineGroup: THREE.Group;
+  heavyGravityGroup: THREE.Group;
+  speedSurgeGroup: THREE.Group;
 
   // Specific meshes for animation
   clockRing: THREE.Mesh;
@@ -26,57 +22,26 @@ interface PooledPickup {
   magnetRing: THREE.Mesh;
   starMesh: THREE.Mesh;
 
+  // Hazard meshes
+  hazardMineCore: THREE.Mesh;
+  hazardMineSpikes: THREE.Group;
+  heavyGravityCube: THREE.Mesh;
+  heavyGravityRing: THREE.Mesh;
+  speedSurgePrism: THREE.Mesh;
+  speedSurgeFins: THREE.Mesh;
+
   orbId: number;
-}
-
-function createTextSprite(text: string, borderColor: string): THREE.Sprite {
-  const canvas = document.createElement("canvas");
-  canvas.width = 256;
-  canvas.height = 64;
-  const ctx = canvas.getContext("2d")!;
-
-  // Draw rounded pill background
-  ctx.fillStyle = "rgba(10, 15, 30, 0.85)";
-  ctx.beginPath();
-  ctx.roundRect(8, 8, 240, 48, 24);
-  ctx.fill();
-
-  ctx.strokeStyle = borderColor;
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.roundRect(8, 8, 240, 48, 24);
-  ctx.stroke();
-
-  // Draw icon + text
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 21px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(text, 128, 32);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.minFilter = THREE.LinearFilter;
-  const mat = new THREE.SpriteMaterial({
-    map: texture,
-    transparent: true,
-    opacity: 0.92,
-    depthWrite: false,
-  });
-  const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(1.4, 0.35, 1);
-  sprite.position.y = 0.68;
-  return sprite;
 }
 
 export class PickupsView {
   private pool: PooledPickup[] = [];
   private group: THREE.Group;
 
-  constructor(scene: THREE.Scene, poolSize = 8) {
+  constructor(scene: THREE.Scene, poolSize = 10) {
     this.group = new THREE.Group();
     scene.add(this.group);
 
-    // Shared geometries
+    // Shared geometries for high-performance memory pooling
     const clockSphereGeo = new THREE.SphereGeometry(0.32, 16, 12);
     const clockRingGeo = new THREE.TorusGeometry(0.48, 0.04, 8, 24);
     const clockHandGeo = new THREE.BoxGeometry(0.04, 0.22, 0.02);
@@ -87,65 +52,73 @@ export class PickupsView {
     const magnetTorusGeo = new THREE.TorusGeometry(0.44, 0.08, 8, 20);
     const bubbleGeo = new THREE.SphereGeometry(0.48, 16, 12);
 
+    // Hazard geometries
+    const hazardCoreGeo = new THREE.IcosahedronGeometry(0.28, 0);
+    const hazardSpikeGeo = new THREE.ConeGeometry(0.07, 0.32, 5);
+    hazardSpikeGeo.translate(0, 0.16, 0);
+
+    const heavyCubeGeo = new THREE.BoxGeometry(0.46, 0.46, 0.46);
+    const heavyRingGeo = new THREE.TorusGeometry(0.52, 0.035, 6, 20);
+    const speedTetraGeo = new THREE.TetrahedronGeometry(0.42, 0);
+    const speedFinGeo = new THREE.TorusGeometry(0.48, 0.04, 4, 16);
+
     for (let i = 0; i < poolSize; i++) {
       const pGroup = new THREE.Group();
 
-      // 1. CLOCK (Slow-Mo)
+      // 1. CLOCK (Slow-Mo) - Cyan #00E5FF (L*=83.5)
       const clockGroup = new THREE.Group();
       const clockCore = new THREE.Mesh(
         clockSphereGeo,
         new THREE.MeshStandardMaterial({
           color: 0x00e5ff,
-          emissive: 0x0088bb,
-          emissiveIntensity: 0.8,
-          roughness: 0.2,
+          emissive: 0x00a8cc,
+          emissiveIntensity: 0.9,
+          roughness: 0.15,
+          metalness: 0.2,
           transparent: true,
-          opacity: 0.9,
+          opacity: 0.92,
         }),
       );
       const clockRing = new THREE.Mesh(
         clockRingGeo,
-        new THREE.MeshBasicMaterial({ color: 0x80ffff, transparent: true, opacity: 0.85 }),
+        new THREE.MeshBasicMaterial({ color: 0xa0ffff, transparent: true, opacity: 0.9 }),
       );
       const clockHour = new THREE.Mesh(clockHandGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
       clockHour.scale.set(1, 0.7, 1);
       clockHour.position.z = 0.34;
       const clockMinute = new THREE.Mesh(clockHandGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
       clockMinute.position.z = 0.34;
-      const clockSprite = createTextSprite("⏱️ SLOW-MO", "#00e5ff");
-
-      clockGroup.add(clockCore, clockRing, clockHour, clockMinute, clockSprite);
+      clockGroup.add(clockCore, clockRing, clockHour, clockMinute);
       pGroup.add(clockGroup);
 
-      // 2. RAINBOW PRISM
+      // 2. RAINBOW PRISM - Electric Pink #FF007F (L*=62.1)
       const rainbowGroup = new THREE.Group();
       const rainbowPrismMat = new THREE.MeshStandardMaterial({
         color: 0xff007f,
         emissive: 0xff00aa,
-        emissiveIntensity: 0.9,
+        emissiveIntensity: 0.95,
         roughness: 0.1,
         metalness: 0.4,
       });
       const rainbowPrism = new THREE.Mesh(prismGeo, rainbowPrismMat);
       const rainbowHalo = new THREE.Mesh(
         new THREE.TorusGeometry(0.55, 0.03, 6, 20),
-        new THREE.MeshBasicMaterial({ color: 0xffd166, transparent: true, opacity: 0.8 }),
+        new THREE.MeshBasicMaterial({ color: 0xffd166, transparent: true, opacity: 0.85 }),
       );
       rainbowHalo.rotation.x = Math.PI / 3;
-      const rainbowSprite = createTextSprite("🌈 TRAIL 3X", "#ff007f");
-      rainbowGroup.add(rainbowPrism, rainbowHalo, rainbowSprite);
+      rainbowGroup.add(rainbowPrism, rainbowHalo);
       pGroup.add(rainbowGroup);
 
-      // 3. SHIELD BUBBLE
+      // 3. SHIELD BUBBLE - Radiant Gold #FFD700 (L*=84.2)
       const shieldGroup = new THREE.Group();
       const shieldBubble = new THREE.Mesh(
         bubbleGeo,
         new THREE.MeshPhysicalMaterial({
           color: 0xffd700,
           transparent: true,
-          opacity: 0.35,
+          opacity: 0.4,
           roughness: 0.1,
-          transmission: 0.8,
+          transmission: 0.85,
         }),
       );
       const shieldStar = new THREE.Mesh(
@@ -153,22 +126,21 @@ export class PickupsView {
         new THREE.MeshStandardMaterial({
           color: 0xffd700,
           emissive: 0xffaa00,
-          emissiveIntensity: 0.8,
-          roughness: 0.2,
+          emissiveIntensity: 0.95,
+          roughness: 0.15,
         }),
       );
-      const shieldSprite = createTextSprite("🛡️ SHIELD", "#ffd700");
-      shieldGroup.add(shieldBubble, shieldStar, shieldSprite);
+      shieldGroup.add(shieldBubble, shieldStar);
       pGroup.add(shieldGroup);
 
-      // 4. MAGNET
+      // 4. MAGNET - Neon Mint #00F5D4 (L*=86.4)
       const magnetGroup = new THREE.Group();
       const magnetRing = new THREE.Mesh(
         magnetTorusGeo,
         new THREE.MeshStandardMaterial({
           color: 0x00f5d4,
           emissive: 0x00bbf9,
-          emissiveIntensity: 0.8,
+          emissiveIntensity: 0.85,
           roughness: 0.2,
         }),
       );
@@ -176,25 +148,101 @@ export class PickupsView {
         new THREE.SphereGeometry(0.22, 10, 8),
         new THREE.MeshBasicMaterial({ color: 0xffffff }),
       );
-      const magnetSprite = createTextSprite("🧲 MAGNET", "#00f5d4");
-      magnetGroup.add(magnetRing, magnetCore, magnetSprite);
+      magnetGroup.add(magnetRing, magnetCore);
       pGroup.add(magnetGroup);
 
-      // 5. STAR GEM
+      // 5. STAR GEM - Warm Amber #FFBE0B (L*=81.0)
       const starGroup = new THREE.Group();
       const starMesh = new THREE.Mesh(
         starGeo,
         new THREE.MeshStandardMaterial({
           color: 0xffbe0b,
           emissive: 0xff9f1c,
-          emissiveIntensity: 0.9,
+          emissiveIntensity: 0.95,
           roughness: 0.15,
           metalness: 0.5,
         }),
       );
-      const starSprite = createTextSprite("⭐ +500 PTS", "#ffbe0b");
-      starGroup.add(starMesh, starSprite);
+      starGroup.add(starMesh);
       pGroup.add(starGroup);
+
+      // 6. VOID MINE (Hazard) - Spiked Obsidian Core #1B0A2A + Acute Spikes #FF2A6D
+      const hazardMineGroup = new THREE.Group();
+      const hazardMineCore = new THREE.Mesh(
+        hazardCoreGeo,
+        new THREE.MeshStandardMaterial({
+          color: 0x180824,
+          emissive: 0x330011,
+          roughness: 0.5,
+          metalness: 0.8,
+        }),
+      );
+      const hazardMineSpikes = new THREE.Group();
+      const spikeMat = new THREE.MeshStandardMaterial({
+        color: 0xff2a6d,
+        emissive: 0xff0044,
+        emissiveIntensity: 1.1,
+        roughness: 0.2,
+      });
+
+      // 8 acute radial spikes in orthogonal and diagonal vectors
+      const spikeDirs = [
+        new THREE.Vector3(1, 0, 0),
+        new THREE.Vector3(-1, 0, 0),
+        new THREE.Vector3(0, 1, 0),
+        new THREE.Vector3(0, -1, 0),
+        new THREE.Vector3(0.7, 0.7, 0).normalize(),
+        new THREE.Vector3(-0.7, 0.7, 0).normalize(),
+        new THREE.Vector3(0.7, -0.7, 0).normalize(),
+        new THREE.Vector3(-0.7, -0.7, 0).normalize(),
+      ];
+
+      for (const dir of spikeDirs) {
+        const spike = new THREE.Mesh(hazardSpikeGeo, spikeMat);
+        spike.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+        spike.position.copy(dir.clone().multiplyScalar(0.22));
+        hazardMineSpikes.add(spike);
+      }
+      hazardMineGroup.add(hazardMineCore, hazardMineSpikes);
+      pGroup.add(hazardMineGroup);
+
+      // 7. HEAVY GRAVITY SINK (Hazard) - Electric Violet #9D4EDD + Obsidian
+      const heavyGravityGroup = new THREE.Group();
+      const heavyGravityCube = new THREE.Mesh(
+        heavyCubeGeo,
+        new THREE.MeshStandardMaterial({
+          color: 0x240046,
+          emissive: 0x9d4edd,
+          emissiveIntensity: 0.85,
+          roughness: 0.3,
+          metalness: 0.6,
+        }),
+      );
+      const heavyGravityRing = new THREE.Mesh(
+        heavyRingGeo,
+        new THREE.MeshBasicMaterial({ color: 0xc77dff, transparent: true, opacity: 0.85 }),
+      );
+      heavyGravityGroup.add(heavyGravityCube, heavyGravityRing);
+      pGroup.add(heavyGravityGroup);
+
+      // 8. SPEED SURGE (Wager) - Warning Amber #FF8800 + Chevrons
+      const speedSurgeGroup = new THREE.Group();
+      const speedSurgePrism = new THREE.Mesh(
+        speedTetraGeo,
+        new THREE.MeshStandardMaterial({
+          color: 0xff8800,
+          emissive: 0xff5500,
+          emissiveIntensity: 1.0,
+          roughness: 0.2,
+          metalness: 0.4,
+        }),
+      );
+      const speedSurgeFins = new THREE.Mesh(
+        speedFinGeo,
+        new THREE.MeshBasicMaterial({ color: 0xffea00, transparent: true, opacity: 0.9 }),
+      );
+      speedSurgeGroup.add(speedSurgePrism, speedSurgeFins);
+      pGroup.add(speedSurgeGroup);
 
       pGroup.visible = false;
       this.group.add(pGroup);
@@ -206,11 +254,9 @@ export class PickupsView {
         shieldGroup,
         magnetGroup,
         starGroup,
-        clockSprite,
-        rainbowSprite,
-        shieldSprite,
-        magnetSprite,
-        starSprite,
+        hazardMineGroup,
+        heavyGravityGroup,
+        speedSurgeGroup,
         clockRing,
         clockHour,
         clockMinute,
@@ -219,6 +265,12 @@ export class PickupsView {
         shieldStar,
         magnetRing,
         starMesh,
+        hazardMineCore,
+        hazardMineSpikes,
+        heavyGravityCube,
+        heavyGravityRing,
+        speedSurgePrism,
+        speedSurgeFins,
         orbId: -1,
       });
     }
@@ -236,7 +288,12 @@ export class PickupsView {
         item.group.visible = true;
         item.orbId = o.id;
 
-        const bob = Math.sin(timeSec * 3.5 + o.id * 1.5) * 0.18;
+        const isHazard = o.type === "hazard_mine" || o.type === "heavy_gravity";
+        // Hazards jitter with twitch rhythm; buffs float with harmonic sine
+        const bob = isHazard
+          ? Math.sin(timeSec * 8 + o.id) * 0.12 + Math.cos(timeSec * 14) * 0.04
+          : Math.sin(timeSec * 3.5 + o.id * 1.5) * 0.18;
+
         item.group.position.set(o.x, o.y + bob, 0);
 
         // Hide all variants first
@@ -245,6 +302,9 @@ export class PickupsView {
         item.shieldGroup.visible = false;
         item.magnetGroup.visible = false;
         item.starGroup.visible = false;
+        item.hazardMineGroup.visible = false;
+        item.heavyGravityGroup.visible = false;
+        item.speedSurgeGroup.visible = false;
 
         const type = o.type || "slowmo";
 
@@ -281,6 +341,29 @@ export class PickupsView {
             item.starGroup.visible = true;
             item.starMesh.rotation.y = timeSec * 2.5;
             item.starMesh.rotation.z = Math.sin(timeSec * 3) * 0.4;
+            break;
+          }
+          case "hazard_mine": {
+            item.hazardMineGroup.visible = true;
+            // High-frequency counter-rotation + jitter
+            item.hazardMineGroup.rotation.z = -timeSec * 5.0;
+            item.hazardMineGroup.rotation.x = Math.sin(timeSec * 12) * 0.35;
+            item.hazardMineSpikes.rotation.y = timeSec * 6.0;
+            break;
+          }
+          case "heavy_gravity": {
+            item.heavyGravityGroup.visible = true;
+            item.heavyGravityCube.rotation.x = timeSec * 2.0;
+            item.heavyGravityCube.rotation.y = timeSec * 2.5;
+            item.heavyGravityRing.rotation.x = Math.PI / 2;
+            item.heavyGravityRing.scale.setScalar(1.0 + Math.sin(timeSec * 6) * 0.2);
+            break;
+          }
+          case "speed_surge": {
+            item.speedSurgeGroup.visible = true;
+            item.speedSurgePrism.rotation.y = timeSec * 4.5;
+            item.speedSurgePrism.rotation.z = timeSec * 3.0;
+            item.speedSurgeFins.rotation.x = timeSec * 4.0;
             break;
           }
         }

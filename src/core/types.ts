@@ -51,7 +51,11 @@ export interface World {
   hasShield: boolean;
   rainbowTrailTimer: number;
   magnetTimer: number;
+  heavyGravityTimer: number;
+  speedSurgeTimer: number;
   runDurationSec: number;
+  lastFeatherPipe: number;
+  feathersEarnedRun: number;
 }
 
 export function createWorld(seed: number): World {
@@ -79,6 +83,10 @@ export function createWorld(seed: number): World {
     hasShield: false,
     rainbowTrailTimer: 0,
     magnetTimer: 0,
+    heavyGravityTimer: 0,
+    speedSurgeTimer: 0,
     runDurationSec: 0,
+    lastFeatherPipe: 0,
+    feathersEarnedRun: 0,
   };
 }

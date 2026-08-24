@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "node tests/gameplay_automation.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
@@ -17,6 +18,7 @@
   "devDependencies": {
     "@types/node": "^26.3.0",
     "@types/three": "^0.174.0",
+    "playwright": "^1.62.1",
     "typescript": "^5.7.3",
     "vite": "^6.2.0",
     "vitest": "^3.0.7"

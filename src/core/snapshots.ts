@@ -20,7 +20,7 @@ export class SnapshotBuffer {
   }
 
   canRewind(): boolean {
-    return this.count >= this.capacity;
+    return this.count > 0;
   }
 
   get length(): number {
@@ -33,8 +33,7 @@ export class SnapshotBuffer {
    * the previous pipe and has ample open runway (pipe.x >= 4.0m) ahead.
    */
   findSafeSnapshotIndex(): number {
-    if (this.count === 0) return 0;
-    if (this.count < this.capacity) return 0;
+    if (this.count <= 1) return 0;
 
     const baseIdx = 0; // Oldest snapshot
     let bestIdx = baseIdx;
@@ -96,7 +95,10 @@ export class SnapshotBuffer {
     if (w.bird.vy < -2.0) {
       w.bird.vy = 1.0;
     }
-    this.reset();
+    // Seed buffer with the restored safe world state so future rewinds are always valid
+    copyWorldState(w, this.slots[0]!);
+    this.head = 1;
+    this.count = 1;
     return true;
   }
 
@@ -131,7 +133,11 @@ function createEmptyWorldSlot(): World {
     hasShield: false,
     rainbowTrailTimer: 0,
     magnetTimer: 0,
+    heavyGravityTimer: 0,
+    speedSurgeTimer: 0,
     runDurationSec: 0,
+    lastFeatherPipe: 0,
+    feathersEarnedRun: 0,
   };
 }
 
@@ -194,5 +200,9 @@ function copyWorldState(src: World, dst: World): void {
   dst.hasShield = src.hasShield;
   dst.rainbowTrailTimer = src.rainbowTrailTimer;
   dst.magnetTimer = src.magnetTimer;
+  dst.heavyGravityTimer = src.heavyGravityTimer;
+  dst.speedSurgeTimer = src.speedSurgeTimer;
   dst.runDurationSec = src.runDurationSec;
+  dst.lastFeatherPipe = src.lastFeatherPipe;
+  dst.feathersEarnedRun = src.feathersEarnedRun;
 }

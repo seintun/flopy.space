@@ -48,10 +48,9 @@ describe("SnapshotBuffer", () => {
     expect(w.bird.y).toBeCloseTo(w2.bird.y, 10);
   });
 
-  it("cannot rewind before buffer is full", () => {
+  it("cannot rewind when buffer is empty", () => {
     const w = createWorld(1);
     const buf = new SnapshotBuffer();
-    buf.record(w);
     expect(buf.canRewind()).toBe(false);
     expect(buf.rewindInto(w)).toBe(false);
   });

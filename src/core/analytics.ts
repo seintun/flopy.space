@@ -6,8 +6,14 @@ let isInitialized = false;
 export function initAnalytics(): void {
   if (isInitialized) return;
   try {
-    injectAnalytics({ mode: "auto" });
-    injectSpeedInsights();
+    if (
+      typeof window !== "undefined" &&
+      window.location.hostname !== "localhost" &&
+      window.location.hostname !== "127.0.0.1"
+    ) {
+      injectAnalytics({ mode: "production" });
+      injectSpeedInsights();
+    }
     isInitialized = true;
   } catch {
     // Graceful fallback for offline / test environments
@@ -22,7 +28,8 @@ export type AnalyticsEvent =
   | "rewind_used"
   | "fever_mode"
   | "skin_selected"
-  | "character_selected";
+  | "character_selected"
+  | "unlock_claimed";
 
 export function trackEvent(
   event: AnalyticsEvent,

@@ -4,7 +4,6 @@ import {
   NEAR_MISS_MARGIN,
   COMBO_TIER_2,
   COMBO_TIER_3,
-  FEATHER_EVERY_POINTS,
 } from "./constants";
 import type { World } from "./types";
 
@@ -14,12 +13,26 @@ export interface PassEvent {
   rawPoint: number;
   bonusPoints: number;
   points: number;
+  earnedFeather?: boolean;
 }
 
 export function multiplier(combo: number): number {
   if (combo >= COMBO_TIER_3) return 3;
   if (combo >= COMBO_TIER_2) return 2;
   return 1;
+}
+
+/**
+ * Progressive feather thresholds:
+ * Feather 1 at score 20
+ * Feather 2 at score 55 (+35)
+ * Feather 3 at score 105 (+50)
+ * Feather 4 at score 170 (+65)
+ * Feather 5 at score 250 (+80)
+ */
+export function getNextFeatherScoreThreshold(feathersEarned: number): number {
+  const k = Math.max(0, feathersEarned);
+  return 20 + 20 * k + 15 * ((k * (k + 1)) / 2);
 }
 
 export function processPasses(w: World): PassEvent[] {
@@ -42,11 +55,18 @@ export function processPasses(w: World): PassEvent[] {
     const totalBonus = spreeBonus + nearMissBonus;
 
     w.bonusScore = (w.bonusScore || 0) + totalBonus;
-    const before = w.score;
     w.score = w.pipesPassed + w.bonusScore;
 
-    if (Math.floor(w.score / FEATHER_EVERY_POINTS) > Math.floor(before / FEATHER_EVERY_POINTS)) {
+    let earnedFeather = false;
+    const nextThreshold = getNextFeatherScoreThreshold(w.feathersEarnedRun || 0);
+    const pipesSinceLast = (w.pipesPassed || 0) - (w.lastFeatherPipe || 0);
+
+    // Require reaching the progressive score threshold AND clearing >= 15 pipes since previous feather
+    if (w.score >= nextThreshold && pipesSinceLast >= 15) {
       w.feathersRun = Math.min(3, w.feathersRun + 1);
+      w.feathersEarnedRun = (w.feathersEarnedRun || 0) + 1;
+      w.lastFeatherPipe = w.pipesPassed;
+      earnedFeather = true;
     }
 
     events.push({
@@ -55,6 +75,7 @@ export function processPasses(w: World): PassEvent[] {
       rawPoint: 1,
       bonusPoints: totalBonus,
       points: 1 + totalBonus,
+      earnedFeather,
     });
   }
   return events;

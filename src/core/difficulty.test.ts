@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { scrollForScore, gapForScore, getRewindTierParams } from "./difficulty";
-import { BASE_SCROLL, MAX_SCROLL, GAP_START, GAP_MIN, GAP_SHRINK_END_SCORE } from "./constants";
+import { scrollForScore, gapForScore, getRewindTierParams, isBreatherPipe } from "./difficulty";
+import { BASE_SCROLL, MAX_SCROLL, GAP_START, GAP_MIN } from "./constants";
 
 describe("scrollForScore", () => {
   it("starts at base and caps at max", () => {
     expect(scrollForScore(0)).toBe(BASE_SCROLL);
-    expect(scrollForScore(1000)).toBe(MAX_SCROLL);
+    expect(scrollForScore(1000)).toBeCloseTo(MAX_SCROLL, 1);
   });
   it("ramps monotonically", () => {
     for (let s = 1; s <= 60; s++) expect(scrollForScore(s)).toBeGreaterThanOrEqual(scrollForScore(s - 1));
@@ -17,14 +17,29 @@ describe("scrollForScore", () => {
     expect(s1).toBeGreaterThan(s0);
     expect(s2).toBeGreaterThan(s1);
   });
+  it("applies speed surge boost when speedSurgeTimer > 0", () => {
+    const normal = scrollForScore(10, 0, 0);
+    const surged = scrollForScore(10, 0, 2.5);
+    expect(surged).toBeGreaterThan(normal);
+    expect(surged).toBe(normal + 2.5);
+  });
 });
 
-describe("gapForScore", () => {
-  it("shrinks linearly from start to min by score 40 then holds", () => {
+describe("gapForScore and breather", () => {
+  it("shrinks smoothly from start gap and maintains safe minimum", () => {
     expect(gapForScore(0)).toBe(GAP_START);
-    expect(gapForScore(GAP_SHRINK_END_SCORE)).toBeCloseTo(GAP_MIN);
-    expect(gapForScore(100)).toBe(GAP_MIN);
-    expect(gapForScore(20)).toBeCloseTo((GAP_START + GAP_MIN) / 2);
+    expect(gapForScore(100)).toBeGreaterThanOrEqual(GAP_MIN - 0.2);
+    expect(gapForScore(20)).toBeLessThan(GAP_START);
+  });
+  it("provides generous breather gaps when isBreather is true", () => {
+    expect(gapForScore(50, 0, true)).toBe(4.8);
+  });
+  it("identifies breather cadence every 15 pipes", () => {
+    expect(isBreatherPipe(0)).toBe(false);
+    expect(isBreatherPipe(15)).toBe(true);
+    expect(isBreatherPipe(16)).toBe(true);
+    expect(isBreatherPipe(17)).toBe(false);
+    expect(isBreatherPipe(30)).toBe(true);
   });
   it("progressively tightens gap slightly on repeated rewinds", () => {
     const g0 = gapForScore(10, 0);

@@ -1,15 +1,46 @@
-import { BASE_SCROLL, MAX_SCROLL, SCROLL_RAMP, GAP_START, GAP_MIN, GAP_SHRINK_END_SCORE } from "./constants";
+import {
+  BASE_SCROLL,
+  MAX_SCROLL,
+  GAP_START,
+  GAP_MIN,
+  SCROLL_RAMP_MID,
+  BREATHER_GAP_HEIGHT,
+} from "./constants";
 
-export function scrollForScore(score: number, rewindsUsed = 0): number {
+export function scrollForScore(score: number, rewindsUsed = 0, speedSurgeTimer = 0): number {
+  const s = Math.max(0, score);
+  if (s === 0 && rewindsUsed === 0 && speedSurgeTimer === 0) {
+    return BASE_SCROLL;
+  }
+  // Asymptotic Sigmoidal speed curve
+  const sExp = Math.pow(s, 1.6);
+  const midExp = Math.pow(SCROLL_RAMP_MID, 1.6);
+  const sigFactor = sExp / (sExp + midExp);
+  const baseRamped = BASE_SCROLL + (MAX_SCROLL - BASE_SCROLL) * sigFactor;
+
   const rewindBoost = Math.min(2.0, rewindsUsed * 0.75);
-  return Math.min(MAX_SCROLL, BASE_SCROLL + SCROLL_RAMP * Math.max(0, score) + rewindBoost);
+  const surgeBoost = speedSurgeTimer > 0 ? 2.5 : 0;
+
+  if (speedSurgeTimer > 0) {
+    return Math.min(MAX_SCROLL + 2.5, baseRamped + rewindBoost + surgeBoost);
+  }
+  return Math.min(MAX_SCROLL, baseRamped + rewindBoost);
 }
 
-export function gapForScore(score: number, rewindsUsed = 0): number {
-  const t = Math.min(1, Math.max(0, score) / GAP_SHRINK_END_SCORE);
-  const baseGap = GAP_START - (GAP_START - GAP_MIN) * t;
-  const gapTighten = Math.min(0.3, rewindsUsed * 0.12);
-  return Math.max(GAP_MIN - 0.2, baseGap - gapTighten);
+export function isBreatherPipe(pipesPassed: number): boolean {
+  if (pipesPassed <= 0) return false;
+  const mod = pipesPassed % 15;
+  return mod === 0 || mod === 1;
+}
+
+export function gapForScore(score: number, rewindsUsed = 0, isBreather = false): number {
+  if (isBreather) {
+    return BREATHER_GAP_HEIGHT;
+  }
+  const s = Math.max(0, score);
+  const baseGap = GAP_MIN + (GAP_START - GAP_MIN) * Math.exp(-0.04 * s);
+  const gapTighten = Math.min(0.25, rewindsUsed * 0.1);
+  return Math.max(GAP_MIN - 0.15, baseGap - gapTighten);
 }
 
 export interface RewindTier {

@@ -3,7 +3,7 @@ import {
   ORB_EVERY_PIPES_MIN, ORB_EVERY_PIPES_MAX,
 } from "./constants";
 import { worldRand } from "./rand";
-import { gapForScore } from "./difficulty";
+import { gapForScore, isBreatherPipe } from "./difficulty";
 import type { World } from "./types";
 
 const BIRD_DESPAWN_X = -SPAWN_X;
@@ -14,9 +14,11 @@ function gapBounds(gapHeight: number): { lo: number; hi: number } {
 }
 
 function spawnPipe(w: World): void {
-  const gh = gapForScore(w.score, w.rewindsUsedRun);
+  const isBreather = isBreatherPipe(w.pipesPassed);
+  const gh = gapForScore(w.score, w.rewindsUsedRun, isBreather);
   const { lo, hi } = gapBounds(gh);
-  const delta = (worldRand(w) * 2 - 1) * GAP_WANDER_MAX;
+  // Flatten wander during breather pipes to allow rest and rhythm reset
+  const delta = isBreather ? 0 : (worldRand(w) * 2 - 1) * GAP_WANDER_MAX;
   const gc = Math.min(hi, Math.max(lo, w.lastGapCenter + delta));
   w.lastGapCenter = gc;
   if (w.spawnHistory.length > 50) w.spawnHistory.shift();

@@ -1,5 +1,4 @@
 import {
-  REWINDS_MAX_PER_RUN,
   SLOWMO_HOLD_S,
   MILESTONE_EVERY,
 } from "./constants";
@@ -50,7 +49,13 @@ export interface GameHooks {
   onCountdown?: (step: number | string) => void;
   onSlowmoMeter?: (frac: number) => void;
   onFeverChange?: (active: boolean, frac: number) => void;
-  onPowerUpsChange?: (rainbowLeft: number, hasShield: boolean, magnetLeft: number) => void;
+  onPowerUpsChange?: (
+    rainbowLeft: number,
+    hasShield: boolean,
+    magnetLeft: number,
+    heavyGravityLeft?: number,
+    speedSurgeLeft?: number,
+  ) => void;
   onBiomeChange?: (biome: BiomeDef) => void;
   onMissionProgress?: (event: MissionEventType, value?: number) => void;
   onPass?: (event: PassEvent) => void;
@@ -206,11 +211,25 @@ export class Game {
   }
 
   chooseRewind(): boolean {
-    if (this.state !== "rewindChoice") return false;
-    if (this.world.feathersRun <= 0 || !this.buf.canRewind()) {
-      this.setState("gameOver");
-      this.hooks.onGameOver?.(this.world.score, this.world.runDurationSec);
+    if (this.state !== "rewindChoice" && this.state !== "gameOver") return false;
+    const availableFeathers = Math.max(this.world.feathersRun, loadAll().feathers);
+    if (availableFeathers <= 0) {
+      if (this.state !== "gameOver") {
+        this.setState("gameOver");
+        this.hooks.onGameOver?.(
+          this.world.score,
+          this.world.runDurationSec,
+          this.world.pipesPassed,
+          this.world.bonusScore,
+        );
+      }
       return false;
+    }
+
+    this.world.feathersRun = availableFeathers;
+
+    if (!this.buf.canRewind()) {
+      this.buf.record(this.world);
     }
 
     // Begin dynamic rewind scrub replay now that user has chosen to rewind!
@@ -289,9 +308,6 @@ export class Game {
       }
 
       case "playing": {
-        // Track survival duration
-        this.world.runDurationSec += realDt;
-
         // Update slowmo meter
         const slowmoRemaining = this.time.slowmoRemaining();
         this.hooks.onSlowmoMeter?.(slowmoRemaining / SLOWMO_HOLD_S);
@@ -299,6 +315,8 @@ export class Game {
           this.world.rainbowTrailTimer,
           this.world.hasShield,
           this.world.magnetTimer,
+          this.world.heavyGravityTimer,
+          this.world.speedSurgeTimer,
         );
         this.hooks.onScoreChange?.(
           this.world.score,
@@ -313,15 +331,19 @@ export class Game {
         const slowmoActive = this.time.scale < 0.9 && !this.time.frozen;
         const borderType = this.fever.isActive
           ? "fever"
-          : this.world.rainbowTrailTimer > 0
+          : this.world.speedSurgeTimer > 0
             ? "rainbow"
-            : this.world.hasShield
-              ? "shield"
-              : this.world.magnetTimer > 0
-                ? "magnet"
-                : slowmoActive
-                  ? "slowmo"
-                  : "none";
+            : this.world.heavyGravityTimer > 0
+              ? "slowmo"
+              : this.world.rainbowTrailTimer > 0
+                ? "rainbow"
+                : this.world.hasShield
+                  ? "shield"
+                  : this.world.magnetTimer > 0
+                    ? "magnet"
+                    : slowmoActive
+                      ? "slowmo"
+                      : "none";
         this.juice.setBorderFx(borderType);
 
         // Fever mode visual trail
@@ -333,14 +355,17 @@ export class Game {
 
         alpha = this.accumulator.step(realDt * this.time.scale, this.time.frozen, (dt) => {
           const w = this.world;
-          w.scrollSpeed = scrollForScore(w.score, w.rewindsUsedRun);
+          w.scrollSpeed = scrollForScore(w.score, w.rewindsUsedRun, w.speedSurgeTimer);
 
-          // Update active power-up timers
+          // Update active power-up and debuff timers
           if (w.rainbowTrailTimer > 0) w.rainbowTrailTimer = Math.max(0, w.rainbowTrailTimer - dt);
           if (w.magnetTimer > 0) w.magnetTimer = Math.max(0, w.magnetTimer - dt);
+          if (w.heavyGravityTimer > 0) w.heavyGravityTimer = Math.max(0, w.heavyGravityTimer - dt);
+          if (w.speedSurgeTimer > 0) w.speedSurgeTimer = Math.max(0, w.speedSurgeTimer - dt);
 
           advance(w, dt);
           stepBird(w, dt);
+          w.runDurationSec += dt;
           this.buf.record(w);
 
           // Check dynamic biome transition strictly every 15 pipes
@@ -360,8 +385,8 @@ export class Game {
               const dy = orb.y - w.bird.y;
               const distSq = dx * dx + dy * dy;
 
-              // Magnet gravitational attraction
-              if (hasMagnet && distSq < magnetRadius * magnetRadius) {
+              // Magnet gravitational attraction (positive items only)
+              if (hasMagnet && distSq < magnetRadius * magnetRadius && orb.type !== "hazard_mine" && orb.type !== "heavy_gravity") {
                 orb.x += (0 - orb.x) * 8 * dt;
                 orb.y += (w.bird.y - orb.y) * 8 * dt;
               }
@@ -410,15 +435,46 @@ export class Game {
                     this.hooks.onOrbCollect?.("star_gem");
                     break;
                   }
+                  case "hazard_mine": {
+                    w.combo = 0;
+                    w.bonusScore = Math.max(0, (w.bonusScore || 0) - 3);
+                    w.score = (w.pipesPassed || 0) + w.bonusScore;
+                    this.juice.addTrauma(0.45);
+                    this.juice.flashBorder("#ff2a6d", 180);
+                    this.juice.burst(0, w.bird.y, 0, 16, 0xff2a6d);
+                    this.juice.popupAtWorld("💀 VOID MINE! -3", -0.5, Math.min(3.0, w.bird.y + 0.8), 0, this.ctx.camera, "#ff2a6d", -1.2);
+                    this.hooks.onOrbCollect?.("hazard_mine");
+                    break;
+                  }
+                  case "heavy_gravity": {
+                    w.heavyGravityTimer = 2.5;
+                    this.juice.addTrauma(0.35);
+                    this.juice.flashBorder("#9d4edd", 160);
+                    this.juice.burst(0, w.bird.y, 0, 14, 0x9d4edd);
+                    this.juice.popupAtWorld("⚓ GRAVITY SINK!", -0.5, Math.min(3.0, w.bird.y + 0.8), 0, this.ctx.camera, "#9d4edd", -1.2);
+                    this.hooks.onOrbCollect?.("heavy_gravity");
+                    break;
+                  }
+                  case "speed_surge": {
+                    w.speedSurgeTimer = 2.5;
+                    this.juice.addTrauma(0.25);
+                    this.juice.flashBorder("#ff8800", 150);
+                    this.juice.burst(0, w.bird.y, 0, 14, 0xff8800);
+                    this.juice.popupAtWorld("⚡ SPEED SURGE! +3X PTS", -0.5, Math.min(3.0, w.bird.y + 0.8), 0, this.ctx.camera, "#ff8800", -1.2);
+                    this.hooks.onOrbCollect?.("speed_surge");
+                    break;
+                  }
                 }
 
-                const feverTriggered = this.fever.addEnergy(0.35);
-                if (feverTriggered) {
-                  this.rig.kick(4);
-                  this.hooks.onFeverChange?.(true, 1);
-                  this.hooks.onMissionProgress?.("fever");
-                } else if (!this.fever.isActive) {
-                  this.hooks.onFeverChange?.(false, this.fever.meter);
+                if (pType !== "hazard_mine" && pType !== "heavy_gravity") {
+                  const feverTriggered = this.fever.addEnergy(0.35);
+                  if (feverTriggered) {
+                    this.rig.kick(4);
+                    this.hooks.onFeverChange?.(true, 1);
+                    this.hooks.onMissionProgress?.("fever");
+                  } else if (!this.fever.isActive) {
+                    this.hooks.onFeverChange?.(false, this.fever.meter);
+                  }
                 }
               }
             }
@@ -444,12 +500,11 @@ export class Game {
               this.juice.setBorderFx("none");
               this.hooks.onHit?.(hit);
 
-              const canRewind =
-                this.world.feathersRun > 0 &&
-                this.world.rewindsUsedRun < REWINDS_MAX_PER_RUN &&
-                this.buf.canRewind();
+              const availableFeathers = Math.max(this.world.feathersRun, loadAll().feathers);
+              const canRewind = availableFeathers > 0;
 
               if (canRewind) {
+                this.world.feathersRun = availableFeathers;
                 // Freeze the screen on the exact collision frame to show where it went wrong!
                 this.setState("rewindChoice");
                 this.hooks.onRewindChoice?.(
@@ -481,6 +536,12 @@ export class Game {
             const popupText = p.nearMiss ? "CLOSE! +2" : `+${p.points}`;
             this.juice.popupAtWorld(popupText, 0, w.bird.y, 0, this.ctx.camera, popupColor, 0.85);
 
+            if (p.earnedFeather) {
+              this.juice.popupAtWorld("+1 🪶 FEATHER EARNED!", 0, Math.min(3.0, w.bird.y + 0.8), 0, this.ctx.camera, "#00e5ff", 1.2);
+              this.juice.confetti(0, w.bird.y, 0, 20);
+              this.hooks.onOrbCollect?.("star_gem");
+            }
+
             if (p.nearMiss) {
               this.juice.flashBorder("#ff2a6d", 120);
               this.time.triggerMicroFlash();
@@ -501,6 +562,12 @@ export class Game {
               this.hooks.onMissionProgress?.("fever");
             } else if (!this.fever.isActive) {
               this.hooks.onFeverChange?.(false, this.fever.meter);
+            }
+
+            if (w.speedSurgeTimer > 0) {
+              w.bonusScore = (w.bonusScore || 0) + 3;
+              w.score = (w.pipesPassed || 0) + w.bonusScore;
+              this.juice.popupAtWorld("⚡ SURGE +3!", -0.3, Math.min(3.2, w.bird.y + 0.9), 0, this.ctx.camera, "#ff8800", 0.9);
             }
 
             this.hooks.onPass?.(p);
@@ -590,10 +657,12 @@ export class Game {
           // Reset combo spree back to 0 (starts from +1 base on next pass)
           this.world.combo = 0;
 
-          // Clear all active power-ups upon rewind
+          // Clear all active power-ups & debuffs upon rewind
           this.world.rainbowTrailTimer = 0;
           this.world.hasShield = false;
           this.world.magnetTimer = 0;
+          this.world.heavyGravityTimer = 0;
+          this.world.speedSurgeTimer = 0;
 
           // Progressive bullet-time recovery
           this.time = new TimeSystem();
