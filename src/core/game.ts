@@ -344,12 +344,11 @@ export class Game {
           stepBird(w, dt);
           this.buf.record(w);
 
-          // Check dynamic randomized biome transition
-          const targetBiome = getBiomeForScore(w.score, this.biomeOverride, w.rngState);
+          // Check dynamic biome transition every 15 pipes
+          const targetBiome = getBiomeForScore(w.pipesPassed, this.biomeOverride, w.rngState);
           if (targetBiome.id !== this.currentBiome.id) {
             this.applyBiome(targetBiome);
-            this.juice.confetti(0, w.bird.y, 0, 30);
-            this.juice.flashBorder("#00f5d4", 250);
+            this.juice.popupAtWorld(`🌍 ${targetBiome.name.toUpperCase()}`, 0, w.bird.y, 0, this.ctx.camera, "#00f5d4", 1.0);
           }
 
           // Power-up Pickups & Magnet Vacuum

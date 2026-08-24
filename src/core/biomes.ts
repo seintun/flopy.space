@@ -92,19 +92,20 @@ export const BIOMES: Record<BiomeId, BiomeDef> = {
 export const BIOME_ORDER: BiomeId[] = ["meadow", "cyber", "candy", "magma"];
 
 export function getBiomeForScore(
-  score: number,
+  pipesOrScore: number,
   overrideBiome?: BiomeId | "auto",
   seed = 0,
 ): BiomeDef {
   if (overrideBiome && overrideBiome !== "auto" && BIOMES[overrideBiome]) {
     return BIOMES[overrideBiome]!;
   }
-  const tier = Math.floor(Math.max(0, score) / 20);
+  // Change scene calmly every 15 pipes
+  const tier = Math.floor(Math.max(0, pipesOrScore) / 15);
   if (tier === 0) {
     return BIOMES.meadow;
   }
 
-  // Guaranteed non-repeating pseudo-random sequence
+  // Guaranteed non-repeating smooth rotation
   let prevIndex = 0; // meadow
   for (let t = 1; t <= tier; t++) {
     const h = Math.imul(t ^ (seed + 101), 0x45d9f3b) ^ (seed >>> 3);

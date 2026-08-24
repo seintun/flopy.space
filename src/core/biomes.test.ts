@@ -6,12 +6,12 @@ describe("biomes", () => {
     expect(Object.keys(BIOMES)).toEqual(["meadow", "cyber", "candy", "magma"]);
   });
 
-  it("transitions biomes dynamically every 20 score points without consecutive repeats", () => {
+  it("transitions biomes dynamically every 15 pipes without consecutive repeats", () => {
     let prevId = getBiomeForScore(0).id;
     expect(prevId).toBe("meadow");
 
-    for (let score = 20; score <= 300; score += 20) {
-      const current = getBiomeForScore(score);
+    for (let pipes = 15; pipes <= 300; pipes += 15) {
+      const current = getBiomeForScore(pipes);
       expect(current.id).not.toBe(prevId); // strictly never repeats consecutive biome
       prevId = current.id;
     }
