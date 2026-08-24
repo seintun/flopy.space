@@ -103,7 +103,7 @@ export class MenuView {
 
     this.el.innerHTML = `
       <!-- Top header bar: Streak, Playtime, Feathers & Mute -->
-      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; pointer-events: auto;">
+      <div id="menu-header" class="interactive" style="display: flex; justify-content: space-between; align-items: center; width: 100%; pointer-events: auto;">
         <div style="display: flex; gap: 6px; align-items: center;">
           <div id="menu-streak" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(255, 120, 0, 0.35); font-weight: 800; font-size: 11px; color: #ff9e00; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
             🔥 <span id="menu-streak-count">1</span>d Streak
@@ -136,7 +136,7 @@ export class MenuView {
       </div>
 
       <!-- Bottom Drawer / Tabs Panel -->
-      <div style="width: 100%; max-width: min(380px, 94vw); display: flex; flex-direction: column; align-items: center; pointer-events: auto; background: rgba(12, 16, 28, 0.85); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 20px; padding: 8px 10px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
+      <div id="menu-drawer" class="interactive" style="width: 100%; max-width: min(380px, 94vw); display: flex; flex-direction: column; align-items: center; pointer-events: auto; background: rgba(12, 16, 28, 0.85); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 20px; padding: 8px 10px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 16px 40px rgba(0,0,0,0.6);">
         <!-- Tab navigation bar -->
         <div id="menu-tabs" style="display: flex; width: 100%; gap: 6px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">
           <button data-tab="heroes" class="btn interactive tab-btn" style="flex: 1; padding: 8px 2px; min-height: 36px; border: none; border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; touch-action: manipulation;">
@@ -177,6 +177,16 @@ export class MenuView {
       setMuted(next);
       this.muteBtn.textContent = next ? "🔇" : "🔊";
       this.callbacks.onMuteToggle(next);
+    });
+
+    // Prevent accidental game start when tapping or dragging anywhere inside the menu drawer or header
+    const drawer = this.el.querySelector("#menu-drawer");
+    drawer?.addEventListener("pointerdown", (e) => {
+      e.stopPropagation();
+    });
+    const headerBar = this.el.querySelector("#menu-header");
+    headerBar?.addEventListener("pointerdown", (e) => {
+      e.stopPropagation();
     });
 
     // Tab buttons

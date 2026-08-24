@@ -1,10 +1,15 @@
 export function initInput(onFlap: () => void, onFirstGesture: () => void): () => void {
   let gestured = false;
 
+  const isInteractive = (target: EventTarget | null): boolean => {
+    if (!(target instanceof HTMLElement)) return false;
+    return !!target.closest(
+      "button, .btn, .interactive, #main-menu, #menu-drawer, #menu-tab-content, #menu-tabs, #hud-rewind-panel, #gameover-overlay, #hud, .drag-scroll, .tab-btn, [role='status']",
+    );
+  };
+
   const fire = (e?: Event) => {
-    if (e && e.target instanceof HTMLElement) {
-      if (e.target.closest("button, .btn, .interactive")) return;
-    }
+    if (e && isInteractive(e.target)) return;
     if (!gestured) {
       gestured = true;
       onFirstGesture();
@@ -13,7 +18,7 @@ export function initInput(onFlap: () => void, onFirstGesture: () => void): () =>
   };
 
   const onPointerDown = (e: PointerEvent) => {
-    if (e.target instanceof HTMLElement && e.target.closest("button, .btn, .interactive")) {
+    if (isInteractive(e.target)) {
       if (!gestured) {
         gestured = true;
         onFirstGesture();
