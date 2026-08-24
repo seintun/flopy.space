@@ -75,7 +75,7 @@ export class Juice {
     `;
     container.appendChild(this.borderFxEl);
 
-    // Popup container (Positioned high up to avoid blocking heroes & flight gaps)
+    // Popup container
     this.popupContainer = document.createElement("div");
     this.popupContainer.id = "juice-popups";
     this.popupContainer.style.cssText = `
@@ -205,7 +205,7 @@ export class Juice {
     }
   }
 
-  // Positioned strictly above the hero / gap (default top: 16% near HUD score)
+  // Popup positioned at screen percentage
   popup(text: string, color = "#ffeb3b", screenXPercent = 50, screenYPercent = 16): void {
     const el = document.createElement("div");
     el.textContent = text;
@@ -213,9 +213,9 @@ export class Juice {
       position: absolute;
       left: ${screenXPercent}%;
       top: ${screenYPercent}%;
-      transform: translate(-50%, 0) scale(0.75);
+      transform: translate(-50%, 0) scale(0.8);
       color: ${color};
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 900;
       letter-spacing: -0.01em;
       text-shadow: 0 2px 10px rgba(0,0,0,0.85), 0 0 16px ${color}88;
@@ -227,13 +227,26 @@ export class Juice {
     this.popupContainer.appendChild(el);
 
     requestAnimationFrame(() => {
-      el.style.transform = `translate(-50%, -18px) scale(1.05)`;
+      el.style.transform = `translate(-50%, -20px) scale(1.1)`;
     });
 
     setTimeout(() => {
       el.style.opacity = "0";
       setTimeout(() => el.remove(), 450);
     }, 380);
+  }
+
+  // Popup positioned directly above bird / object in 3D world space
+  popupAtWorld(text: string, wx: number, wy: number, wz: number, camera: THREE.Camera, color = "#ffd700"): void {
+    const vec = new THREE.Vector3(wx, wy + 0.85, wz);
+    vec.project(camera);
+
+    const sx = (vec.x * 0.5 + 0.5) * 100;
+    const sy = (-vec.y * 0.5 + 0.5) * 100;
+
+    if (vec.z < 1) {
+      this.popup(text, color, Math.max(6, Math.min(94, sx)), Math.max(8, Math.min(88, sy)));
+    }
   }
 
   update(dt: number): { ox: number; oy: number } {
