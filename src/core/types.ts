@@ -48,6 +48,7 @@ export interface World {
   hasShield: boolean;
   rainbowTrailTimer: number;
   magnetTimer: number;
+  runDurationSec: number;
 }
 
 export function createWorld(seed: number): World {
@@ -72,5 +73,6 @@ export function createWorld(seed: number): World {
     hasShield: false,
     rainbowTrailTimer: 0,
     magnetTimer: 0,
+    runDurationSec: 0,
   };
 }

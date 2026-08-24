@@ -2,15 +2,24 @@ export interface HudApi {
   setScore: (score: number) => void;
   setCombo: (combo: number, multiplier: number) => void;
   setFeathers: (count: number) => void;
+  setTimeSurvived: (seconds: number) => void;
   setSlowmoMeter: (frac: number) => void;
   setFeverMeter: (active: boolean, frac: number) => void;
   setBiomeBadge: (name: string, emoji: string) => void;
   setPowerUps: (rainbowLeft: number, hasShield: boolean, magnetLeft: number) => void;
   showPowerUpToast: (icon: string, title: string, benefit: string, color: string) => void;
+  showCountdown: (text: string) => void;
+  hideCountdown: () => void;
   showMenu: () => void;
   hideMenu: () => void;
   showRewindPrompt: (feathers: number, onRewind: () => void, onGiveUp: () => void) => void;
   hideRewindPrompt: () => void;
+}
+
+function formatTime(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
 export function initHud(container: HTMLElement): HudApi {
@@ -28,7 +37,7 @@ export function initHud(container: HTMLElement): HudApi {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
   `;
 
   hud.innerHTML = `
@@ -47,10 +56,17 @@ export function initHud(container: HTMLElement): HudApi {
       </div>
     </div>
 
-    <!-- Header info: Biome badge, Score, Combo, Feathers -->
+    <!-- Center 3-2-1 Countdown Overlay -->
+    <div id="hud-countdown" style="display: none; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 45; flex-direction: column; align-items: center;">
+      <div id="hud-countdown-ring" style="width: 110px; height: 110px; border-radius: 55px; background: rgba(10, 16, 32, 0.85); border: 3px solid #00e5ff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 40px rgba(0,229,255,0.6), inset 0 0 20px rgba(0,229,255,0.4); backdrop-filter: blur(16px); animation: popIn 0.3s cubic-bezier(0.2, 0.8, 0.4, 1);">
+        <span id="hud-countdown-val" style="font-size: 54px; font-weight: 900; color: #fff; text-shadow: 0 0 24px rgba(0,229,255,0.8); letter-spacing: -0.02em;">3</span>
+      </div>
+    </div>
+
+    <!-- Header info: Biome badge, Score, Combo, Survival Time, Feathers -->
     <div id="hud-header" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; opacity: 0; transition: opacity 0.25s ease;">
       <!-- Left: Compact Biome badge -->
-      <div id="hud-biome" style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 4px 10px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 4px 16px rgba(0,0,0,0.3); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+      <div id="hud-biome" style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 4px 10px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 4px 16px rgba(0,0,0,0.3); max-width: 105px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
         <span id="hud-biome-emoji">🌿</span> <span id="hud-biome-name">Meadow</span>
       </div>
 
@@ -78,9 +94,14 @@ export function initHud(container: HTMLElement): HudApi {
         </div>
       </div>
 
-      <!-- Right: Feathers -->
-      <div id="hud-feathers" style="display: flex; align-items: center; gap: 6px; font-size: 16px; font-weight: 800; color: #00e5ff; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(0,229,255,0.3); box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
-        <span>🪶</span> <span id="hud-feather-count">0</span>
+      <!-- Right: Time Survived & Feathers -->
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <div id="hud-time" style="display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: #fff; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 4px 10px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+          ⏱️ <span id="hud-time-val">00:00</span>
+        </div>
+        <div id="hud-feathers" style="display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 800; color: #00e5ff; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 4px 10px; border-radius: 16px; border: 1px solid rgba(0,229,255,0.3); box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+          <span>🪶</span> <span id="hud-feather-count">0</span>
+        </div>
       </div>
     </div>
 
@@ -111,10 +132,15 @@ export function initHud(container: HTMLElement): HudApi {
   const toastBenefit = hud.querySelector("#hud-toast-benefit") as HTMLElement;
   let toastTimeout: ReturnType<typeof setTimeout> | null = null;
 
+  const countdownContainer = hud.querySelector("#hud-countdown") as HTMLElement;
+  const countdownVal = hud.querySelector("#hud-countdown-val") as HTMLElement;
+  const countdownRing = hud.querySelector("#hud-countdown-ring") as HTMLElement;
+
   const headerEl = hud.querySelector("#hud-header") as HTMLElement;
   const scoreEl = hud.querySelector("#hud-score")!;
   const comboEl = hud.querySelector("#hud-combo") as HTMLElement;
   const feverEl = hud.querySelector("#hud-fever") as HTMLElement;
+  const timeVal = hud.querySelector("#hud-time-val") as HTMLElement;
   const featherEl = hud.querySelector("#hud-feather-count")!;
   const biomeEmoji = hud.querySelector("#hud-biome-emoji")!;
   const biomeName = hud.querySelector("#hud-biome-name")!;
@@ -145,6 +171,9 @@ export function initHud(container: HTMLElement): HudApi {
     },
     setFeathers(count: number) {
       featherEl.textContent = count.toString();
+    },
+    setTimeSurvived(seconds: number) {
+      timeVal.textContent = formatTime(seconds);
     },
     setSlowmoMeter(frac: number) {
       const pct = Math.max(0, Math.min(1, frac)) * 100;
@@ -194,10 +223,21 @@ export function initHud(container: HTMLElement): HudApi {
         toastEl.style.transform = "translateX(-50%) translateY(20px)";
       }, 1400);
     },
+    showCountdown(text: string) {
+      countdownVal.textContent = text;
+      countdownContainer.style.display = "flex";
+      countdownRing.style.animation = "none";
+      void countdownRing.offsetWidth; // trigger reflow
+      countdownRing.style.animation = "popIn 0.3s cubic-bezier(0.2, 0.8, 0.4, 1)";
+    },
+    hideCountdown() {
+      countdownContainer.style.display = "none";
+    },
     showMenu() {
       headerEl.style.opacity = "0";
       if (toastTimeout) clearTimeout(toastTimeout);
       toastEl.style.opacity = "0";
+      countdownContainer.style.display = "none";
     },
     hideMenu() {
       headerEl.style.opacity = "1";

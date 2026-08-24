@@ -196,6 +196,40 @@ export class AudioSys {
     });
   }
 
+  countdownTick(num: number): void {
+    if (this.muted || !this.ctx || !this.masterGain) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const freq = num === 1 ? 1174.66 : 880;
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq, now);
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(now);
+    osc.stop(now + 0.12);
+  }
+
+  countdownGo(): void {
+    if (this.muted || !this.ctx || !this.masterGain) return;
+    const now = this.ctx.currentTime;
+    [1318.51, 1760].forEach((freq) => {
+      if (!this.ctx || !this.masterGain) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(now);
+      osc.stop(now + 0.25);
+    });
+  }
+
   shieldActive(): void {
     if (this.muted || !this.ctx || !this.masterGain) return;
     const now = this.ctx.currentTime;

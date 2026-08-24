@@ -20,12 +20,14 @@ export interface MenuCallbacks {
   onBiomeChange: (biomeId: BiomeId | "auto") => void;
   onMuteToggle: (muted: boolean) => void;
   onMissionClaim?: () => void;
+  onToast?: (msg: string) => void;
 }
 
 export class MenuView {
   private el: HTMLElement;
   private streakEl: HTMLElement;
   private feathersEl: HTMLElement;
+  private playTimeEl: HTMLElement;
   private bestEl: HTMLElement;
   private muteBtn: HTMLElement;
   private tabContentEl: HTMLElement;
@@ -52,16 +54,21 @@ export class MenuView {
     `;
 
     this.el.innerHTML = `
-      <!-- Top header bar: Streak, Feathers & Mute -->
+      <!-- Top header bar: Streak, Playtime, Feathers & Mute -->
       <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; pointer-events: auto;">
-        <div id="menu-streak" style="display: flex; align-items: center; gap: 5px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 12px; border-radius: 18px; border: 1px solid rgba(255, 120, 0, 0.35); font-weight: 800; font-size: 12px; color: #ff9e00; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
-          🔥 <span id="menu-streak-count">1</span>d Streak
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <div id="menu-streak" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(255, 120, 0, 0.35); font-weight: 800; font-size: 11px; color: #ff9e00; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+            🔥 <span id="menu-streak-count">1</span>d Streak
+          </div>
+          <div id="menu-playtime" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(0, 245, 212, 0.35); font-weight: 800; font-size: 11px; color: #00f5d4; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+            ⏱️ <span id="menu-playtime-count">0</span>m
+          </div>
         </div>
         <div style="display: flex; gap: 6px; align-items: center;">
-          <div id="menu-feathers" style="display: flex; align-items: center; gap: 5px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 12px; border-radius: 18px; border: 1px solid rgba(0, 229, 255, 0.35); font-weight: 800; font-size: 12px; color: #00e5ff; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+          <div id="menu-feathers" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(0, 229, 255, 0.35); font-weight: 800; font-size: 11px; color: #00e5ff; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
             🪶 <span id="menu-feather-count">0</span>
           </div>
-          <button id="menu-mute-btn" class="btn interactive" style="background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.16); color: #fff; font-size: 15px; width: 38px; height: 38px; min-width: 38px; min-height: 38px; border-radius: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3); touch-action: manipulation;">
+          <button id="menu-mute-btn" class="btn interactive" style="background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.16); color: #fff; font-size: 14px; width: 34px; height: 34px; min-width: 34px; min-height: 34px; border-radius: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3); touch-action: manipulation;">
             🔊
           </button>
         </div>
@@ -108,6 +115,7 @@ export class MenuView {
     container.appendChild(this.el);
 
     this.streakEl = this.el.querySelector("#menu-streak-count")!;
+    this.playTimeEl = this.el.querySelector("#menu-playtime-count")!;
     this.feathersEl = this.el.querySelector("#menu-feather-count")!;
     this.bestEl = this.el.querySelector("#menu-best-val")!;
     this.muteBtn = this.el.querySelector("#menu-mute-btn")!;
@@ -141,6 +149,7 @@ export class MenuView {
     const data = loadAll();
     const streak = touchStreak();
     this.streakEl.textContent = streak.toString();
+    this.playTimeEl.textContent = `${Math.round(data.totalPlayTimeSec / 60)}`;
     this.feathersEl.textContent = data.feathers.toString();
     this.bestEl.textContent = data.best.toString();
     this.muteBtn.textContent = data.muted ? "🔇" : "🔊";
@@ -185,8 +194,14 @@ export class MenuView {
     heroesContainer.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;";
 
     Object.values(CHARACTERS).forEach((char) => {
-      const isUnlocked = isCharacterUnlocked(char.id, data.best, streak, data.unlockedChars);
+      const isUnlocked = isCharacterUnlocked(char.id, data.best, streak, data.unlockedChars, data.totalPlayTimeSec);
       const isSelected = data.character === char.id;
+
+      const progressPct = char.unlockType === "score"
+        ? Math.min(100, Math.round((data.best / char.unlockValue) * 100))
+        : char.unlockType === "streak"
+          ? Math.min(100, Math.round((streak / char.unlockValue) * 100))
+          : 100;
 
       const card = document.createElement("div");
       card.className = "btn interactive";
@@ -209,18 +224,25 @@ export class MenuView {
         <div style="font-size: 26px; margin-bottom: 2px;">${char.emoji}</div>
         <div style="font-size: 11px; font-weight: 800; color: #fff; letter-spacing: -0.01em;">${char.name}</div>
         <div style="font-size: 9px; font-weight: 700; color: ${isSelected ? "#00e5ff" : isUnlocked ? "#38bdf8" : "#ff9e00"}; margin-top: 4px;">
-          ${isSelected ? "✓ ACTIVE" : isUnlocked ? "SELECT" : `🔒 ${char.unlockType === "score" ? `Score ${char.unlockValue}` : `${char.unlockValue}d Streak`}`}
+          ${isSelected ? "✓ ACTIVE" : isUnlocked ? "SELECT" : `🔒 Score ${char.unlockValue}`}
         </div>
+        ${!isUnlocked ? `
+          <div style="width: 80%; height: 3px; background: rgba(0,0,0,0.5); border-radius: 2px; margin-top: 3px; overflow: hidden;">
+            <div style="width: ${progressPct}%; height: 100%; background: #ff9e00;"></div>
+          </div>
+        ` : ""}
       `;
 
-      if (isUnlocked) {
-        card.onclick = (e) => {
-          e.stopPropagation();
+      card.onclick = (e) => {
+        e.stopPropagation();
+        if (isUnlocked) {
           setCharacter(char.id);
           this.callbacks.onCharacterChange(char.id);
           this.refresh();
-        };
-      }
+        } else {
+          this.callbacks.onToast?.(`🔒 Locked: Score ${char.unlockValue} to unlock ${char.name}!`);
+        }
+      };
 
       heroesContainer.appendChild(card);
     });
@@ -266,6 +288,7 @@ export class MenuView {
     Object.values(BIOMES).forEach((b) => {
       const isSelected = data.biome === b.id;
       const isUnlocked = data.best >= b.unlockScore;
+      const progressPct = Math.min(100, Math.round((data.best / (b.unlockScore || 1)) * 100));
 
       const card = document.createElement("div");
       card.className = "btn interactive";
@@ -288,16 +311,24 @@ export class MenuView {
         <div style="font-size: 9px; font-weight: 700; color: ${isSelected ? "#00e5ff" : isUnlocked ? "#38bdf8" : "#ff9e00"}; margin-top: 4px;">
           ${isSelected ? "✓ ACTIVE" : isUnlocked ? "SELECT" : `🔒 Score ${b.unlockScore}`}
         </div>
+        ${!isUnlocked ? `
+          <div style="width: 80%; height: 3px; background: rgba(0,0,0,0.5); border-radius: 2px; margin-top: 3px; overflow: hidden;">
+            <div style="width: ${progressPct}%; height: 100%; background: #ff9e00;"></div>
+          </div>
+        ` : ""}
       `;
 
-      if (isUnlocked) {
-        card.onclick = (e) => {
-          e.stopPropagation();
+      card.onclick = (e) => {
+        e.stopPropagation();
+        if (isUnlocked) {
           setBiome(b.id);
           this.callbacks.onBiomeChange(b.id);
           this.refresh();
-        };
-      }
+        } else {
+          this.callbacks.onToast?.(`🔒 Locked: Reach Score ${b.unlockScore} to unlock ${b.name}!`);
+        }
+      };
+
       scenesContainer.appendChild(card);
     });
 
@@ -392,14 +423,16 @@ export class MenuView {
         ${skin.name} ${isUnlocked ? "" : `🔒${skin.unlockScore}`}
       `;
 
-      if (isUnlocked) {
-        chip.onclick = (e) => {
-          e.stopPropagation();
+      chip.onclick = (e) => {
+        e.stopPropagation();
+        if (isUnlocked) {
           setSkin(skin.id);
           this.callbacks.onSkinChange(skin.id);
           this.refresh();
-        };
-      }
+        } else {
+          this.callbacks.onToast?.(`🔒 Locked: Reach Score ${skin.unlockScore} to unlock ${skin.name}!`);
+        }
+      };
 
       list.appendChild(chip);
     });

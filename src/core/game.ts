@@ -31,6 +31,7 @@ import type { PowerUpType } from "./powerups";
 
 export type GameState =
   | "menu"
+  | "countdown"
   | "playing"
   | "hitstop"
   | "rewindReplay"
@@ -39,7 +40,8 @@ export type GameState =
 
 export interface GameHooks {
   onStateChange?: (state: GameState) => void;
-  onScoreChange?: (score: number, combo: number, feathers: number) => void;
+  onScoreChange?: (score: number, combo: number, feathers: number, timeSec?: number) => void;
+  onCountdown?: (step: number | string) => void;
   onSlowmoMeter?: (frac: number) => void;
   onFeverChange?: (active: boolean, frac: number) => void;
   onPowerUpsChange?: (rainbowLeft: number, hasShield: boolean, magnetLeft: number) => void;
@@ -54,7 +56,7 @@ export interface GameHooks {
   onRewindChoice?: (feathers: number) => void;
   onRewindComplete?: () => void;
   onMilestone?: (score: number) => void;
-  onGameOver?: (score: number) => void;
+  onGameOver?: (score: number, timeSec: number) => void;
 }
 
 export class Game {
@@ -74,7 +76,7 @@ export class Game {
 
   currentBiome: BiomeDef = BIOMES.meadow;
   biomeOverride: BiomeId | "auto" = "auto";
-  selectedCharacterId: CharacterId = "neko";
+  selectedCharacterId: CharacterId = "bird";
 
   private totalTime = 0;
   private lastTime = 0;
@@ -82,6 +84,10 @@ export class Game {
   private replaySnapshots: World[] = [];
   private replayIndex = 0;
   private replayTimer = 0;
+
+  // Countdown timer
+  private countdownTimer = 0;
+  private lastCountdownVal: string | number = "";
 
   hooks: GameHooks = {};
 
@@ -142,9 +148,13 @@ export class Game {
 
     this.applyBiome(getBiomeForScore(0, this.biomeOverride));
 
-    this.setState("playing");
-    this.doFlap();
-    this.hooks.onScoreChange?.(0, 0, this.world.feathersRun);
+    // Initiate 3-2-1 countdown
+    this.countdownTimer = 1.35;
+    this.lastCountdownVal = 3;
+    this.setState("countdown");
+    this.hooks.onCountdown?.(3);
+
+    this.hooks.onScoreChange?.(0, 0, this.world.feathersRun, 0);
     this.hooks.onSlowmoMeter?.(0);
     this.hooks.onFeverChange?.(false, 0);
     this.hooks.onPowerUpsChange?.(0, false, 0);
@@ -153,6 +163,14 @@ export class Game {
   doFlap(): void {
     if (this.state === "menu") {
       this.start();
+      return;
+    }
+    if (this.state === "countdown") {
+      // Allow early tap during countdown to hover
+      flap(this.world);
+      this.characterView.onFlap();
+      const sound = CHARACTERS[this.selectedCharacterId]?.soundType || "bird";
+      this.hooks.onFlap?.(sound);
       return;
     }
     if (this.state === "rewindChoice") {
@@ -170,7 +188,7 @@ export class Game {
     if (this.state === "playing" && this.world.bird.alive) {
       flap(this.world);
       this.characterView.onFlap();
-      const sound = CHARACTERS[this.selectedCharacterId]?.soundType || "cat";
+      const sound = CHARACTERS[this.selectedCharacterId]?.soundType || "bird";
       this.hooks.onFlap?.(sound);
     }
   }
@@ -179,7 +197,7 @@ export class Game {
     if (this.state !== "rewindChoice") return false;
     if (this.world.feathersRun <= 0 || !this.buf.canRewind()) {
       this.setState("gameOver");
-      this.hooks.onGameOver?.(this.world.score);
+      this.hooks.onGameOver?.(this.world.score, this.world.runDurationSec);
       return false;
     }
 
@@ -188,7 +206,7 @@ export class Game {
     const success = this.buf.rewindInto(this.world);
     if (!success) {
       this.setState("gameOver");
-      this.hooks.onGameOver?.(this.world.score);
+      this.hooks.onGameOver?.(this.world.score, this.world.runDurationSec);
       return false;
     }
 
@@ -202,14 +220,14 @@ export class Game {
     this.juice.popup("REWOUND!", "#00e5ff", 50, 16);
     this.setState("playing");
     this.hooks.onRewindComplete?.();
-    this.hooks.onScoreChange?.(this.world.score, this.world.combo, this.world.feathersRun);
+    this.hooks.onScoreChange?.(this.world.score, this.world.combo, this.world.feathersRun, this.world.runDurationSec);
     return true;
   }
 
   acceptDeath(): void {
     if (this.state === "rewindChoice" || this.state === "hitstop") {
       this.setState("gameOver");
-      this.hooks.onGameOver?.(this.world.score);
+      this.hooks.onGameOver?.(this.world.score, this.world.runDurationSec);
     }
   }
 
@@ -241,7 +259,36 @@ export class Game {
         break;
       }
 
+      case "countdown": {
+        this.juice.setBorderFx("none");
+        this.countdownTimer -= realDt;
+
+        // Hover bird
+        this.world.bird.y = 1.5 + Math.sin(this.totalTime * 4) * 0.18;
+        this.world.bird.pitch = Math.cos(this.totalTime * 4) * 6;
+
+        let currentVal: string | number = 1;
+        if (this.countdownTimer > 0.9) currentVal = 3;
+        else if (this.countdownTimer > 0.45) currentVal = 2;
+        else if (this.countdownTimer > 0.05) currentVal = 1;
+        else currentVal = "FLAP!";
+
+        if (currentVal !== this.lastCountdownVal) {
+          this.lastCountdownVal = currentVal;
+          this.hooks.onCountdown?.(currentVal);
+        }
+
+        if (this.countdownTimer <= 0) {
+          this.setState("playing");
+          this.doFlap();
+        }
+        break;
+      }
+
       case "playing": {
+        // Track survival duration
+        this.world.runDurationSec += realDt;
+
         // Update slowmo meter
         const slowmoRemaining = this.time.slowmoRemaining();
         this.hooks.onSlowmoMeter?.(slowmoRemaining / SLOWMO_HOLD_S);
@@ -249,6 +296,12 @@ export class Game {
           this.world.rainbowTrailTimer,
           this.world.hasShield,
           this.world.magnetTimer,
+        );
+        this.hooks.onScoreChange?.(
+          this.world.score,
+          this.world.combo,
+          this.world.feathersRun,
+          this.world.runDurationSec,
         );
 
         // Synchronize ambient border FX
@@ -430,7 +483,7 @@ export class Game {
           }
 
           if (passes.length > 0) {
-            this.hooks.onScoreChange?.(w.score, w.combo, w.feathersRun);
+            this.hooks.onScoreChange?.(w.score, w.combo, w.feathersRun, w.runDurationSec);
             this.hooks.onMissionProgress?.("scoreMilestone", w.score);
 
             // Milestone check
@@ -465,7 +518,7 @@ export class Game {
             this.hooks.onRewindStart?.();
           } else {
             this.setState("gameOver");
-            this.hooks.onGameOver?.(this.world.score);
+            this.hooks.onGameOver?.(this.world.score, this.world.runDurationSec);
           }
         }
         break;

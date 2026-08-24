@@ -12,6 +12,7 @@ import {
   saveBest,
   bankFeathers,
   touchStreak,
+  recordPlaySession,
   SKINS,
   getStoredMissions,
   saveStoredMissions,
@@ -59,6 +60,9 @@ const menuView = new MenuView(app, {
   onMissionClaim: () => {
     audio.missionComplete();
   },
+  onToast: (msg) => {
+    hud.showPowerUpToast("🔒", "GOAL LOCKED", msg, "#ff9e00");
+  },
 });
 
 game.hooks = {
@@ -68,11 +72,18 @@ game.hooks = {
       hud.showMenu();
       gameoverView.hide();
       hud.hideRewindPrompt();
+      hud.hideCountdown();
+    } else if (state === "countdown") {
+      menuView.hide();
+      hud.hideMenu();
+      gameoverView.hide();
+      hud.hideRewindPrompt();
     } else if (state === "playing") {
       menuView.hide();
       hud.hideMenu();
       gameoverView.hide();
       hud.hideRewindPrompt();
+      hud.hideCountdown();
     } else if (state === "rewindChoice") {
       hud.showRewindPrompt(
         game.world.feathersRun,
@@ -81,14 +92,31 @@ game.hooks = {
       );
     } else if (state === "gameOver") {
       hud.hideRewindPrompt();
+      hud.hideCountdown();
       const currentFeathers = bankFeathers(game.world.feathersRun);
+      const scoreBefore = loadAll().best;
       const { best, isNewBest } = saveBest(game.world.score);
+      const timeSec = game.world.runDurationSec;
+      recordPlaySession(timeSec, game.world.score);
       touchStreak();
+
+      const hasNewUnlock = isNewBest && (
+        (scoreBefore < 15 && best >= 15) ||
+        (scoreBefore < 25 && best >= 25) ||
+        (scoreBefore < 35 && best >= 35) ||
+        (scoreBefore < 50 && best >= 50) ||
+        (scoreBefore < 60 && best >= 60) ||
+        (scoreBefore < 75 && best >= 75) ||
+        (scoreBefore < 100 && best >= 100)
+      );
+
       gameoverView.show(
         game.world.score,
         best,
         isNewBest,
         currentFeathers,
+        timeSec,
+        hasNewUnlock,
         {
           onRetry: () => {
             game.start(Date.now(), loadAll().feathers);
@@ -98,10 +126,22 @@ game.hooks = {
     }
   },
 
-  onScoreChange: (score, combo, feathers) => {
+  onCountdown: (step) => {
+    hud.showCountdown(step.toString());
+    if (typeof step === "number") {
+      audio.countdownTick(step);
+    } else {
+      audio.countdownGo();
+    }
+  },
+
+  onScoreChange: (score, combo, feathers, timeSec) => {
     hud.setScore(score);
     hud.setCombo(combo, multiplier(combo));
     hud.setFeathers(feathers);
+    if (timeSec !== undefined) {
+      hud.setTimeSurvived(timeSec);
+    }
   },
 
   onSlowmoMeter: (frac) => {

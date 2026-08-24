@@ -11,10 +11,11 @@ export interface SkinDef {
 }
 
 export const SKINS: Record<string, SkinDef> = {
-  classic: { id: "classic", name: "Ginger Tabby", bodyColor: 0xff9f1c, bellyColor: 0xfff8f0, unlockScore: 0 },
-  sunrise: { id: "sunrise", name: "Sakura Neko", bodyColor: 0xff8da1, bellyColor: 0xfff0f5, unlockScore: 15 },
-  ember: { id: "ember", name: "Midnight Cat", bodyColor: 0x25262c, bellyColor: 0x3a3d46, unlockScore: 30 },
+  classic: { id: "classic", name: "Classic Gold", bodyColor: 0xffd000, bellyColor: 0xfff8f0, unlockScore: 0 },
+  sunrise: { id: "sunrise", name: "Sakura Blossom", bodyColor: 0xff8da1, bellyColor: 0xfff0f5, unlockScore: 15 },
+  ember: { id: "ember", name: "Midnight Obsidian", bodyColor: 0x25262c, bellyColor: 0x3a3d46, unlockScore: 30 },
   void: { id: "void", name: "Cosmic Starcat", bodyColor: 0x7928ca, bellyColor: 0x00dfd8, unlockScore: 50 },
+  prism: { id: "prism", name: "Prism Hologram", bodyColor: 0x00f5d4, bellyColor: 0xff007f, unlockScore: 100 },
 };
 
 export interface SaveData {
@@ -27,6 +28,9 @@ export interface SaveData {
   biome: BiomeId | "auto";
   unlocked: string[];
   unlockedChars: string[];
+  totalPlayTimeSec: number;
+  totalRuns: number;
+  totalPipesPassed: number;
 }
 
 const PREFIX = "f3d.";
@@ -72,6 +76,9 @@ export function loadAll(): SaveData {
   const best = parseInt(getLocal("best") || "0", 10) || 0;
   const feathers = Math.min(9, Math.max(0, parseInt(getLocal("feathers") || "0", 10) || 0));
   const muted = getLocal("muted") === "true";
+  const totalPlayTimeSec = parseFloat(getLocal("totalPlayTimeSec") || "0") || 0;
+  const totalRuns = parseInt(getLocal("totalRuns") || "0", 10) || 0;
+  const totalPipesPassed = parseInt(getLocal("totalPipesPassed") || "0", 10) || 0;
 
   let streak = { lastDay: "", count: 0 };
   try {
@@ -90,20 +97,20 @@ export function loadAll(): SaveData {
     unlocked = ["classic"];
   }
 
-  let unlockedChars: string[] = ["neko"];
+  let unlockedChars: string[] = ["bird"];
   try {
     const rawUnlockedChars = getLocal("unlockedChars");
     if (rawUnlockedChars) unlockedChars = JSON.parse(rawUnlockedChars);
-    if (!unlockedChars.includes("neko")) unlockedChars.unshift("neko");
+    if (!unlockedChars.includes("bird")) unlockedChars.unshift("bird");
   } catch {
-    unlockedChars = ["neko"];
+    unlockedChars = ["bird"];
   }
 
   let skin = getLocal("skin") || "classic";
   if (!SKINS[skin]) skin = "classic";
 
-  let character = (getLocal("character") || "neko") as CharacterId;
-  if (!CHARACTERS[character]) character = "neko";
+  let character = (getLocal("character") || "bird") as CharacterId;
+  if (!CHARACTERS[character]) character = "bird";
 
   let biome = (getLocal("biome") || "auto") as BiomeId | "auto";
   if (biome !== "auto" && !BIOMES[biome]) biome = "auto";
@@ -118,6 +125,9 @@ export function loadAll(): SaveData {
     biome,
     unlocked,
     unlockedChars,
+    totalPlayTimeSec,
+    totalRuns,
+    totalPipesPassed,
   };
 }
 
@@ -129,6 +139,17 @@ export function saveBest(score: number): { best: number; isNewBest: boolean } {
     return { best: score, isNewBest: true };
   }
   return { best: data.best, isNewBest: false };
+}
+
+export function recordPlaySession(seconds: number, pipesPassed: number): void {
+  const data = loadAll();
+  const newPlayTime = Math.round(data.totalPlayTimeSec + seconds);
+  const newRuns = data.totalRuns + 1;
+  const newPipes = data.totalPipesPassed + pipesPassed;
+
+  setLocal("totalPlayTimeSec", newPlayTime.toString());
+  setLocal("totalRuns", newRuns.toString());
+  setLocal("totalPipesPassed", newPipes.toString());
 }
 
 export function bankFeathers(balanceOrEarned: number, rewindsUsed = 0): number {
