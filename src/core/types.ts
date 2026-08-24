@@ -64,7 +64,7 @@ export function createWorld(seed: number): World {
     nextPipeId: 1,
     nextOrbId: 1,
     lastGapCenter: 1,
-    nextPipeAtDist: 4, // ~0.6s initial spawn, reaching player smoothly in ~2.5s
+    nextPipeAtDist: 3, // ~0.5s initial spawn, reaching player in ~2.3s
     nextOrbPipesIn: ORB_EVERY_PIPES_MIN,
     score: 0,
     pipesPassed: 0,
