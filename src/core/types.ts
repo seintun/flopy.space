@@ -46,6 +46,7 @@ export interface World {
   feathersRun: number;
   rewindsUsedRun: number;
   rngState: number;
+  runSeed: number;
   spawnHistory: number[];
   hasShield: boolean;
   rainbowTrailTimer: number;
@@ -73,6 +74,7 @@ export function createWorld(seed: number): World {
     feathersRun: 0,
     rewindsUsedRun: 0,
     rngState: seed >>> 0,
+    runSeed: seed >>> 0,
     spawnHistory: [],
     hasShield: false,
     rainbowTrailTimer: 0,

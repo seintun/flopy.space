@@ -344,8 +344,8 @@ export class Game {
           stepBird(w, dt);
           this.buf.record(w);
 
-          // Check dynamic biome transition every 15 pipes
-          const targetBiome = getBiomeForScore(w.pipesPassed, this.biomeOverride, w.rngState);
+          // Check dynamic biome transition strictly every 15 pipes
+          const targetBiome = getBiomeForScore(w.pipesPassed, this.biomeOverride, w.runSeed);
           if (targetBiome.id !== this.currentBiome.id) {
             this.applyBiome(targetBiome);
             this.juice.popupAtWorld(`🌍 ${targetBiome.name.toUpperCase()}`, 0, w.bird.y, 0, this.ctx.camera, "#00f5d4", 1.0);
