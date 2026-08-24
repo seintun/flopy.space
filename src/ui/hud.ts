@@ -114,49 +114,32 @@ export function initHud(container: HTMLElement): HudApi {
       </div>
     </div>
 
-    <!-- Transparent Peekable Psychological Rewind Choice Modal -->
-    <div id="hud-rewind-panel" style="display: none; position: absolute; inset: 0; pointer-events: auto; z-index: 48; flex-direction: column; align-items: center; justify-content: flex-end; background: linear-gradient(180deg, rgba(8, 12, 24, 0.15) 0%, rgba(8, 12, 24, 0.45) 50%, rgba(8, 12, 24, 0.8) 100%); padding: max(16px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); box-sizing: border-box;">
-      <div style="text-align: center; max-width: 340px; width: 92%; animation: popIn 0.32s cubic-bezier(0.2, 0.8, 0.4, 1);">
-        <h2 style="font-size: 24px; margin: 0 0 4px 0; font-weight: 900; letter-spacing: -0.01em; color: #00e5ff; text-shadow: 0 0 20px rgba(0, 229, 255, 0.6); text-transform: uppercase;">
-          ⚡ CHRONO RESCUE
-        </h2>
-
-        <div id="hud-rewind-badge" style="margin: 0 auto 10px auto; background: linear-gradient(135deg, #ff007f, #ff6200); color: #fff; font-weight: 900; font-size: 10px; padding: 3px 12px; border-radius: 20px; width: fit-content; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 14px rgba(255,0,127,0.5); animation: softGlowPulse 1.2s infinite alternate;">
-          ★ PROTECT YOUR COMBO & SCORE ★
-        </div>
-
-        <!-- Translucent Score & Run Stats Card with Peek Transparency -->
-        <div style="background: rgba(10, 16, 32, 0.72); border: 1.5px solid rgba(0, 229, 255, 0.4); border-radius: 20px; padding: 14px 14px; margin-bottom: 12px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0,229,255,0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
-          <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; font-weight: 700; margin-bottom: 2px;">Current Run Score</div>
-          <div id="hud-rewind-score" style="font-size: 46px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 10px; color: #fff; letter-spacing: -0.02em; text-shadow: 0 0 20px rgba(0,229,255,0.5);">0</div>
-          
-          <div style="display: flex; justify-content: space-around; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px;">
-            <div>
-              <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Best</div>
-              <div id="hud-rewind-best" style="font-size: 16px; font-weight: 800; color: #ffd700;">0</div>
+    <!-- Minimalist, Glancable Rewind Card (Bottom Docked, 100% Sightline Peek) -->
+    <div id="hud-rewind-panel" style="display: none; position: absolute; inset: 0; pointer-events: auto; z-index: 48; flex-direction: column; align-items: center; justify-content: flex-end; background: linear-gradient(180deg, transparent 40%, rgba(8, 12, 24, 0.75) 100%); padding: max(16px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); box-sizing: border-box;">
+      <div style="text-align: center; max-width: 320px; width: 90%; animation: popIn 0.28s cubic-bezier(0.2, 0.8, 0.4, 1); display: flex; flex-direction: column; align-items: center;">
+        
+        <!-- Score Capsule -->
+        <div style="background: rgba(10, 16, 32, 0.85); border: 1.5px solid rgba(0, 229, 255, 0.4); border-radius: 20px; padding: 12px 18px; width: 100%; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.6), inset 0 0 16px rgba(0,229,255,0.12); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+            <div id="hud-rewind-score" style="font-size: 42px; font-weight: 900; line-height: 1; color: #fff; text-shadow: 0 0 16px rgba(0,229,255,0.6); font-variant-numeric: tabular-nums;">0</div>
+            <div style="display: flex; gap: 10px; font-size: 12px; font-weight: 800;">
+              <span style="color: #94a3b8;">BEST <span id="hud-rewind-best" style="color: #ffd700;">0</span></span>
+              <span id="hud-rewind-feathers" style="color: #00e5ff;">🪶 0</span>
             </div>
-            <div>
-              <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Survived</div>
-              <div id="hud-rewind-time" style="font-size: 16px; font-weight: 800; color: #00f5d4;">00:00</div>
-            </div>
-            <div>
-              <div style="font-size: 9px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Feathers</div>
-              <div id="hud-rewind-feathers" style="font-size: 16px; font-weight: 800; color: #00e5ff;">🪶 0</div>
-            </div>
+          </div>
+          <div id="hud-rewind-badge" style="font-size: 10px; font-weight: 800; color: #00f5d4; text-transform: uppercase; letter-spacing: 0.5px; text-align: left;">
+            ⚡ 1.5s Safe Runway + Shield
           </div>
         </div>
 
-        <div id="hud-rewind-callout" style="font-size: 10.5px; color: #bae6fd; font-weight: 700; margin-bottom: 12px; text-shadow: 0 1px 4px rgba(0,0,0,0.8);">
-          Peek your position & gap! Rewind gives you 1.5s runway + invulnerability.
-        </div>
-
-        <!-- Addictive Pulsing Rewind CTA -->
-        <button id="hud-rewind-btn" class="btn interactive" style="width: 100%; height: 50px; font-size: 15px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #00f5d4); border: none; border-radius: 25px; color: #002233; cursor: pointer; box-shadow: 0 0 28px rgba(0, 229, 255, 0.65); margin-bottom: 8px; letter-spacing: 0.5px; animation: softGlowPulse 1.2s infinite alternate;">
-          ⚡ REWIND RUN (−1 🪶)
+        <!-- High-Impact Primary CTA -->
+        <button id="hud-rewind-btn" class="btn interactive" style="width: 100%; height: 50px; font-size: 15px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #00f5d4); border: none; border-radius: 25px; color: #002233; cursor: pointer; box-shadow: 0 0 24px rgba(0, 229, 255, 0.6); letter-spacing: 0.5px; animation: softGlowPulse 1.2s infinite alternate;">
+          ⚡ REWIND (−1 🪶)
         </button>
 
-        <button id="hud-giveup-btn" class="btn interactive" style="width: 100%; height: 38px; font-size: 11px; font-weight: 700; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 19px; color: #94a3b8; cursor: pointer;">
-          GIVE UP & END RUN
+        <!-- Minimal Subdued Dismiss Link -->
+        <button id="hud-giveup-btn" class="btn interactive" style="background: none; border: none; color: #94a3b8; font-size: 11px; font-weight: 700; padding: 8px 16px; margin-top: 4px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;">
+          Give up
         </button>
       </div>
     </div>
@@ -190,9 +173,7 @@ export function initHud(container: HTMLElement): HudApi {
   const rewindBadge = hud.querySelector("#hud-rewind-badge") as HTMLElement;
   const rewindScore = hud.querySelector("#hud-rewind-score") as HTMLElement;
   const rewindBest = hud.querySelector("#hud-rewind-best") as HTMLElement;
-  const rewindTime = hud.querySelector("#hud-rewind-time") as HTMLElement;
   const rewindFeathers = hud.querySelector("#hud-rewind-feathers") as HTMLElement;
-  const rewindCallout = hud.querySelector("#hud-rewind-callout") as HTMLElement;
   const rewindBtn = hud.querySelector("#hud-rewind-btn") as HTMLButtonElement;
   const giveUpBtn = hud.querySelector("#hud-giveup-btn") as HTMLButtonElement;
 
@@ -294,31 +275,28 @@ export function initHud(container: HTMLElement): HudApi {
       combo: number,
       multiplier: number,
       feathers: number,
-      timeSec: number,
+      _timeSec: number,
       onRewind: () => void,
       onGiveUp: () => void,
     ) {
       rewindScore.textContent = score.toString();
       rewindBest.textContent = best.toString();
-      rewindTime.textContent = formatTime(timeSec);
       rewindFeathers.textContent = `🪶 ${feathers}`;
 
-      // Loss Aversion & Goal Gradient badges
+      // Minimal, glanceable context tag
       if (combo >= 3) {
-        rewindBadge.textContent = `★ PROTECT ×${multiplier} COMBO (${combo} STREAK)! ★`;
-        rewindBadge.style.background = "linear-gradient(135deg, #ff007f, #ff6200)";
+        rewindBadge.textContent = `★ KEEP ×${multiplier} COMBO (${combo} STREAK)`;
+        rewindBadge.style.color = "#ff007f";
       } else if (score >= best && score > 0) {
-        rewindBadge.textContent = "★ DEFEND YOUR NEW BEST RECORD! ★";
-        rewindBadge.style.background = "linear-gradient(135deg, #ffd700, #ff9e00)";
-      } else if (best - score <= 25 && best - score > 0) {
-        rewindBadge.textContent = `★ ONLY ${best - score} PTS TO NEW RECORD! ★`;
-        rewindBadge.style.background = "linear-gradient(135deg, #00f5d4, #00b4d8)";
+        rewindBadge.textContent = "★ NEW RECORD RUN";
+        rewindBadge.style.color = "#ffd700";
+      } else if (best - score <= 20 && best - score > 0) {
+        rewindBadge.textContent = `★ ${best - score} PTS TO BEST`;
+        rewindBadge.style.color = "#00f5d4";
       } else {
-        rewindBadge.textContent = "★ RESUME WITH 1.5s INVULN SHIELD ★";
-        rewindBadge.style.background = "linear-gradient(135deg, #00e5ff, #7209b7)";
+        rewindBadge.textContent = "⚡ 1.5S RUNWAY + INVULNERABILITY";
+        rewindBadge.style.color = "#00e5ff";
       }
-
-      rewindCallout.textContent = `Keep your ${score} score! Rewind gives you 1.5s runway + invulnerability.`;
 
       rewindPanel.style.display = "flex";
       rewindBtn.onclick = (e) => {
