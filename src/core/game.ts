@@ -161,7 +161,7 @@ export class Game {
     this.applyBiome(getBiomeForScore(0, this.biomeOverride));
 
     // Initiate 3-2-1 countdown
-    this.countdownTimer = 1.35;
+    this.countdownTimer = 1.6;
     this.lastCountdownVal = 3;
     this.setState("countdown");
     this.hooks.onCountdown?.(3);
@@ -271,9 +271,9 @@ export class Game {
         this.world.bird.pitch = Math.cos(this.totalTime * 4) * 6;
 
         let currentVal: string | number = 1;
-        if (this.countdownTimer > 0.9) currentVal = 3;
-        else if (this.countdownTimer > 0.45) currentVal = 2;
-        else if (this.countdownTimer > 0.05) currentVal = 1;
+        if (this.countdownTimer > 1.1) currentVal = 3;
+        else if (this.countdownTimer > 0.6) currentVal = 2;
+        else if (this.countdownTimer > 0.15) currentVal = 1;
         else currentVal = "FLAP!";
 
         if (currentVal !== this.lastCountdownVal) {

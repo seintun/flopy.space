@@ -176,6 +176,7 @@ export function initHud(container: HTMLElement): HudApi {
   const countdownContainer = hud.querySelector("#hud-countdown") as HTMLElement;
   const countdownVal = hud.querySelector("#hud-countdown-val") as HTMLElement;
   const countdownRing = hud.querySelector("#hud-countdown-ring") as HTMLElement;
+  let countdownTimeout: ReturnType<typeof setTimeout> | null = null;
 
   const rawPipesEl = hud.querySelector("#hud-raw-pipes") as HTMLElement;
   const bonusTagEl = hud.querySelector("#hud-bonus-tag") as HTMLElement;
@@ -289,14 +290,43 @@ export function initHud(container: HTMLElement): HudApi {
       }, 1400);
     },
     showCountdown(text: string) {
+      if (countdownTimeout) {
+        clearTimeout(countdownTimeout);
+        countdownTimeout = null;
+      }
       countdownVal.textContent = text;
       countdownContainer.style.display = "flex";
+      countdownContainer.style.opacity = "1";
       countdownRing.style.animation = "none";
       void countdownRing.offsetWidth; // trigger reflow
       countdownRing.style.animation = "popIn 0.3s cubic-bezier(0.2, 0.8, 0.4, 1)";
+
+      if (text === "FLAP!") {
+        countdownRing.style.borderColor = "#00f5d4";
+        countdownRing.style.boxShadow = "0 0 50px rgba(0,245,212,0.85), inset 0 0 25px rgba(0,245,212,0.5)";
+        countdownVal.style.fontSize = "38px";
+        countdownVal.style.color = "#00f5d4";
+        // Hold FLAP! prominently for 0.7s with smooth ease out so it's clearly readable!
+        countdownTimeout = setTimeout(() => {
+          countdownContainer.style.transition = "opacity 0.35s ease, transform 0.35s ease";
+          countdownContainer.style.opacity = "0";
+          setTimeout(() => {
+            countdownContainer.style.display = "none";
+            countdownContainer.style.transition = "";
+            countdownTimeout = null;
+          }, 350);
+        }, 650);
+      } else {
+        countdownRing.style.borderColor = "#00e5ff";
+        countdownRing.style.boxShadow = "0 0 40px rgba(0,229,255,0.6), inset 0 0 20px rgba(0,229,255,0.4)";
+        countdownVal.style.fontSize = "54px";
+        countdownVal.style.color = "#fff";
+      }
     },
     hideCountdown() {
-      countdownContainer.style.display = "none";
+      if (!countdownTimeout) {
+        countdownContainer.style.display = "none";
+      }
     },
     showMenu() {
       headerEl.style.opacity = "0";
