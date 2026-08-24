@@ -12,6 +12,8 @@ import {
   saveBest,
   touchStreak,
   recordPlaySession,
+  addTokens,
+  getPendingUnlocks,
   SKINS,
   getStoredMissions,
   saveStoredMissions,
@@ -27,6 +29,9 @@ const audio = new AudioSys();
 const rig = createCameraRig(() => window.innerWidth / window.innerHeight);
 const ctx = createScene(app, rig.camera);
 const game = new Game(ctx, rig, app);
+if (typeof window !== "undefined") {
+  (window as any).__FLOPY_GAME__ = game;
+}
 
 const hud = initHud(app);
 const gameoverView = new GameOverView(app);
@@ -72,6 +77,13 @@ const menuView = new MenuView(app, {
     trackEvent("quest_claim");
     audio.missionComplete();
   },
+  onClaimUnlock: (category, id) => {
+    trackEvent("unlock_claimed", { category, id });
+    audio.milestone();
+    game.juice.flashBorder("#ffd700", 250);
+    game.juice.confetti(0, game.world.bird.y, 0, 45);
+    hud.showPowerUpToast("🎁", "UNLOCKED & EQUIPPED!", `Claimed new ${category}!`, "#ffd700");
+  },
   onToast: (msg) => {
     hud.showPowerUpToast("🔒", "GOAL LOCKED", msg, "#ff9e00");
   },
@@ -114,11 +126,16 @@ game.hooks = {
       hud.hideRewindPrompt();
       hud.hideCountdown();
       const currentFeathers = game.world.feathersRun;
-      const scoreBefore = loadAll().best;
       const { best, isNewBest } = saveBest(game.world.score);
       const timeSec = game.world.runDurationSec;
       recordPlaySession(timeSec, game.world.score);
       touchStreak();
+
+      // Accrue tokens from run score
+      if (game.world.score > 0) {
+        addTokens(game.world.score);
+      }
+      const updatedData = loadAll();
 
       trackEvent("game_over", {
         score: game.world.score,
@@ -126,18 +143,12 @@ game.hooks = {
         pipesPassed: game.world.pipesPassed,
         rewindsUsed: game.world.rewindsUsedRun,
         duration: Math.round(timeSec),
-        character: loadAll().character,
+        character: updatedData.character,
+        tokens: updatedData.tokens,
       });
 
-      const hasNewUnlock = isNewBest && (
-        (scoreBefore < 15 && best >= 15) ||
-        (scoreBefore < 25 && best >= 25) ||
-        (scoreBefore < 35 && best >= 35) ||
-        (scoreBefore < 50 && best >= 50) ||
-        (scoreBefore < 60 && best >= 60) ||
-        (scoreBefore < 75 && best >= 75) ||
-        (scoreBefore < 100 && best >= 100)
-      );
+      const pendingUnlocks = getPendingUnlocks(updatedData);
+      const hasNewUnlock = pendingUnlocks.length > 0;
 
       gameoverView.show(
         game.world.score,
@@ -161,7 +172,27 @@ game.hooks = {
           },
           onClaimQuest: () => {
             audio.milestone();
-            hud.setFeathers(loadAll().feathers);
+            const currentStoredFeathers = loadAll().feathers;
+            game.world.feathersRun = currentStoredFeathers;
+            hud.setFeathers(currentStoredFeathers);
+            menuView.refresh();
+
+            if (currentStoredFeathers > 0) {
+              gameoverView.showRewindOption(() => {
+                game.chooseRewind();
+              });
+            }
+          },
+          onRewind: () => {
+            gameoverView.hide();
+            game.chooseRewind();
+          },
+          onClaimUnlock: (category, id) => {
+            trackEvent("unlock_claimed", { category, id });
+            audio.milestone();
+            game.juice.flashBorder("#ffd700", 250);
+            game.juice.confetti(0, game.world.bird.y, 0, 45);
+            hud.showPowerUpToast("🎁", "UNLOCKED & EQUIPPED!", `Claimed new ${category}!`, "#ffd700");
             menuView.refresh();
           },
         },
@@ -195,8 +226,8 @@ game.hooks = {
     hud.setFeverMeter(active, frac);
   },
 
-  onPowerUpsChange: (rainbowLeft, hasShield, magnetLeft) => {
-    hud.setPowerUps(rainbowLeft, hasShield, magnetLeft);
+  onPowerUpsChange: (rainbowLeft, hasShield, magnetLeft, heavyGravityLeft, speedSurgeLeft) => {
+    hud.setPowerUps(rainbowLeft, hasShield, magnetLeft, heavyGravityLeft, speedSurgeLeft);
   },
 
   onBiomeChange: (biome) => {
@@ -248,7 +279,19 @@ game.hooks = {
         break;
       case "star_gem":
         audio.starGem();
-        hud.showPowerUpToast("⭐", "STAR GEM", "+500 Bonus score + combo up", "#ffbe0b");
+        hud.showPowerUpToast("⭐", "STAR GEM", "+5 Bonus score + combo spree", "#ffbe0b");
+        break;
+      case "hazard_mine":
+        audio.die();
+        hud.showPowerUpToast("💀", "VOID MINE HIT!", "Combo shattered & -3 pts lost", "#ff2a6d");
+        break;
+      case "heavy_gravity":
+        audio.shieldBreak();
+        hud.showPowerUpToast("⚓", "GRAVITY SINK!", "Heavy downward weight for 2.5s", "#c77dff");
+        break;
+      case "speed_surge":
+        audio.rainbowTrail();
+        hud.showPowerUpToast("⚡", "SPEED SURGE!", "Hyper tempo active! +3 pts per pipe", "#ff8800");
         break;
       default:
         audio.collect();
