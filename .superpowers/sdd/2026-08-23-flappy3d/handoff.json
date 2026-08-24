@@ -1,0 +1,17 @@
+{
+  "$schema": "https://superpowers.dev/schemas/chhp-v2.json",
+  "version": "2.0.0",
+  "timestamp": "2026-08-24T07:04:37Z",
+  "sourceHarness": "generic",
+  "planFile": "docs/superpowers/plans/2026-08-23-flappy3d.md",
+  "git": {
+    "branch": "main",
+    "headSha": "30887916934f0a5fc422e2d9b527aa922a8a393d",
+    "isDirty": false
+  },
+  "executionState": {
+    "currentTaskId": 0,
+    "phase": "1",
+    "activeLedger": ".superpowers/sdd/2026-08-23-flappy3d/progress.md"
+  }
+}
