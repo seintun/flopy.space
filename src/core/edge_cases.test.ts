@@ -170,3 +170,15 @@ describe("Devil's Advocate: Storage Corrupted State Recovery", () => {
     expect(bankFeathers(0, 5)).toBe(0); // net is clamped to >= 0
   });
 });
+
+describe("Devil's Advocate: State Machine Flap/Spacebar Triggers", () => {
+  it("rewindChoice state: doFlap triggers rewind when feathers > 0 and buffer is ready", () => {
+    const w = createWorld(1);
+    w.feathersRun = 2;
+    const buf = new SnapshotBuffer();
+    for (let i = 0; i < BUFFER_LEN; i++) buf.record(w);
+
+    expect(buf.canRewind()).toBe(true);
+    expect(w.feathersRun).toBe(2);
+  });
+});

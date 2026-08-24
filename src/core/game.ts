@@ -25,6 +25,7 @@ import { FeverSystem } from "./fever";
 import { getBiomeForScore, BIOMES, type BiomeDef, type BiomeId } from "./biomes";
 import { CHARACTERS, type CharacterId, type SoundType } from "./characters";
 import type { MissionEventType } from "./missions";
+import { loadAll } from "./storage";
 
 export type GameState =
   | "menu"
@@ -122,9 +123,11 @@ export class Game {
     this.hooks.onStateChange?.(next);
   }
 
-  start(seed = Date.now(), initialFeathers = 0): void {
+  start(seed = Date.now(), initialFeathers?: number): void {
+    const startFeathers =
+      initialFeathers !== undefined ? initialFeathers : loadAll().feathers;
     this.world = createWorld(seed);
-    this.world.feathersRun = Math.min(9, Math.max(0, initialFeathers));
+    this.world.feathersRun = Math.min(9, Math.max(0, startFeathers));
     this.time = new TimeSystem();
     this.buf = new SnapshotBuffer();
     this.fever.reset();
@@ -142,6 +145,18 @@ export class Game {
 
   doFlap(): void {
     if (this.state === "menu") {
+      this.start();
+      return;
+    }
+    if (this.state === "rewindChoice") {
+      if (this.world.feathersRun > 0 && this.buf.canRewind()) {
+        this.chooseRewind();
+      } else {
+        this.acceptDeath();
+      }
+      return;
+    }
+    if (this.state === "gameOver") {
       this.start();
       return;
     }
