@@ -18,9 +18,11 @@ export const SKINS: Record<string, SkinDef> = {
   prism: { id: "prism", name: "Prism Hologram", bodyColor: 0x00f5d4, bellyColor: 0xff007f, unlockScore: 100 },
 };
 
+export const FEATHER_BANK_CAP = 3;
+
 export interface SaveData {
   best: number;
-  feathers: number; // cap 9
+  feathers: number; // cap 3
   muted: boolean;
   streak: { lastDay: string; count: number };
   skin: string;
@@ -74,7 +76,7 @@ export function clearStorageForTest(): void {
 
 export function loadAll(): SaveData {
   const best = parseInt(getLocal("best") || "0", 10) || 0;
-  const feathers = Math.min(9, Math.max(0, parseInt(getLocal("feathers") || "0", 10) || 0));
+  const feathers = Math.min(FEATHER_BANK_CAP, Math.max(0, parseInt(getLocal("feathers") || "0", 10) || 0));
   const muted = getLocal("muted") === "true";
   const totalPlayTimeSec = parseFloat(getLocal("totalPlayTimeSec") || "0") || 0;
   const totalRuns = parseInt(getLocal("totalRuns") || "0", 10) || 0;
@@ -154,9 +156,13 @@ export function recordPlaySession(seconds: number, pipesPassed: number): void {
 
 export function bankFeathers(balanceOrEarned: number, rewindsUsed = 0): number {
   const net = Math.max(0, balanceOrEarned - rewindsUsed);
-  const total = Math.min(9, net);
+  const total = Math.min(FEATHER_BANK_CAP, net);
   setLocal("feathers", total.toString());
   return total;
+}
+
+export function resetSessionFeathers(): void {
+  setLocal("feathers", "0");
 }
 
 export function spendFeathers(amount: number): boolean {

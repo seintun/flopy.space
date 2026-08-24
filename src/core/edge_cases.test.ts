@@ -165,8 +165,8 @@ describe("Devil's Advocate: Storage Corrupted State Recovery", () => {
     expect(data.unlocked).toEqual(["classic"]);
   });
 
-  it("feather banking never exceeds 9 and never drops below 0", () => {
-    expect(bankFeathers(100, 0)).toBe(9);
+  it("feather banking never exceeds 3 and never drops below 0", () => {
+    expect(bankFeathers(100, 0)).toBe(3);
     expect(bankFeathers(0, 5)).toBe(0); // net is clamped to >= 0
   });
 });

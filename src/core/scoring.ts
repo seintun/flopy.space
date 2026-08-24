@@ -37,7 +37,7 @@ export function processPasses(w: World): PassEvent[] {
     w.score = w.pipesPassed + w.bonusScore;
 
     if (Math.floor(w.score / FEATHER_EVERY_POINTS) > Math.floor(before / FEATHER_EVERY_POINTS)) {
-      w.feathersRun++;
+      w.feathersRun = Math.min(3, w.feathersRun + 1);
     }
 
     events.push({

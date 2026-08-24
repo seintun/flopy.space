@@ -10,7 +10,7 @@ import { GameOverView } from "./ui/gameover";
 import {
   loadAll,
   saveBest,
-  bankFeathers,
+  resetSessionFeathers,
   touchStreak,
   recordPlaySession,
   SKINS,
@@ -40,7 +40,8 @@ game.setBiomeOverride(saved.biome);
 const menuView = new MenuView(app, {
   onStart: () => {
     audio.unlock();
-    game.start(Date.now(), loadAll().feathers);
+    resetSessionFeathers();
+    game.start(Date.now(), 0);
   },
   onCharacterChange: (charId) => {
     game.setCharacter(charId, loadAll().skin);
@@ -101,7 +102,8 @@ game.hooks = {
     } else if (state === "gameOver") {
       hud.hideRewindPrompt();
       hud.hideCountdown();
-      const currentFeathers = bankFeathers(game.world.feathersRun);
+      const currentFeathers = game.world.feathersRun;
+      resetSessionFeathers();
       const scoreBefore = loadAll().best;
       const { best, isNewBest } = saveBest(game.world.score);
       const timeSec = game.world.runDurationSec;
@@ -129,7 +131,8 @@ game.hooks = {
         game.world.bonusScore,
         {
           onRetry: () => {
-            game.start(Date.now(), loadAll().feathers);
+            resetSessionFeathers();
+            game.start(Date.now(), 0);
           },
         },
       );
@@ -283,3 +286,11 @@ requestAnimationFrame(animate);
 
 // Prevent right-click / context menu on mobile
 window.addEventListener("contextmenu", (e) => e.preventDefault());
+
+// Reset feathers & spree when user leaves browser or navigates away
+window.addEventListener("beforeunload", () => {
+  resetSessionFeathers();
+});
+window.addEventListener("pagehide", () => {
+  resetSessionFeathers();
+});

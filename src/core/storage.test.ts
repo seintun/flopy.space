@@ -33,9 +33,10 @@ describe("storage", () => {
     expect(saveBest(15)).toEqual({ best: 15, isNewBest: true });
   });
 
-  it("banks feathers up to max cap 9", () => {
-    expect(bankFeathers(4, 1)).toBe(3); // 4 earned - 1 used = 3
-    expect(bankFeathers(10, 0)).toBe(9); // capped at 9
+  it("banks feathers up to max cap 3", () => {
+    expect(bankFeathers(2, 0)).toBe(2);
+    expect(bankFeathers(4, 1)).toBe(3); // 4 earned - 1 used = 3 (capped at 3)
+    expect(bankFeathers(10, 0)).toBe(3); // capped at 3
   });
 
   it("records play session time and pipes passed incrementally", () => {

@@ -19,6 +19,7 @@ export const NEAR_MISS_MARGIN = 0.3;
 export const COMBO_CAP = 3;
 export const COMBO_PASSES_PER_STEP = 5;
 export const FEATHER_EVERY_POINTS = 10;
+export const FEATHER_BANK_CAP = 3;
 export const REWINDS_MAX_PER_RUN = 3;
 export const REWIND_SECONDS = 1.5;
 export const DT = 1 / 120;
