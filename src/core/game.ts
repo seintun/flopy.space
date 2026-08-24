@@ -471,8 +471,14 @@ export class Game {
           for (const p of passes) {
             this.pipesView.flash(p.pipeId);
 
-            // Pass score popup directly above the bird's head
-            const popupColor = p.nearMiss ? "#ff2a6d" : p.points > 1 ? "#ffd700" : "#ffffff";
+            // Tiered color feedback: White (+1) -> Teal (+2) -> Gold (+3) -> Coral (CLOSE! +2)
+            const popupColor = p.nearMiss
+              ? "#ff2a6d"
+              : p.points >= 3
+                ? "#ffd700"
+                : p.points === 2
+                  ? "#00f5d4"
+                  : "#ffffff";
             const popupText = p.nearMiss ? "CLOSE! +2" : `+${p.points}`;
             this.juice.popupAtWorld(popupText, 0, w.bird.y, 0, this.ctx.camera, popupColor, 0.85);
 
@@ -480,8 +486,12 @@ export class Game {
               this.juice.flashBorder("#ff2a6d", 120);
               this.time.triggerMicroFlash();
               this.hooks.onMissionProgress?.("nearMiss");
+            } else if (p.points >= 3) {
+              this.juice.flashBorder("#ffd700", 100);
+            } else if (p.points === 2) {
+              this.juice.flashBorder("#00f5d4", 80);
             } else {
-              this.juice.flashBorder("#ffd700", 90);
+              this.juice.flashBorder("#ffffff", 60);
             }
 
             // Add Fever energy on pass
