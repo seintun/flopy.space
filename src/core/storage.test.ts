@@ -3,6 +3,7 @@ import {
   loadAll,
   saveBest,
   bankFeathers,
+  addFeathers,
   touchStreak,
   unlockFor,
   setSkin,
@@ -37,6 +38,20 @@ describe("storage", () => {
     expect(bankFeathers(2, 0)).toBe(2);
     expect(bankFeathers(4, 1)).toBe(3); // 4 earned - 1 used = 3 (capped at 3)
     expect(bankFeathers(10, 0)).toBe(3); // capped at 3
+  });
+
+  it("addFeathers adds to existing balance up to cap without overwriting", () => {
+    clearStorageForTest();
+    bankFeathers(2);
+    expect(loadAll().feathers).toBe(2);
+
+    // Add 1 feather -> should reach 3
+    expect(addFeathers(1)).toBe(3);
+    expect(loadAll().feathers).toBe(3);
+
+    // Add 1 more when at 3/3 -> should stay at 3 (capped)
+    expect(addFeathers(1)).toBe(3);
+    expect(loadAll().feathers).toBe(3);
   });
 
   it("records play session time and pipes passed incrementally", () => {

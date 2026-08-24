@@ -6,8 +6,10 @@ import {
   setBiome,
   getStoredMissions,
   saveStoredMissions,
-  bankFeathers,
+  addFeathers,
 } from "../core/storage";
+import { enableDragScroll } from "../utils/dom";
+import { formatDuration } from "../utils/time";
 
 export interface GameOverCallbacks {
   onRetry: () => void;
@@ -15,60 +17,6 @@ export interface GameOverCallbacks {
   onCharacterChange?: (charId: CharacterId) => void;
   onBiomeChange?: (biomeId: BiomeId | "auto") => void;
   onClaimQuest?: (rewardFeathers: number) => void;
-}
-
-function formatDuration(sec: number): string {
-  const m = Math.floor(sec / 60);
-  const s = Math.floor(sec % 60);
-  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}s`;
-}
-
-function enableDragScroll(el: HTMLElement): void {
-  let isDown = false;
-  let startX = 0;
-  let scrollLeft = 0;
-  let hasMoved = false;
-
-  el.classList.add("drag-scroll");
-
-  el.addEventListener("pointerdown", (e: PointerEvent) => {
-    if (e.button !== 0 && e.pointerType === "mouse") return;
-    isDown = true;
-    hasMoved = false;
-    startX = e.pageX - el.offsetLeft;
-    scrollLeft = el.scrollLeft;
-  });
-
-  const onPointerMove = (e: PointerEvent) => {
-    if (!isDown) return;
-    const x = e.pageX - el.offsetLeft;
-    const walk = x - startX;
-    if (Math.abs(walk) > 5) {
-      hasMoved = true;
-    }
-    el.scrollLeft = scrollLeft - walk;
-  };
-
-  const onPointerUp = () => {
-    if (!isDown) return;
-    isDown = false;
-  };
-
-  window.addEventListener("pointermove", onPointerMove);
-  window.addEventListener("pointerup", onPointerUp);
-  window.addEventListener("pointercancel", onPointerUp);
-
-  el.addEventListener(
-    "click",
-    (e) => {
-      if (hasMoved) {
-        e.stopPropagation();
-        e.preventDefault();
-        hasMoved = false;
-      }
-    },
-    true,
-  );
 }
 
 export class GameOverView {
@@ -281,7 +229,7 @@ export class GameOverView {
         e.stopPropagation();
         readyMission.claimed = true;
         saveStoredMissions(missions);
-        bankFeathers(readyMission.rewardFeathers);
+        addFeathers(readyMission.rewardFeathers);
         this.callbacks?.onClaimQuest?.(readyMission.rewardFeathers);
         this.questClaimContainer.style.display = "none";
       });

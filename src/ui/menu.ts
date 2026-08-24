@@ -8,10 +8,12 @@ import {
   touchStreak,
   getStoredMissions,
   saveStoredMissions,
-  bankFeathers,
+  addFeathers,
 } from "../core/storage";
 import { CHARACTERS, type CharacterId, isCharacterUnlocked } from "../core/characters";
 import { BIOMES, type BiomeId } from "../core/biomes";
+import { enableDragScroll } from "../utils/dom";
+import { formatDuration } from "../utils/time";
 
 export interface MenuCallbacks {
   onStart: () => void;
@@ -21,54 +23,6 @@ export interface MenuCallbacks {
   onMuteToggle: (muted: boolean) => void;
   onMissionClaim?: () => void;
   onToast?: (msg: string) => void;
-}
-
-function enableDragScroll(el: HTMLElement): void {
-  let isDown = false;
-  let startX = 0;
-  let scrollLeft = 0;
-  let hasMoved = false;
-
-  el.classList.add("drag-scroll");
-
-  el.addEventListener("pointerdown", (e: PointerEvent) => {
-    if (e.button !== 0 && e.pointerType === "mouse") return;
-    isDown = true;
-    hasMoved = false;
-    startX = e.pageX - el.offsetLeft;
-    scrollLeft = el.scrollLeft;
-  });
-
-  const onPointerMove = (e: PointerEvent) => {
-    if (!isDown) return;
-    const x = e.pageX - el.offsetLeft;
-    const walk = x - startX;
-    if (Math.abs(walk) > 5) {
-      hasMoved = true;
-    }
-    el.scrollLeft = scrollLeft - walk;
-  };
-
-  const onPointerUp = () => {
-    if (!isDown) return;
-    isDown = false;
-  };
-
-  window.addEventListener("pointermove", onPointerMove);
-  window.addEventListener("pointerup", onPointerUp);
-  window.addEventListener("pointercancel", onPointerUp);
-
-  el.addEventListener(
-    "click",
-    (e) => {
-      if (hasMoved) {
-        e.stopPropagation();
-        e.preventDefault();
-        hasMoved = false;
-      }
-    },
-    true,
-  );
 }
 
 export class MenuView {
@@ -446,7 +400,7 @@ export class MenuView {
           e.stopPropagation();
           m.claimed = true;
           saveStoredMissions(missions);
-          bankFeathers(loadAll().feathers + m.rewardFeathers);
+          addFeathers(m.rewardFeathers);
           this.callbacks.onMissionClaim?.();
           this.refresh();
         });

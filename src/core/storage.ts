@@ -161,6 +161,13 @@ export function bankFeathers(balanceOrEarned: number, rewindsUsed = 0): number {
   return total;
 }
 
+export function addFeathers(amount: number): number {
+  const data = loadAll();
+  const newTotal = Math.min(FEATHER_BANK_CAP, Math.max(0, data.feathers + amount));
+  setLocal("feathers", newTotal.toString());
+  return newTotal;
+}
+
 export function resetSessionFeathers(): void {
   setLocal("feathers", "0");
 }

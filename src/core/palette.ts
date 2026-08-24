@@ -1,3 +1,5 @@
+import { lerpHex } from "../utils/color";
+
 export interface PaletteOut {
   skyTop: number;
   skyBottom: number;
@@ -21,15 +23,6 @@ const STOPS: Stop[] = [
   { skyTop: 0x070b1e, skyBottom: 0x1c2b52, fogColor: 0x10182e, sunAngle: 4.2, starAlpha: 1 },      // night (60)
 ];
 
-function lerpColor(c1: number, c2: number, t: number): number {
-  const r1 = (c1 >> 16) & 0xff, g1 = (c1 >> 8) & 0xff, b1 = c1 & 0xff;
-  const r2 = (c2 >> 16) & 0xff, g2 = (c2 >> 8) & 0xff, b2 = c2 & 0xff;
-  const r = Math.round(r1 + (r2 - r1) * t);
-  const g = Math.round(g1 + (g2 - g1) * t);
-  const b = Math.round(b1 + (b2 - b1) * t);
-  return (r << 16) | (g << 8) | b;
-}
-
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
@@ -49,9 +42,9 @@ export function dayNight(score: number): PaletteOut {
   const sunAngle = lerp(s1.sunAngle, targetAngle, t);
 
   return {
-    skyTop: lerpColor(s1.skyTop, s2.skyTop, t),
-    skyBottom: lerpColor(s1.skyBottom, s2.skyBottom, t),
-    fogColor: lerpColor(s1.fogColor, s2.fogColor, t),
+    skyTop: lerpHex(s1.skyTop, s2.skyTop, t),
+    skyBottom: lerpHex(s1.skyBottom, s2.skyBottom, t),
+    fogColor: lerpHex(s1.fogColor, s2.fogColor, t),
     sunAngle,
     starAlpha: lerp(s1.starAlpha, s2.starAlpha, t),
   };
