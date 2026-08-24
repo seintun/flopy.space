@@ -7,10 +7,10 @@ export interface SkinDef {
 }
 
 export const SKINS: Record<string, SkinDef> = {
-  classic: { id: "classic", name: "Classic", bodyColor: 0xf4c430, bellyColor: 0xffffff, unlockScore: 0 },
-  sunrise: { id: "sunrise", name: "Sunrise", bodyColor: 0xff7e47, bellyColor: 0xffe4b5, unlockScore: 15 },
-  ember: { id: "ember", name: "Ember", bodyColor: 0xe63946, bellyColor: 0x1d3557, unlockScore: 30 },
-  void: { id: "void", name: "Void", bodyColor: 0x7209b7, bellyColor: 0x4cc9f0, unlockScore: 50 },
+  classic: { id: "classic", name: "Ginger Tabby", bodyColor: 0xff9f1c, bellyColor: 0xfff8f0, unlockScore: 0 },
+  sunrise: { id: "sunrise", name: "Sakura Neko", bodyColor: 0xff8da1, bellyColor: 0xfff0f5, unlockScore: 15 },
+  ember: { id: "ember", name: "Midnight Cat", bodyColor: 0x25262c, bellyColor: 0x3a3d46, unlockScore: 30 },
+  void: { id: "void", name: "Cosmic Starcat", bodyColor: 0x7928ca, bellyColor: 0x00dfd8, unlockScore: 50 },
 };
 
 export interface SaveData {

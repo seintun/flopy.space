@@ -57,7 +57,7 @@ export function initHud(container: HTMLElement): HudApi {
     <!-- Center Tap prompt -->
     <div id="hud-menu-panel" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: auto; text-align: center;">
       <h1 style="font-size: 42px; font-weight: 900; margin: 0 0 8px 0; color: #ffd700; letter-spacing: 2px; text-shadow: 0 4px 20px rgba(255,215,0,0.5);">
-        FLAPPY 3D
+        FLAPPY CAT 🐾
       </h1>
       <div style="font-size: 16px; font-weight: 700; color: #ffffff; background: rgba(0,0,0,0.4); padding: 8px 18px; border-radius: 20px; letter-spacing: 1px; animation: pulse 1.5s infinite alternate;">
         TAP TO FLY

@@ -46,8 +46,8 @@ export class MenuView {
 
       <!-- Center Title & Tap Prompt -->
       <div style="display: flex; flex-direction: column; align-items: center; pointer-events: none; margin-top: -30px;">
-        <h1 style="font-size: 52px; font-weight: 900; margin: 0 0 6px 0; color: #ffd700; letter-spacing: 2px; text-shadow: 0 4px 24px rgba(255,215,0,0.6); text-align: center;">
-          FLAPPY 3D
+        <h1 style="font-size: 48px; font-weight: 900; margin: 0 0 6px 0; color: #ffd700; letter-spacing: 2px; text-shadow: 0 4px 24px rgba(255,215,0,0.6); text-align: center;">
+          FLAPPY CAT 🐾
         </h1>
         <div id="menu-best-label" style="font-size: 14px; font-weight: 800; color: #00e5ff; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; background: rgba(0,0,0,0.35); padding: 4px 14px; border-radius: 12px;">
           Best: <span id="menu-best-val">0</span>
@@ -60,7 +60,7 @@ export class MenuView {
       <!-- Bottom Skins Selector -->
       <div style="width: 100%; display: flex; flex-direction: column; align-items: center; pointer-events: auto; margin-bottom: 8px;">
         <div style="font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #ccd; margin-bottom: 8px;">
-          Bird Skin
+          Cat Skin
         </div>
         <div id="menu-skin-list" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; max-width: 320px;">
           <!-- Dynamically populated skins -->

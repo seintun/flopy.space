@@ -1,20 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#2c3e6b"/>
-      <stop offset="100%" stop-color="#ffb347"/>
+      <stop offset="0%" stop-color="#1a2350"/>
+      <stop offset="100%" stop-color="#ff7e47"/>
     </linearGradient>
-    <linearGradient id="bird" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fff066"/>
-      <stop offset="100%" stop-color="#f4c430"/>
+    <linearGradient id="cat" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffb703"/>
+      <stop offset="100%" stop-color="#fb8500"/>
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="128" fill="url(#bg)"/>
-  <circle cx="230" cy="256" r="110" fill="url(#bird)"/>
-  <circle cx="210" cy="275" r="75" fill="#ffffff" opacity="0.9"/>
-  <polygon points="320,230 420,260 320,290" fill="#ff5500"/>
-  <circle cx="280" cy="225" r="28" fill="#ffffff"/>
-  <circle cx="292" cy="225" r="14" fill="#111111"/>
-  <circle cx="298" cy="220" r="5" fill="#ffffff"/>
-  <ellipse cx="160" cy="270" rx="60" ry="25" fill="#e5aa20" transform="rotate(-20 160 270)"/>
+  <!-- Cat Ears -->
+  <polygon points="170,120 230,220 130,200" fill="#fb8500"/>
+  <polygon points="175,145 215,210 145,200" fill="#ffb4a2"/>
+  <polygon points="342,120 282,220 382,200" fill="#fb8500"/>
+  <polygon points="337,145 297,210 367,200" fill="#ffb4a2"/>
+  <!-- Wings -->
+  <ellipse cx="140" cy="300" rx="70" ry="28" fill="#ffffff" opacity="0.9" transform="rotate(-30 140 300)"/>
+  <ellipse cx="372" cy="300" rx="70" ry="28" fill="#ffffff" opacity="0.9" transform="rotate(30 372 300)"/>
+  <!-- Body -->
+  <circle cx="256" cy="280" r="130" fill="url(#cat)"/>
+  <circle cx="256" cy="310" r="85" fill="#fff8f0"/>
+  <!-- Eyes -->
+  <ellipse cx="205" cy="260" rx="24" ry="30" fill="#1a1a24"/>
+  <circle cx="212" cy="250" r="9" fill="#ffffff"/>
+  <circle cx="200" cy="272" r="4" fill="#ffffff"/>
+  <ellipse cx="307" cy="260" rx="24" ry="30" fill="#1a1a24"/>
+  <circle cx="314" cy="250" r="9" fill="#ffffff"/>
+  <circle cx="302" cy="272" r="4" fill="#ffffff"/>
+  <!-- Nose & Cheeks -->
+  <circle cx="238" cy="300" r="22" fill="#ffffff"/>
+  <circle cx="274" cy="300" r="22" fill="#ffffff"/>
+  <polygon points="256,292 248,282 264,282" fill="#ff6b8b"/>
+  <!-- Whiskers -->
+  <line x1="170" y1="290" x2="110" y2="280" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  <line x1="170" y1="305" x2="110" y2="315" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  <line x1="342" y1="290" x2="402" y2="280" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  <line x1="342" y1="305" x2="402" y2="315" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
 </svg>

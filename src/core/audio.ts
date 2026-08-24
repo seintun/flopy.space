@@ -44,27 +44,44 @@ export class AudioSys {
     if (this.muted || !this.ctx || !this.masterGain) return;
     const now = this.ctx.currentTime;
 
+    // 1. Soft whoosh
     const noise = this.ctx.createBufferSource();
     const noiseBuf = this.createNoiseBuffer(0.08);
-    if (!noiseBuf) return;
-    noise.buffer = noiseBuf;
+    if (noiseBuf) {
+      noise.buffer = noiseBuf;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.setValueAtTime(450, now);
+      filter.frequency.exponentialRampToValueAtTime(1000, now + 0.08);
+      filter.Q.setValueAtTime(2, now);
 
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = "bandpass";
-    filter.frequency.setValueAtTime(400, now);
-    filter.frequency.exponentialRampToValueAtTime(900, now + 0.08);
-    filter.Q.setValueAtTime(2, now);
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
 
-    const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.masterGain);
 
-    noise.connect(filter);
-    filter.connect(gain);
-    gain.connect(this.masterGain);
+      noise.start(now);
+      noise.stop(now + 0.08);
+    }
 
-    noise.start(now);
-    noise.stop(now + 0.08);
+    // 2. Cute soft mew/purr chirrup harmonic
+    const osc = this.ctx.createOscillator();
+    const oscGain = this.ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(680, now);
+    osc.frequency.exponentialRampToValueAtTime(980, now + 0.06);
+
+    oscGain.gain.setValueAtTime(0.08, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+    osc.connect(oscGain);
+    oscGain.connect(this.masterGain);
+
+    osc.start(now);
+    osc.stop(now + 0.07);
   }
 
   score(combo: number): void {
@@ -75,13 +92,13 @@ export class AudioSys {
     const gain = this.ctx.createGain();
 
     const semitones = Math.min(combo, 24);
-    const freq = 520 * Math.pow(2, semitones / 24);
+    const freq = 560 * Math.pow(2, semitones / 24);
 
     osc.type = "sine";
     osc.frequency.setValueAtTime(freq, now);
-    osc.frequency.exponentialRampToValueAtTime(freq * 1.05, now + 0.12);
+    osc.frequency.exponentialRampToValueAtTime(freq * 1.08, now + 0.12);
 
-    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.setValueAtTime(0.28, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
     osc.connect(gain);
@@ -141,21 +158,22 @@ export class AudioSys {
     if (this.muted || !this.ctx || !this.masterGain) return;
     const now = this.ctx.currentTime;
 
+    // Sad meow pitch slide down
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
     osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(220, now);
-    osc.frequency.exponentialRampToValueAtTime(55, now + 0.3);
+    osc.frequency.setValueAtTime(320, now);
+    osc.frequency.exponentialRampToValueAtTime(90, now + 0.35);
 
-    gain.gain.setValueAtTime(0.4, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
     osc.connect(gain);
     gain.connect(this.masterGain);
 
     osc.start(now);
-    osc.stop(now + 0.3);
+    osc.stop(now + 0.35);
   }
 
   rewind(): void {
