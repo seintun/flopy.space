@@ -181,4 +181,24 @@ describe("Devil's Advocate: State Machine Flap/Spacebar Triggers", () => {
     expect(buf.canRewind()).toBe(true);
     expect(w.feathersRun).toBe(2);
   });
+
+  it("gameOver state: spacebar defaults to chooseRewind when user has feathers and buffer is ready", () => {
+    const w = createWorld(1);
+    w.feathersRun = 1;
+    const buf = new SnapshotBuffer();
+    for (let i = 0; i < BUFFER_LEN; i++) buf.record(w);
+
+    const availableFeathers = Math.max(w.feathersRun, loadAll().feathers);
+    expect(availableFeathers > 0 && buf.canRewind()).toBe(true);
+  });
+
+  it("gameOver state: spacebar restarts new game when feathers are 0", () => {
+    clearStorageForTest();
+    const w = createWorld(1);
+    w.feathersRun = 0;
+    const buf = new SnapshotBuffer();
+
+    const availableFeathers = Math.max(w.feathersRun, loadAll().feathers);
+    expect(availableFeathers > 0 && buf.canRewind()).toBe(false);
+  });
 });

@@ -114,6 +114,12 @@ game.hooks = {
       gameoverView.hide();
       hud.hideRewindPrompt();
       hud.hideCountdown();
+    } else if (state === "rewindReplay") {
+      menuView.hide();
+      hud.hideMenu();
+      gameoverView.hide();
+      hud.hideRewindPrompt();
+      hud.hideCountdown();
     } else if (state === "rewindChoice") {
       const savedData = loadAll();
       hud.showRewindPrompt(

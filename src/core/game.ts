@@ -191,7 +191,8 @@ export class Game {
       return;
     }
     if (this.state === "rewindChoice") {
-      if (this.world.feathersRun > 0 && this.buf.canRewind()) {
+      const availableFeathers = Math.max(this.world.feathersRun, loadAll().feathers);
+      if (availableFeathers > 0 && this.buf.canRewind()) {
         this.chooseRewind();
       } else {
         this.acceptDeath();
@@ -199,6 +200,11 @@ export class Game {
       return;
     }
     if (this.state === "gameOver") {
+      const availableFeathers = Math.max(this.world.feathersRun, loadAll().feathers);
+      if (availableFeathers > 0 && this.buf.canRewind()) {
+        this.chooseRewind();
+        return;
+      }
       this.start();
       return;
     }
