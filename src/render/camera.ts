@@ -8,17 +8,23 @@ export interface CameraRig {
 }
 
 export function createCameraRig(getAspect: () => number): CameraRig {
-  const camera = new THREE.PerspectiveCamera(70, getAspect(), 0.1, 120);
+  const camera = new THREE.PerspectiveCamera(70, getAspect(), 0.1, 100);
   let currentY = 1.5;
   let targetY = 1.5;
   let currentLookY = 0.75;
   let fovKickAmt = 0;
 
   const getBaseFov = (aspect: number) => {
-    // Dynamic FOV curve: expands gracefully on narrow portrait mobile screens
+    // 1. Mobile Portrait (aspect < 1.0): Expands FOV and pulls back so runway matches landscape
     if (aspect < 0.6) return 78;
     if (aspect < 1.0) return 72;
-    return 60;
+    // 2. Standard Landscape (1.0 <= aspect <= 1.78): Standard 60 deg
+    if (aspect <= 1.78) return 60;
+    // 3. Anti-Cheat / Fair Play: Ultrawide Landscape (aspect > 1.78, e.g. 21:9, 32:9, multi-monitor)
+    // Clamps the horizontal vision angle so ultrawide players cannot see extra pipes ahead!
+    const targetHdeg = 92; // fixed maximum horizontal field
+    const clampedVdeg = 2 * Math.atan(Math.tan((targetHdeg * Math.PI) / 360) / aspect) * (180 / Math.PI);
+    return Math.min(60, Math.max(30, clampedVdeg));
   };
 
   const update = (dt: number, birdY: number) => {

@@ -15,7 +15,7 @@ export interface SceneCtx {
 
 export function createScene(container: HTMLElement, camera: THREE.PerspectiveCamera): SceneCtx {
   const scene = new THREE.Scene();
-  const fog = new THREE.Fog(0xd9a06b, 25, 60);
+  const fog = new THREE.Fog(0xd9a06b, 16, 28);
   scene.fog = fog;
 
   const renderer = new THREE.WebGLRenderer({

@@ -17,5 +17,16 @@ describe("CameraRig Mobile Responsiveness", () => {
     rig.update(0.016, 1.5);
     expect(rig.camera.fov).toBe(60);
     expect(rig.camera.position.z).toBeCloseTo(11, 0.1);
+
+    // Ultrawide 21:9 (aspect = 2.33) & 32:9 (aspect = 3.55)
+    aspect = 2.33;
+    rig.onResize(aspect);
+    rig.update(0.016, 1.5);
+    expect(rig.camera.fov).toBeLessThan(60); // Clamped to prevent forward sightline advantage
+
+    aspect = 3.55;
+    rig.onResize(aspect);
+    rig.update(0.016, 1.5);
+    expect(rig.camera.fov).toBeLessThan(40);
   });
 });
