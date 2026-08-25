@@ -5,26 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>FLOPY.SPACE — 3D Time Arcade</title>
 
+  <!-- Canonical & Discoverability -->
+  <link rel="canonical" href="https://flopy.space/" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
   <!-- Primary Meta Tags -->
   <meta name="title" content="FLOPY.SPACE — 3D Time Arcade" />
   <meta name="description" content="Play FLOPY.SPACE: The viral 3D arcade flyer featuring cute heroes, power-ups, daily quests, and 4D time rewind mechanics right in your browser." />
-  <meta name="keywords" content="flopy, flopy space, 3d arcade game, browser game, mobile arcade, 4d rewind, time dilation, webgl, threejs" />
+  <meta name="keywords" content="flopy, flopy space, 3d arcade game, browser game, mobile arcade, 4d rewind, time dilation, webgl, threejs, pwa game" />
   <meta name="author" content="Sein Tun" />
   <meta name="theme-color" content="#0a1024" />
 
   <!-- Open Graph / Facebook / Discord / iMessage -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://seintun.github.io/flopy.space/" />
+  <meta property="og:url" content="https://flopy.space/" />
+  <meta property="og:site_name" content="FLOPY.SPACE" />
   <meta property="og:title" content="FLOPY.SPACE — 3D Time Arcade" />
   <meta property="og:description" content="Fly, combo, and rewind time in full 3D! Play instantly on mobile or desktop." />
-  <meta property="og:image" content="https://seintun.github.io/flopy.space/icon.svg" />
+  <meta property="og:image" content="https://flopy.space/icon.svg" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+  <meta property="og:image:alt" content="FLOPY.SPACE 3D Time Arcade Game Icon" />
+  <meta property="og:locale" content="en_US" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" content="https://seintun.github.io/flopy.space/" />
+  <meta name="twitter:url" content="https://flopy.space/" />
   <meta name="twitter:title" content="FLOPY.SPACE — 3D Time Arcade" />
   <meta name="twitter:description" content="Fly, combo, and rewind time in full 3D! Play instantly on mobile or desktop." />
-  <meta name="twitter:image" content="https://seintun.github.io/flopy.space/icon.svg" />
+  <meta name="twitter:image" content="https://flopy.space/icon.svg" />
+  <meta name="twitter:creator" content="@seintun" />
 
   <!-- Mobile PWA & Apple WebApp -->
   <meta name="mobile-web-app-capable" content="yes" />
@@ -32,6 +42,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="FLOPY.SPACE" />
   <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="mask-icon" href="icon.svg" color="#00e5ff" />
+  <link rel="shortcut icon" href="icon.svg" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
 
@@ -39,6 +51,51 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Structured Data: Schema.org VideoGame & WebApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "VideoGame",
+        "name": "FLOPY.SPACE",
+        "url": "https://flopy.space/",
+        "description": "Play FLOPY.SPACE: The viral 3D arcade flyer featuring cute heroes, power-ups, daily quests, and 4D time rewind mechanics right in your browser.",
+        "genre": ["Arcade", "Action", "Endless Runner"],
+        "playMode": "SinglePlayer",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Any",
+        "inLanguage": "en",
+        "author": {
+          "@type": "Person",
+          "name": "Sein Tun",
+          "url": "https://github.com/seintun"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        },
+        "image": "https://flopy.space/icon.svg"
+      },
+      {
+        "@type": "WebApplication",
+        "name": "FLOPY.SPACE",
+        "url": "https://flopy.space/",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires WebGL and WebAudio support",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <div id="app"></div>
