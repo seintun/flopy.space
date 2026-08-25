@@ -270,7 +270,7 @@ export class Juice {
     if (item.timer2) clearTimeout(item.timer2);
 
     const el = item.el;
-    el.innerHTML = text;
+    el.textContent = text;
     el.style.color = color;
     el.style.textShadow = `0 2px 10px rgba(0,0,0,0.85), 0 0 16px ${color}88`;
     el.style.left = `${screenXPercent}%`;

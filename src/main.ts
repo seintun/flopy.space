@@ -30,7 +30,7 @@ const audio = new AudioSys();
 const rig = createCameraRig(() => window.innerWidth / window.innerHeight);
 const ctx = createScene(app, rig.camera);
 const game = new Game(ctx, rig, app);
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && import.meta.env?.DEV) {
   (window as any).__FLOPY_GAME__ = game;
 }
 

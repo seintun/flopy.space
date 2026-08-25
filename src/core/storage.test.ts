@@ -35,6 +35,26 @@ describe("storage", () => {
     expect(data.totalRuns).toBe(0);
   });
 
+  it("safely recovers from corrupted array entries without throwing TypeError", () => {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("f3d.unlocked", "true");
+      localStorage.setItem("f3d.unlockedChars", "42");
+      localStorage.setItem("f3d.unlockedBiomes", "{}");
+      localStorage.setItem("f3d.missions", JSON.stringify({ invalid: true }));
+    }
+    const data = loadAll();
+    expect(Array.isArray(data.unlocked)).toBe(true);
+    expect(data.unlocked).toContain("classic");
+    expect(Array.isArray(data.unlockedChars)).toBe(true);
+    expect(data.unlockedChars).toContain("bird");
+    expect(Array.isArray(data.unlockedBiomes)).toBe(true);
+    expect(data.unlockedBiomes).toContain("meadow");
+
+    const missions = getStoredMissions();
+    expect(Array.isArray(missions)).toBe(true);
+    expect(missions.length).toBeGreaterThan(0);
+  });
+
   it("updates best score and flags isNewBest", () => {
     expect(saveBest(10)).toEqual({ best: 10, isNewBest: true });
     expect(saveBest(8)).toEqual({ best: 10, isNewBest: false });

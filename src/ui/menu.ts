@@ -586,24 +586,35 @@ export class MenuView {
 
     const progressPct = Math.min(100, Math.round((m.current / m.goal) * 100));
 
-    item.innerHTML = `
-      <div style="flex: 1;">
-        <div style="font-size: 11px; font-weight: 800; color: #fff;">${m.title}</div>
-        <div style="font-size: 9px; color: #94a3b8;">${m.description} (${Math.min(m.current, m.goal)}/${m.goal})</div>
-        <div style="width: 100%; height: 3px; background: rgba(0,0,0,0.5); border-radius: 2px; margin-top: 4px; overflow: hidden;">
-          <div style="width: ${progressPct}%; height: 100%; background: ${m.completed ? "linear-gradient(90deg, #00ffc3, #00b4d8)" : "#00e5ff"};"></div>
-        </div>
-      </div>
-      <div style="margin-left: 10px;">
-        ${
-          m.claimed
-            ? '<span style="font-size: 10px; color: #64748b; font-weight: 800;">CLAIMED</span>'
-            : m.completed
-              ? `<button class="btn interactive claim-btn" data-id="${m.id}" style="background: linear-gradient(135deg, #00ffc3, #00b4d8); color: #002233; font-weight: 800; font-size: 10px; border: none; border-radius: 10px; padding: 4px 10px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,255,195,0.4);">CLAIM +${m.rewardFeathers}🪶</button>`
-              : `<span style="font-size: 10px; color: #00e5ff; font-weight: 800;">+${m.rewardFeathers} 🪶</span>`
-        }
-      </div>
-    `;
+    const infoContainer = document.createElement("div");
+    infoContainer.style.cssText = "flex: 1;";
+
+    const titleEl = document.createElement("div");
+    titleEl.style.cssText = "font-size: 11px; font-weight: 800; color: #fff;";
+    titleEl.textContent = m.title;
+
+    const descEl = document.createElement("div");
+    descEl.style.cssText = "font-size: 9px; color: #94a3b8;";
+    descEl.textContent = `${m.description} (${Math.min(m.current, m.goal)}/${m.goal})`;
+
+    const barContainer = document.createElement("div");
+    barContainer.style.cssText = "width: 100%; height: 3px; background: rgba(0,0,0,0.5); border-radius: 2px; margin-top: 4px; overflow: hidden;";
+    barContainer.innerHTML = `<div style="width: ${progressPct}%; height: 100%; background: ${m.completed ? "linear-gradient(90deg, #00ffc3, #00b4d8)" : "#00e5ff"};"></div>`;
+
+    infoContainer.appendChild(titleEl);
+    infoContainer.appendChild(descEl);
+    infoContainer.appendChild(barContainer);
+
+    const actionContainer = document.createElement("div");
+    actionContainer.style.cssText = "margin-left: 10px;";
+    actionContainer.innerHTML = m.claimed
+      ? '<span style="font-size: 10px; color: #64748b; font-weight: 800;">CLAIMED</span>'
+      : m.completed
+        ? `<button class="btn interactive claim-btn" data-id="${m.id}" style="background: linear-gradient(135deg, #00ffc3, #00b4d8); color: #002233; font-weight: 800; font-size: 10px; border: none; border-radius: 10px; padding: 4px 10px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,255,195,0.4);">CLAIM +${m.rewardFeathers}🪶</button>`
+        : `<span style="font-size: 10px; color: #00e5ff; font-weight: 800;">+${m.rewardFeathers} 🪶</span>`;
+
+    item.appendChild(infoContainer);
+    item.appendChild(actionContainer);
 
     const claimBtn = item.querySelector(".claim-btn");
     if (claimBtn) {

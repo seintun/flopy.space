@@ -86,6 +86,17 @@ export function clearStorageForTest(): void {
   }
 }
 
+function safeParseArray<T>(raw: string | null, fallback: T[]): T[] {
+  if (!raw) return [...fallback];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [...fallback];
+    return parsed as T[];
+  } catch {
+    return [...fallback];
+  }
+}
+
 export function loadAll(): SaveData {
   const best = parseInt(getLocal("best") || "0", 10) || 0;
   const tokens = Math.max(0, parseInt(getLocal("tokens") || "0", 10) || 0);
@@ -99,37 +110,27 @@ export function loadAll(): SaveData {
   let streak = { lastDay: "", count: 0 };
   try {
     const rawStreak = getLocal("streak");
-    if (rawStreak) streak = JSON.parse(rawStreak);
+    if (rawStreak) {
+      const parsed = JSON.parse(rawStreak);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        streak = {
+          lastDay: typeof parsed.lastDay === "string" ? parsed.lastDay : "",
+          count: typeof parsed.count === "number" && !isNaN(parsed.count) ? parsed.count : 0,
+        };
+      }
+    }
   } catch {
     streak = { lastDay: "", count: 0 };
   }
 
-  let unlocked = ["classic"];
-  try {
-    const rawUnlocked = getLocal("unlocked");
-    if (rawUnlocked) unlocked = JSON.parse(rawUnlocked);
-    if (!unlocked.includes("classic")) unlocked.unshift("classic");
-  } catch {
-    unlocked = ["classic"];
-  }
+  const unlocked = safeParseArray(getLocal("unlocked"), ["classic"]);
+  if (!unlocked.includes("classic")) unlocked.unshift("classic");
 
-  let unlockedChars: string[] = ["bird"];
-  try {
-    const rawUnlockedChars = getLocal("unlockedChars");
-    if (rawUnlockedChars) unlockedChars = JSON.parse(rawUnlockedChars);
-    if (!unlockedChars.includes("bird")) unlockedChars.unshift("bird");
-  } catch {
-    unlockedChars = ["bird"];
-  }
+  const unlockedChars = safeParseArray(getLocal("unlockedChars"), ["bird"]);
+  if (!unlockedChars.includes("bird")) unlockedChars.unshift("bird");
 
-  let unlockedBiomes: string[] = ["meadow"];
-  try {
-    const rawUnlockedBiomes = getLocal("unlockedBiomes");
-    if (rawUnlockedBiomes) unlockedBiomes = JSON.parse(rawUnlockedBiomes);
-    if (!unlockedBiomes.includes("meadow")) unlockedBiomes.unshift("meadow");
-  } catch {
-    unlockedBiomes = ["meadow"];
-  }
+  const unlockedBiomes = safeParseArray(getLocal("unlockedBiomes"), ["meadow"]);
+  if (!unlockedBiomes.includes("meadow")) unlockedBiomes.unshift("meadow");
 
   let skin = getLocal("skin") || "classic";
   if (!SKINS[skin]) skin = "classic";
@@ -410,11 +411,7 @@ export function getStoredMissions(): Mission[] {
   let daily: Mission[] = [];
 
   if (storedDate === today && rawMissions) {
-    try {
-      daily = JSON.parse(rawMissions);
-    } catch {
-      daily = getDailyMissionsForDate(today);
-    }
+    daily = safeParseArray(rawMissions, getDailyMissionsForDate(today));
   } else {
     daily = getDailyMissionsForDate(today);
     setLocal("missionsDate", today);
@@ -422,15 +419,8 @@ export function getStoredMissions(): Mission[] {
   }
 
   const rawLifetime = getLocal("lifetimeMissions");
-  let storedLifetime: Mission[] | undefined;
-  if (rawLifetime) {
-    try {
-      storedLifetime = JSON.parse(rawLifetime);
-    } catch {
-      // fallback
-    }
-  }
-  const lifetime = getLifetimeMissions(storedLifetime);
+  const storedLifetime = rawLifetime ? safeParseArray<Mission>(rawLifetime, []) : undefined;
+  const lifetime = getLifetimeMissions(storedLifetime && storedLifetime.length > 0 ? storedLifetime : undefined);
 
   return [...daily, ...lifetime];
 }
