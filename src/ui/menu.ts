@@ -92,7 +92,7 @@ export class MenuView {
             </div>
           </div>
           <div style="display: flex; gap: 6px; align-items: center;">
-            <button id="menu-install-btn" class="btn interactive" style="display: none; background: linear-gradient(135deg, #00ffc3, #00b4d8); color: #002233; font-weight: 800; font-size: 10px; border: none; border-radius: 14px; padding: 5px 10px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,255,195,0.4); touch-action: manipulation;">
+            <button id="menu-install-btn" class="btn interactive" style="display: flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #00ffc3, #00b4d8); color: #002233; font-weight: 800; font-size: 10px; border: none; border-radius: 14px; padding: 5px 10px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,255,195,0.4); touch-action: manipulation;">
               📲 INSTALL
             </button>
             <div id="menu-tokens" style="display: flex; align-items: center; gap: 4px; background: rgba(13, 17, 30, 0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 5px 10px; border-radius: 18px; border: 1px solid rgba(255, 215, 0, 0.4); font-weight: 800; font-size: 11px; color: #ffd700; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
@@ -192,18 +192,20 @@ export class MenuView {
     this.tabContentEl = this.el.querySelector("#menu-tab-content")!;
     this.goalPillEl = this.el.querySelector("#menu-goal-pill")!;
 
-    // Install App CTA
+    // Universal Install App & Offline Status CTA
     const installBtn = this.el.querySelector("#menu-install-btn") as HTMLElement;
-    const installMgr = new InstallManager((canInstall) => {
-      if (installBtn) {
-        installBtn.style.display = canInstall ? "block" : "none";
-      }
+    const installMgr = new InstallManager(() => {
+      this.updateInstallBtnState(installBtn, installMgr);
     });
     if (installBtn) {
-      installBtn.style.display = installMgr.canInstall() ? "block" : "none";
+      this.updateInstallBtnState(installBtn, installMgr);
       installBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        installMgr.promptInstall();
+        if (installMgr.canInstall()) {
+          installMgr.promptInstall();
+        } else {
+          installMgr.showInstallModal(this.el);
+        }
       });
     }
 
@@ -703,6 +705,23 @@ export class MenuView {
 
     this.tabContentEl.appendChild(list);
     enableDragScroll(list);
+  }
+
+  private updateInstallBtnState(btn: HTMLElement, mgr: InstallManager): void {
+    if (!btn) return;
+    if (mgr.isStandalone()) {
+      btn.style.display = "flex";
+      btn.style.background = "rgba(0, 255, 195, 0.15)";
+      btn.style.border = "1px solid rgba(0, 255, 195, 0.4)";
+      btn.style.color = "#00ffc3";
+      btn.textContent = "⚡ OFFLINE";
+    } else {
+      btn.style.display = "flex";
+      btn.style.background = "linear-gradient(135deg, #00ffc3, #00b4d8)";
+      btn.style.border = "none";
+      btn.style.color = "#002233";
+      btn.textContent = "📲 INSTALL";
+    }
   }
 
   show(): void {
