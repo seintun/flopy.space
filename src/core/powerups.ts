@@ -1,3 +1,9 @@
+import {
+  CHIBI_DURATION, CHUBBY_DURATION,
+  CHIBI_HITBOX_MULT, CHUBBY_HITBOX_MULT,
+  CHIBI_VISUAL_SCALE, CHUBBY_VISUAL_SCALE,
+  HITBOX_RADIUS,
+} from "./constants";
 import { worldRand } from "./rand";
 import type { World } from "./types";
 
@@ -7,6 +13,8 @@ export type PowerUpType =
   | "shield"
   | "magnet"
   | "star_gem"
+  | "chibi"
+  | "chubby"
   | "hazard_mine"
   | "heavy_gravity"
   | "speed_surge";
@@ -25,6 +33,26 @@ export interface PowerUpDef {
 }
 
 export const POWERUPS: Record<PowerUpType, PowerUpDef> = {
+  chibi: {
+    type: "chibi",
+    name: "Chibi Nano",
+    emoji: "🐥",
+    description: "Shrinks hero to micro nano size for nimble dodging through tight gaps!",
+    category: "buff",
+    duration: CHIBI_DURATION,
+    color: 0x55ff99,
+    weight: 14,
+  },
+  chubby: {
+    type: "chubby",
+    name: "Chubby Chonker",
+    emoji: "🐡",
+    description: "WAGER! Inflates hero to giant chonker; grants +3x Coins & +3 bonus score per pipe!",
+    category: "wager",
+    duration: CHUBBY_DURATION,
+    color: 0xff66cc,
+    weight: 12,
+  },
   rainbow_trail: {
     type: "rainbow_trail",
     name: "Rainbow Prism",
@@ -127,4 +155,16 @@ export function pickRandomPowerUp(w: World): PowerUpType {
     }
   }
   return "rainbow_trail";
+}
+
+export function getEffectiveHitboxRadius(w: World): number {
+  if (w.chibiTimer > 0) return HITBOX_RADIUS * CHIBI_HITBOX_MULT;
+  if (w.chubbyTimer > 0) return HITBOX_RADIUS * CHUBBY_HITBOX_MULT;
+  return HITBOX_RADIUS;
+}
+
+export function getEffectiveVisualScale(w: World): number {
+  if (w.chibiTimer > 0) return CHIBI_VISUAL_SCALE;
+  if (w.chubbyTimer > 0) return CHUBBY_VISUAL_SCALE;
+  return 1.0;
 }

@@ -13,6 +13,8 @@ export interface HudApi {
     magnetLeft: number,
     heavyGravityLeft?: number,
     speedSurgeLeft?: number,
+    chibiLeft?: number,
+    chubbyLeft?: number,
   ) => void;
   showPowerUpToast: (icon: string, title: string, benefit: string, color: string) => void;
   showCountdown: (text: string) => void;
@@ -124,6 +126,12 @@ export function initHud(container: HTMLElement): HudApi {
           <div id="hud-pill-surge" style="display: none; font-size: 9px; font-weight: 800; color: #ffbe0b; background: rgba(255,136,0,0.28); padding: 2px 8px; border-radius: 8px; border: 1px solid rgba(255,136,0,0.65); box-shadow: 0 0 10px rgba(255,136,0,0.45);">
             ⚡ SURGE 3X <span id="hud-pill-surge-time">2s</span>
           </div>
+          <div id="hud-pill-chibi" style="display: none; font-size: 9px; font-weight: 800; color: #55ff99; background: rgba(85,255,153,0.28); padding: 2px 8px; border-radius: 8px; border: 1px solid rgba(85,255,153,0.65); box-shadow: 0 0 10px rgba(85,255,153,0.45);">
+            🐥 CHIBI <span id="hud-pill-chibi-time">5s</span>
+          </div>
+          <div id="hud-pill-chubby" style="display: none; font-size: 9px; font-weight: 800; color: #ff66cc; background: rgba(255,102,204,0.28); padding: 2px 8px; border-radius: 8px; border: 1px solid rgba(255,102,204,0.65); box-shadow: 0 0 10px rgba(255,102,204,0.45);">
+            🐡 CHUBBY 3X <span id="hud-pill-chubby-time">6s</span>
+          </div>
         </div>
       </div>
 
@@ -229,6 +237,10 @@ export function initHud(container: HTMLElement): HudApi {
   const gravityTime = hud.querySelector("#hud-pill-gravity-time") as HTMLElement;
   const surgePill = hud.querySelector("#hud-pill-surge") as HTMLElement;
   const surgeTime = hud.querySelector("#hud-pill-surge-time") as HTMLElement;
+  const chibiPill = hud.querySelector("#hud-pill-chibi") as HTMLElement;
+  const chibiTime = hud.querySelector("#hud-pill-chibi-time") as HTMLElement;
+  const chubbyPill = hud.querySelector("#hud-pill-chubby") as HTMLElement;
+  const chubbyTime = hud.querySelector("#hud-pill-chubby-time") as HTMLElement;
 
   return {
     setScore(score: number, pipesPassed = score, bonusScore = 0) {
@@ -284,6 +296,8 @@ export function initHud(container: HTMLElement): HudApi {
       magnetLeft: number,
       heavyGravityLeft = 0,
       speedSurgeLeft = 0,
+      chibiLeft = 0,
+      chubbyLeft = 0,
     ) {
       if (rainbowLeft > 0) {
         rainbowPill.style.display = "block";
@@ -313,6 +327,20 @@ export function initHud(container: HTMLElement): HudApi {
         surgeTime.textContent = `${Math.ceil(speedSurgeLeft)}s`;
       } else {
         surgePill.style.display = "none";
+      }
+
+      if (chibiLeft > 0) {
+        chibiPill.style.display = "block";
+        chibiTime.textContent = `${Math.ceil(chibiLeft)}s`;
+      } else {
+        chibiPill.style.display = "none";
+      }
+
+      if (chubbyLeft > 0) {
+        chubbyPill.style.display = "block";
+        chubbyTime.textContent = `${Math.ceil(chubbyLeft)}s`;
+      } else {
+        chubbyPill.style.display = "none";
       }
     },
     showPowerUpToast(icon: string, title: string, benefit: string, color: string) {
@@ -414,11 +442,13 @@ export function initHud(container: HTMLElement): HudApi {
       }
 
       if (feathers > 0) {
-        giveUpBtn.style.display = "none";
+        giveUpBtn.style.display = "block";
+        giveUpBtn.textContent = "SAVE FEATHERS & END RUN";
         rewindBtn.style.display = "block";
         rewindBtn.innerHTML = "⚡ REWIND & RESUME (−1 🪶)";
       } else {
         giveUpBtn.style.display = "block";
+        giveUpBtn.textContent = "VIEW FINAL RESULTS";
         rewindBtn.style.display = "none";
       }
 

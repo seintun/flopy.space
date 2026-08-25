@@ -3,6 +3,7 @@ import { BIRD_VISUAL_RADIUS, BIRD_X } from "../core/constants";
 import type { World } from "../core/types";
 import { CHARACTERS, type CharacterId } from "../core/characters";
 import { SKINS } from "../core/storage";
+import { getEffectiveVisualScale } from "../core/powerups";
 
 export class CharacterView {
   group: THREE.Group;
@@ -496,6 +497,19 @@ export class CharacterView {
     const wingAngle = Math.sin(this.wingT * Math.PI) * 1.3;
     this.leftWingPivot.rotation.x = wingAngle;
     this.rightWingPivot.rotation.x = -wingAngle;
+
+    // Dynamic Scale Shifter (Chibi / Chubby)
+    const targetScale = getEffectiveVisualScale(w);
+    const currentScale = this.charGroup.scale.x || 1.0;
+    const lerpedScale = THREE.MathUtils.lerp(currentScale, targetScale, 1 - Math.exp(-12 * dt));
+    
+    // Add cute flap squish/bounce
+    const squishFactor = this.wingT * (w.chubbyTimer > 0 ? 0.18 : 0.08);
+    this.charGroup.scale.set(
+      lerpedScale * (1 + squishFactor),
+      lerpedScale * (1 - squishFactor),
+      lerpedScale * (1 + squishFactor),
+    );
 
     // Ear wiggle
     const earWiggle = Math.sin(this.wingT * Math.PI * 2) * 0.15;

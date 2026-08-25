@@ -33,4 +33,30 @@ describe("checkCollisions", () => {
     w.bird.y = GROUND_Y;
     expect(checkCollisions(w)).toBeNull();
   });
+  it("chibi allows passing closer to pipe lip without dying", () => {
+    const w = createWorld(1);
+    w.pipes.push({ id: 1, x: 0, gapCenter: 0, gapHeight: 4.0, scored: false });
+    // Top lip is at y = 2.0. Normal bird at y = 1.75 collides: 2.0 - 1.75 = 0.25 < 0.3825
+    w.bird.y = 1.75;
+    expect(checkCollisions(w)).toBe("pipe");
+
+    // With chibiTimer active, hitbox radius is ~0.210 (< 0.25 margin) -> passes safely!
+    w.chibiTimer = 3.0;
+    expect(checkCollisions(w)).toBeNull();
+  });
+  it("chubby enforces tighter gap tolerance", () => {
+    const w = createWorld(1);
+    w.pipes.push({ id: 1, x: 0, gapCenter: 0, gapHeight: 4.0, scored: false });
+    // Top lip at y = 2.0. Normal bird at y = 1.55 is safe: 2.0 - 1.55 = 0.45 > 0.3825
+    w.bird.y = 1.55;
+    expect(checkCollisions(w)).toBeNull();
+
+    // With chubbyTimer active, hitbox radius is ~0.516 (> 0.45 margin) -> hits pipe
+    w.chubbyTimer = 3.0;
+    expect(checkCollisions(w)).toBe("pipe");
+
+    // But exactly at gap center (y = 0), chubby passes safely through 4.0 gap
+    w.bird.y = 0;
+    expect(checkCollisions(w)).toBeNull();
+  });
 });

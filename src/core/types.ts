@@ -2,6 +2,7 @@ import { BASE_SCROLL, ORB_EVERY_PIPES_MIN } from "./constants";
 import type { PowerUpType } from "./powerups";
 
 export type HitType = "pipe" | "ground";
+export type PipeMotionType = "static" | "sine" | "accordion";
 
 export interface BirdState {
   y: number;
@@ -17,6 +18,12 @@ export interface Pipe {
   gapCenter: number;
   gapHeight: number;
   scored: boolean;
+  motionType?: PipeMotionType;
+  motionAmp?: number;
+  motionFreq?: number;
+  motionPhase?: number;
+  baseGapCenter?: number;
+  baseGapHeight?: number;
 }
 
 export interface Orb {
@@ -64,6 +71,8 @@ export interface World {
   magnetTimer: number;
   heavyGravityTimer: number;
   speedSurgeTimer: number;
+  chibiTimer: number;
+  chubbyTimer: number;
   runDurationSec: number;
   lastFeatherPipe: number;
   feathersEarnedRun: number;
@@ -100,6 +109,8 @@ export function createWorld(seed: number): World {
     magnetTimer: 0,
     heavyGravityTimer: 0,
     speedSurgeTimer: 0,
+    chibiTimer: 0,
+    chubbyTimer: 0,
     runDurationSec: 0,
     lastFeatherPipe: 0,
     feathersEarnedRun: 0,

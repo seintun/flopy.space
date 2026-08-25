@@ -236,13 +236,43 @@ export class GameOverView {
     const data = loadAll();
     const effectiveBest = Math.max(score, best, data.best);
 
-    this.scoreEl.textContent = score.toString();
+    // Animated score count-up tally (0 to score in 380ms)
+    const startTime = performance.now();
+    const durationMs = 380;
+    const animateScore = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / durationMs);
+      const currentTally = Math.floor(score * progress);
+      this.scoreEl.textContent = currentTally.toString();
+      if (progress < 1) {
+        requestAnimationFrame(animateScore);
+      } else {
+        this.scoreEl.textContent = score.toString();
+      }
+    };
+    requestAnimationFrame(animateScore);
+
     if (this.pipesEl) this.pipesEl.textContent = pipesPassed.toString();
     if (this.bonusEl) this.bonusEl.textContent = `+${bonusScore} bonus`;
     this.bestEl.textContent = effectiveBest.toString();
     if (this.tokensEl) this.tokensEl.textContent = data.tokens.toString();
     if (this.timeEl) this.timeEl.textContent = formatDuration(timeSec);
-    this.badgeEl.style.display = isNewBest ? "block" : "none";
+
+    // Dynamic psychological near-miss / new best callouts
+    if (isNewBest && score > 0) {
+      this.badgeEl.textContent = "👑 NEW PERSONAL BEST RECORD!";
+      this.badgeEl.style.background = "linear-gradient(135deg, #ffd700, #ff9e00)";
+      this.badgeEl.style.color = "#0f172a";
+      this.badgeEl.style.display = "block";
+    } else if (effectiveBest - score <= 8 && score > 5 && effectiveBest > score) {
+      this.badgeEl.textContent = `🔥 SO CLOSE! Only ${effectiveBest - score} pipes from New Record!`;
+      this.badgeEl.style.background = "linear-gradient(135deg, #ff007f, #ff5400)";
+      this.badgeEl.style.color = "#ffffff";
+      this.badgeEl.style.display = "block";
+    } else {
+      this.badgeEl.style.display = "none";
+    }
+
     this.unlockBannerEl.style.display = "none"; // Replaced by interactive claim banner
 
     this.renderNextUnlockProgress(data.tokens);

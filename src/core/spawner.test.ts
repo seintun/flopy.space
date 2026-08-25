@@ -52,4 +52,19 @@ describe("spawner", () => {
     expect(w.pipes.length).toBeLessThan(8);
     expect(w.tokens.length).toBeLessThan(12);
   });
+
+  it("spawns kinetic pipes past score threshold and guarantees minimum gap clearance invariant", () => {
+    const w = createWorld(999);
+    w.score = 25; // past score 10
+    runSeconds(w, 40);
+
+    const kineticPipes = w.pipes.filter((p) => p.motionType === "sine" || p.motionType === "accordion");
+    expect(kineticPipes.length).toBeGreaterThan(0);
+
+    for (const p of w.pipes) {
+      expect(p.gapHeight).toBeGreaterThanOrEqual(3.09);
+      expect(p.gapCenter - p.gapHeight / 2).toBeGreaterThan(GROUND_Y);
+      expect(p.gapCenter + p.gapHeight / 2).toBeLessThan(CEILING_Y);
+    }
+  });
 });

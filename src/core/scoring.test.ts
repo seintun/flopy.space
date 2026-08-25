@@ -73,4 +73,15 @@ describe("processPasses", () => {
     expect(w.feathersRun).toBe(2);
     expect(w.lastFeatherPipe).toBe(30);
   });
+
+  it("awards +3 bonus score per pipe passed when chubbyTimer is active", () => {
+    const w = createWorld(1);
+    w.chubbyTimer = 5.0;
+    w.pipes.push({ id: 10, x: -1, gapCenter: 1, gapHeight: 4.5, scored: false });
+    w.bird.y = 1;
+    const ev = processPasses(w)[0]!;
+    expect(ev.bonusPoints).toBe(3);
+    expect(ev.points).toBe(4); // 1 raw + 3 chubby bonus
+    expect(w.score).toBe(4);
+  });
 });

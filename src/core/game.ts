@@ -1,6 +1,9 @@
 import {
   SLOWMO_HOLD_S,
   MILESTONE_EVERY,
+  CHIBI_DURATION,
+  CHUBBY_DURATION,
+  CHUBBY_EXPANSION_GRACE_TICKS,
 } from "./constants";
 import { createWorld, type World, type HitType } from "./types";
 import { flap, stepBird } from "./physics";
@@ -55,6 +58,8 @@ export interface GameHooks {
     magnetLeft: number,
     heavyGravityLeft?: number,
     speedSurgeLeft?: number,
+    chibiLeft?: number,
+    chubbyLeft?: number,
   ) => void;
   onBiomeChange?: (biome: BiomeDef) => void;
   onMissionProgress?: (event: MissionEventType, value?: number) => void;
@@ -186,7 +191,8 @@ export class Game {
       return;
     }
     if (this.state === "countdown") {
-      // Allow early tap during countdown to hover
+      // Instant tap-to-skip countdown to eliminate retry friction!
+      this.setState("playing");
       flap(this.world);
       this.characterView.onFlap();
       const sound = CHARACTERS[this.selectedCharacterId]?.soundType || "bird";
@@ -328,6 +334,8 @@ export class Game {
           this.world.magnetTimer,
           this.world.heavyGravityTimer,
           this.world.speedSurgeTimer,
+          this.world.chibiTimer,
+          this.world.chubbyTimer,
         );
         this.hooks.onScoreChange?.(
           this.world.score,
@@ -344,17 +352,21 @@ export class Game {
           ? "fever"
           : this.world.speedSurgeTimer > 0
             ? "rainbow"
-            : this.world.heavyGravityTimer > 0
-              ? "slowmo"
-              : this.world.rainbowTrailTimer > 0
-                ? "rainbow"
-                : this.world.hasShield
-                  ? "shield"
-                  : this.world.magnetTimer > 0
-                    ? "magnet"
-                    : slowmoActive
-                      ? "slowmo"
-                      : "none";
+            : this.world.chubbyTimer > 0
+              ? "rainbow"
+              : this.world.chibiTimer > 0
+                ? "shield"
+                : this.world.heavyGravityTimer > 0
+                  ? "slowmo"
+                  : this.world.rainbowTrailTimer > 0
+                    ? "rainbow"
+                    : this.world.hasShield
+                      ? "shield"
+                      : this.world.magnetTimer > 0
+                        ? "magnet"
+                        : slowmoActive
+                          ? "slowmo"
+                          : "none";
         this.juice.setBorderFx(borderType);
 
         // Fever mode visual trail
@@ -373,6 +385,8 @@ export class Game {
           if (w.magnetTimer > 0) w.magnetTimer = Math.max(0, w.magnetTimer - dt);
           if (w.heavyGravityTimer > 0) w.heavyGravityTimer = Math.max(0, w.heavyGravityTimer - dt);
           if (w.speedSurgeTimer > 0) w.speedSurgeTimer = Math.max(0, w.speedSurgeTimer - dt);
+          if (w.chibiTimer > 0) w.chibiTimer = Math.max(0, w.chibiTimer - dt);
+          if (w.chubbyTimer > 0) w.chubbyTimer = Math.max(0, w.chubbyTimer - dt);
 
           advance(w, dt);
           stepBird(w, dt);
@@ -484,6 +498,26 @@ export class Game {
                     this.hooks.onMissionProgress?.("speedsurge");
                     break;
                   }
+                  case "chibi": {
+                    w.chibiTimer = CHIBI_DURATION;
+                    w.chubbyTimer = 0; // mutually exclusive
+                    this.juice.flashBorder("#55ff99", 150);
+                    this.juice.burst(0, w.bird.y, 0, 14, 0x55ff99);
+                    this.juice.popupAtWorld("🐥 CHIBI NANO! 0.5x HITBOX", -0.5, Math.min(3.0, w.bird.y + 0.8), 0, this.ctx.camera, "#55ff99", -1.2);
+                    this.hooks.onOrbCollect?.("chibi");
+                    break;
+                  }
+                  case "chubby": {
+                    w.chubbyTimer = CHUBBY_DURATION;
+                    w.chibiTimer = 0; // mutually exclusive
+                    // Expansion grace period: 0.5s invulnerability so instant expansion near pipe doesn't kill
+                    w.bird.invulnUntilTick = Math.max(w.bird.invulnUntilTick, w.tick + CHUBBY_EXPANSION_GRACE_TICKS);
+                    this.juice.flashBorder("#ff66cc", 180);
+                    this.juice.burst(0, w.bird.y, 0, 18, 0xff66cc);
+                    this.juice.popupAtWorld("🐡 CHUBBY CHONKER! +3X COINS", -0.5, Math.min(3.0, w.bird.y + 0.8), 0, this.ctx.camera, "#ff66cc", -1.2);
+                    this.hooks.onOrbCollect?.("chubby");
+                    break;
+                  }
                 }
 
                 if (pType !== "hazard_mine" && pType !== "heavy_gravity") {
@@ -519,7 +553,8 @@ export class Game {
 
               if (distSq < 0.75) {
                 t.taken = true;
-                const val = t.value || 1;
+                const chubbyCoinMult = (w.chubbyTimer && w.chubbyTimer > 0) ? 3 : 1;
+                const val = (t.value || 1) * chubbyCoinMult;
                 w.tokensRunCollected = (w.tokensRunCollected || 0) + val;
                 addTokens(val); // atomic persistent save
                 this.tokenStreak++;
@@ -726,6 +761,8 @@ export class Game {
           this.world.magnetTimer = 0;
           this.world.heavyGravityTimer = 0;
           this.world.speedSurgeTimer = 0;
+          this.world.chibiTimer = 0;
+          this.world.chubbyTimer = 0;
 
           // Progressive bullet-time recovery
           this.time = new TimeSystem();
@@ -738,7 +775,7 @@ export class Game {
           this.setState("playing");
           this.hooks.onRewindComplete?.(tier.toastTitle, tier.toastDesc, tier.popupColor);
           this.hooks.onFeverChange?.(false, 0);
-          this.hooks.onPowerUpsChange?.(0, false, 0);
+          this.hooks.onPowerUpsChange?.(0, false, 0, 0, 0, 0, 0);
           this.hooks.onScoreChange?.(
             this.world.score,
             0,
@@ -780,12 +817,13 @@ export class Game {
     }
 
     this.trailView.update(this.world, realDt, this.totalTime);
-    this.rig.update(realDt, this.world.bird.y);
+    this.rig.update(realDt, this.world.bird.y, this.world.chubbyTimer > 0 ? 1.0 : 0.0);
     this.ctx.biomeVfx.update(realDt, this.world.scrollSpeed);
 
-    // Apply shake offset to camera
+    // Apply shake offset & rotational trauma roll to camera
     this.ctx.camera.position.x += shake.ox;
     this.ctx.camera.position.y += shake.oy;
+    this.ctx.camera.rotation.z += (shake.rot || 0);
 
     const pal = dayNight(this.world.score);
     this.sky.update(pal, this.ctx.dirLight, this.ctx.fog);

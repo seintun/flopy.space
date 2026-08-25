@@ -18,6 +18,7 @@ import {
   getStoredMissions,
   saveStoredMissions,
 } from "./core/storage";
+import { CHARACTERS } from "./core/characters";
 import { multiplier } from "./core/scoring";
 import { recordMissionEvent } from "./core/missions";
 import { initAnalytics, trackEvent } from "./core/analytics";
@@ -238,8 +239,8 @@ game.hooks = {
     hud.setFeverMeter(active, frac);
   },
 
-  onPowerUpsChange: (rainbowLeft, hasShield, magnetLeft, heavyGravityLeft, speedSurgeLeft) => {
-    hud.setPowerUps(rainbowLeft, hasShield, magnetLeft, heavyGravityLeft, speedSurgeLeft);
+  onPowerUpsChange: (rainbowLeft, hasShield, magnetLeft, heavyGravityLeft, speedSurgeLeft, chibiLeft, chubbyLeft) => {
+    hud.setPowerUps(rainbowLeft, hasShield, magnetLeft, heavyGravityLeft, speedSurgeLeft, chibiLeft, chubbyLeft);
   },
 
   onBiomeChange: (biome) => {
@@ -264,8 +265,9 @@ game.hooks = {
   },
 
   onPass: (event) => {
+    const charSound = CHARACTERS[game.selectedCharacterId]?.soundType || "cat";
     if (event.nearMiss) {
-      audio.nearMiss();
+      audio.nearMiss(charSound);
     } else {
       audio.score(game.world.combo);
     }
@@ -273,6 +275,14 @@ game.hooks = {
 
   onOrbCollect: (type) => {
     switch (type) {
+      case "chibi":
+        audio.chibiPickup();
+        hud.showPowerUpToast("🐥", "CHIBI NANO!", "Hitbox shrunk to 0.55× micro scale!", "#55ff99");
+        break;
+      case "chubby":
+        audio.chubbyPickup();
+        hud.showPowerUpToast("🐡", "CHUBBY CHONKER!", "+3× Coins & +3 Bonus Score active!", "#ff66cc");
+        break;
       case "slowmo":
         audio.collect();
         hud.showPowerUpToast("⏱️", "CHRONO SLOW-MO", "Time dilated to 0.35× speed", "#00e5ff");
@@ -294,11 +304,11 @@ game.hooks = {
         hud.showPowerUpToast("⭐", "STAR GEM", "+5 Bonus score + combo spree", "#ffbe0b");
         break;
       case "hazard_mine":
-        audio.die();
+        audio.voidMineHit();
         hud.showPowerUpToast("💀", "VOID MINE HIT!", "Combo shattered & -3 pts lost", "#ff2a6d");
         break;
       case "heavy_gravity":
-        audio.shieldBreak();
+        audio.gravitySinkHit();
         hud.showPowerUpToast("⚓", "GRAVITY SINK!", "Heavy downward weight for 2.5s", "#c77dff");
         break;
       case "speed_surge":
@@ -316,7 +326,8 @@ game.hooks = {
   },
 
   onHit: () => {
-    audio.die();
+    const charSound = CHARACTERS[game.selectedCharacterId]?.soundType || "cat";
+    audio.die(charSound);
   },
 
   onRewindStart: () => {

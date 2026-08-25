@@ -1,15 +1,16 @@
 import {
   SPAWN_X, PIPE_SPACING_DIST, GAP_WANDER_MAX, GROUND_Y, CEILING_Y,
-  ORB_EVERY_PIPES_MIN, ORB_EVERY_PIPES_MAX,
+  ORB_EVERY_PIPES_MIN, ORB_EVERY_PIPES_MAX, DT,
+  KINETIC_PIPES_START_SCORE, MAX_PIPE_MOTION_AMP, MAX_PIPE_MOTION_FREQ, KINETIC_MIN_GAP,
 } from "./constants";
 import { worldRand } from "./rand";
 import { gapForScore, isBreatherPipe } from "./difficulty";
 import { pickRandomPowerUp } from "./powerups";
-import type { World } from "./types";
+import type { PipeMotionType, World } from "./types";
 
 const BIRD_DESPAWN_X = -SPAWN_X;
 
-function gapBounds(gapHeight: number): { lo: number; hi: number } {
+export function gapBounds(gapHeight: number): { lo: number; hi: number } {
   const half = gapHeight / 2;
   return { lo: GROUND_Y + 1.2 + half, hi: CEILING_Y - 1.2 - half };
 }
@@ -82,7 +83,44 @@ function spawnPipe(w: World): void {
   w.lastGapCenter = gc;
   if (w.spawnHistory.length > 50) w.spawnHistory.shift();
   w.spawnHistory.push(gc);
-  w.pipes.push({ id: w.nextPipeId++, x: SPAWN_X, gapCenter: gc, gapHeight: gh, scored: false });
+
+  let motionType: PipeMotionType = "static";
+  let motionAmp = 0;
+  let motionFreq = 0;
+  let motionPhase = 0;
+
+  if (w.score >= KINETIC_PIPES_START_SCORE && !isBreather) {
+    const motionRoll = worldRand(w);
+    if (motionRoll < 0.25) {
+      // Sine Bobber (vertical translation)
+      motionType = "sine";
+      motionAmp = Math.min(MAX_PIPE_MOTION_AMP, 0.4 + worldRand(w) * 0.5);
+      motionFreq = Math.min(MAX_PIPE_MOTION_FREQ, 1.0 + worldRand(w) * 0.8);
+      motionPhase = worldRand(w) * Math.PI * 2;
+    } else if (motionRoll < 0.45) {
+      // Accordion Breathing (gap height dilation)
+      motionType = "accordion";
+      motionAmp = 0.35 + worldRand(w) * 0.35;
+      motionFreq = 1.0 + worldRand(w) * 0.7;
+      motionPhase = worldRand(w) * Math.PI * 2;
+      // Ensure base gap height gives guaranteed clearance even at lowest compression
+      gh = Math.max(gh, KINETIC_MIN_GAP + motionAmp);
+    }
+  }
+
+  w.pipes.push({
+    id: w.nextPipeId++,
+    x: SPAWN_X,
+    gapCenter: gc,
+    gapHeight: gh,
+    scored: false,
+    motionType,
+    motionAmp,
+    motionFreq,
+    motionPhase,
+    baseGapCenter: gc,
+    baseGapHeight: gh,
+  });
 
   // Dynamic pipe spacing: expand corridor by +35% (11.0 -> 14.85) when token cluster exists
   let dynamicSpacing = PIPE_SPACING_DIST;
@@ -116,9 +154,24 @@ function spawnOrb(w: World, recentGapCenter: number): void {
 export function advance(w: World, dt: number): void {
   const dx = w.scrollSpeed * dt;
   w.dist += dx;
-  for (const p of w.pipes) p.x -= dx;
+  const t = w.tick * DT;
+
+  for (const p of w.pipes) {
+    p.x -= dx;
+    if (p.motionType === "sine" && p.motionAmp && p.motionFreq && p.baseGapCenter !== undefined) {
+      const { lo, hi } = gapBounds(p.gapHeight);
+      const targetGc = p.baseGapCenter + p.motionAmp * Math.sin(p.motionFreq * t + (p.motionPhase || 0));
+      p.gapCenter = Math.min(hi, Math.max(lo, targetGc));
+    } else if (p.motionType === "accordion" && p.motionAmp && p.motionFreq && p.baseGapHeight !== undefined) {
+      const targetGh = p.baseGapHeight + p.motionAmp * Math.sin(p.motionFreq * t + (p.motionPhase || 0));
+      p.gapHeight = Math.max(KINETIC_MIN_GAP, targetGh);
+      const { lo, hi } = gapBounds(p.gapHeight);
+      p.gapCenter = Math.min(hi, Math.max(lo, p.baseGapCenter ?? p.gapCenter));
+    }
+  }
+
   for (const o of w.orbs) o.x -= dx;
-  for (const t of w.tokens) t.x -= dx;
+  for (const t_ of w.tokens) t_.x -= dx;
 
   while (w.pipes.length && w.pipes[0]!.x < BIRD_DESPAWN_X) w.pipes.shift();
   while (w.orbs.length && w.orbs[0]!.x < BIRD_DESPAWN_X) w.orbs.shift();

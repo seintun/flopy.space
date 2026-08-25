@@ -11,6 +11,8 @@ interface PooledPickup {
   hazardMineGroup: THREE.Group;
   heavyGravityGroup: THREE.Group;
   speedSurgeGroup: THREE.Group;
+  chibiGroup: THREE.Group;
+  chubbyGroup: THREE.Group;
 
   // Specific meshes for animation
   clockRing: THREE.Mesh;
@@ -22,13 +24,17 @@ interface PooledPickup {
   magnetRing: THREE.Mesh;
   starMesh: THREE.Mesh;
 
-  // Hazard meshes
+  // Hazard & modifier meshes
   hazardMineCore: THREE.Mesh;
   hazardMineSpikes: THREE.Group;
   heavyGravityCube: THREE.Mesh;
   heavyGravityRing: THREE.Mesh;
   speedSurgePrism: THREE.Mesh;
   speedSurgeFins: THREE.Mesh;
+  chibiCore: THREE.Mesh;
+  chibiRing: THREE.Mesh;
+  chubbyCore: THREE.Mesh;
+  chubbyRing: THREE.Mesh;
 
   orbId: number;
 }
@@ -69,6 +75,10 @@ export class PickupsView {
     const heavyRingGeo = new THREE.TorusGeometry(0.52, 0.035, 6, 20);
     const speedTetraGeo = new THREE.TetrahedronGeometry(0.42, 0);
     const speedFinGeo = new THREE.TorusGeometry(0.48, 0.04, 4, 16);
+    const chibiGeo = new THREE.OctahedronGeometry(0.24, 0);
+    const chibiRingGeo = new THREE.TorusGeometry(0.38, 0.03, 6, 16);
+    const chubbyGeo = new THREE.DodecahedronGeometry(0.44, 0);
+    const chubbyRingGeo = new THREE.TorusGeometry(0.55, 0.04, 6, 16);
 
     for (let i = 0; i < poolSize; i++) {
       const pGroup = new THREE.Group();
@@ -252,6 +262,44 @@ export class PickupsView {
       speedSurgeGroup.add(speedSurgePrism, speedSurgeFins);
       pGroup.add(speedSurgeGroup);
 
+      // 9. CHIBI NANO - Mint Green (0x55ff99)
+      const chibiGroup = new THREE.Group();
+      const chibiCore = new THREE.Mesh(
+        chibiGeo,
+        new THREE.MeshStandardMaterial({
+          color: 0x55ff99,
+          emissive: 0x00cc66,
+          emissiveIntensity: 1.0,
+          roughness: 0.25,
+          metalness: 0.2,
+        }),
+      );
+      const chibiRing = new THREE.Mesh(
+        chibiRingGeo,
+        new THREE.MeshBasicMaterial({ color: 0xa0ffff, transparent: true, opacity: 0.9 }),
+      );
+      chibiGroup.add(chibiCore, chibiRing);
+      pGroup.add(chibiGroup);
+
+      // 10. CHUBBY CHONKER - Puffy Pink (0xff66cc)
+      const chubbyGroup = new THREE.Group();
+      const chubbyCore = new THREE.Mesh(
+        chubbyGeo,
+        new THREE.MeshStandardMaterial({
+          color: 0xff66cc,
+          emissive: 0xff007f,
+          emissiveIntensity: 0.9,
+          roughness: 0.35,
+          metalness: 0.1,
+        }),
+      );
+      const chubbyRing = new THREE.Mesh(
+        chubbyRingGeo,
+        new THREE.MeshBasicMaterial({ color: 0xffd166, transparent: true, opacity: 0.9 }),
+      );
+      chubbyGroup.add(chubbyCore, chubbyRing);
+      pGroup.add(chubbyGroup);
+
       pGroup.visible = false;
       this.group.add(pGroup);
 
@@ -265,6 +313,8 @@ export class PickupsView {
         hazardMineGroup,
         heavyGravityGroup,
         speedSurgeGroup,
+        chibiGroup,
+        chubbyGroup,
         clockRing,
         clockHour,
         clockMinute,
@@ -279,6 +329,10 @@ export class PickupsView {
         heavyGravityRing,
         speedSurgePrism,
         speedSurgeFins,
+        chibiCore,
+        chibiRing,
+        chubbyCore,
+        chubbyRing,
         orbId: -1,
       });
     }
@@ -337,6 +391,8 @@ export class PickupsView {
         item.hazardMineGroup.visible = false;
         item.heavyGravityGroup.visible = false;
         item.speedSurgeGroup.visible = false;
+        item.chibiGroup.visible = false;
+        item.chubbyGroup.visible = false;
 
         const type = o.type || "slowmo";
 
@@ -373,6 +429,24 @@ export class PickupsView {
             item.starGroup.visible = true;
             item.starMesh.rotation.y = timeSec * 2.5;
             item.starMesh.rotation.z = Math.sin(timeSec * 3) * 0.4;
+            break;
+          }
+          case "chibi": {
+            item.chibiGroup.visible = true;
+            item.chibiCore.rotation.y = timeSec * 3.5;
+            item.chibiCore.rotation.x = timeSec * 2.5;
+            item.chibiRing.rotation.x = Math.PI / 2;
+            item.chibiRing.rotation.y = timeSec * 2.0;
+            break;
+          }
+          case "chubby": {
+            item.chubbyGroup.visible = true;
+            const pulse = 1.0 + Math.sin(timeSec * 5.0) * 0.12;
+            item.chubbyGroup.scale.setScalar(pulse);
+            item.chubbyCore.rotation.y = timeSec * 2.0;
+            item.chubbyCore.rotation.z = Math.sin(timeSec * 2.5) * 0.3;
+            item.chubbyRing.rotation.x = timeSec * 1.5;
+            item.chubbyRing.rotation.y = timeSec * 2.5;
             break;
           }
           case "hazard_mine": {

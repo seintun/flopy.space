@@ -54,4 +54,39 @@ describe("SnapshotBuffer", () => {
     expect(buf.canRewind()).toBe(false);
     expect(buf.rewindInto(w)).toBe(false);
   });
+
+  it("preserves kinetic moving pipe parameters and scale timers across rewind", () => {
+    const w = createWorld(456);
+    w.chibiTimer = 4.2;
+    w.chubbyTimer = 0.0;
+    w.pipes.push({
+      id: 99,
+      x: 5.0,
+      gapCenter: 1.0,
+      gapHeight: 3.5,
+      scored: false,
+      motionType: "sine",
+      motionAmp: 0.8,
+      motionFreq: 1.5,
+      motionPhase: 0.5,
+      baseGapCenter: 1.0,
+      baseGapHeight: 3.5,
+    });
+
+    const buf = new SnapshotBuffer();
+    buf.record(w);
+
+    // Modify world state
+    w.chibiTimer = 1.0;
+    w.chubbyTimer = 5.0;
+    w.pipes[0]!.motionType = "static";
+
+    // Rewind back
+    expect(buf.rewindInto(w)).toBe(true);
+    expect(w.chibiTimer).toBe(4.2);
+    expect(w.chubbyTimer).toBe(0.0);
+    expect(w.pipes[0]!.motionType).toBe("sine");
+    expect(w.pipes[0]!.motionAmp).toBe(0.8);
+    expect(w.pipes[0]!.baseGapCenter).toBe(1.0);
+  });
 });

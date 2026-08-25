@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 export interface CameraRig {
   camera: THREE.PerspectiveCamera;
-  update: (dt: number, birdY: number) => void;
+  update: (dt: number, birdY: number, chubbyFactor?: number) => void;
   kick: (amount: number) => void;
   onResize: (aspect: number) => void;
 }
@@ -13,6 +13,7 @@ export function createCameraRig(getAspect: () => number): CameraRig {
   let targetY = 1.5;
   let currentLookY = 0.75;
   let fovKickAmt = 0;
+  let currentChubbyPull = 0;
 
   const getBaseFov = (aspect: number) => {
     // 1. Mobile Portrait (aspect < 1.0): Expands FOV and pulls back so runway matches landscape
@@ -27,10 +28,13 @@ export function createCameraRig(getAspect: () => number): CameraRig {
     return Math.min(60, Math.max(30, clampedVdeg));
   };
 
-  const update = (dt: number, birdY: number) => {
+  const update = (dt: number, birdY: number, chubbyFactor = 0) => {
     targetY = birdY;
     const k = 1 - Math.exp(-5 * dt);
     currentY += (targetY - currentY) * k;
+
+    const kChubby = 1 - Math.exp(-6 * dt);
+    currentChubbyPull += (chubbyFactor - currentChubbyPull) * kChubby;
 
     // smooth lookAt
     const targetLookY = birdY * 0.5;
@@ -42,8 +46,8 @@ export function createCameraRig(getAspect: () => number): CameraRig {
     // In portrait mobile (aspect < 1.0), pull camera back in Z and shift X ahead so runway is clearly visible
     const portraitFactor = Math.max(0, Math.min(1, (1.0 - aspect) / 0.6));
     const camX = 6 + portraitFactor * 1.8;
-    const camY = currentY * 0.35 + 3.2 + portraitFactor * 0.9;
-    const camZ = 11 + portraitFactor * 4.8;
+    const camY = currentY * 0.35 + 3.2 + portraitFactor * 0.9 + currentChubbyPull * 0.4;
+    const camZ = 11 + portraitFactor * 4.8 + currentChubbyPull * 1.5;
 
     const lookX = portraitFactor * 2.8;
     const lookY = currentLookY + portraitFactor * 0.3;

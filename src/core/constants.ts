@@ -39,3 +39,19 @@ export const SPAWN_X = BIRD_X + 16;
 export const PITCH_SMOOTHING = 8;
 export const INVULN_TICKS = 120; // 1s post-rewind shimmer
 export const DESPAWN_MARGIN = 2;
+
+// Scale Shifter Constants
+export const CHIBI_HITBOX_MULT = 0.55;
+export const CHIBI_VISUAL_SCALE = 0.45;
+export const CHIBI_DURATION = 5.0;
+
+export const CHUBBY_HITBOX_MULT = 1.35;
+export const CHUBBY_VISUAL_SCALE = 1.70;
+export const CHUBBY_DURATION = 6.0;
+export const CHUBBY_EXPANSION_GRACE_TICKS = 60; // 0.5s invulnerability upon picking up Chubby orb
+
+// Kinetic Moving Pipe Constants
+export const KINETIC_PIPES_START_SCORE = 10;
+export const MAX_PIPE_MOTION_AMP = 1.2;
+export const MAX_PIPE_MOTION_FREQ = 2.0;
+export const KINETIC_MIN_GAP = 3.1;

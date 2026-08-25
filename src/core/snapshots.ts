@@ -114,7 +114,19 @@ function createEmptyWorldSlot(): World {
     dist: 0,
     scrollSpeed: 0,
     bird: { y: 0, vy: 0, pitch: 0, alive: true, invulnUntilTick: 0 },
-    pipes: Array.from({ length: 8 }, () => ({ id: 0, x: 0, gapCenter: 0, gapHeight: 0, scored: false })),
+    pipes: Array.from({ length: 8 }, () => ({
+      id: 0,
+      x: 0,
+      gapCenter: 0,
+      gapHeight: 0,
+      scored: false,
+      motionType: "static" as const,
+      motionAmp: 0,
+      motionFreq: 0,
+      motionPhase: 0,
+      baseGapCenter: 0,
+      baseGapHeight: 0,
+    })),
     orbs: Array.from({ length: 4 }, () => ({ id: 0, type: "slowmo" as const, x: 0, y: 0, taken: false })),
     tokens: Array.from({ length: 16 }, () => ({ id: 0, x: 0, y: 0, taken: false, value: 1 })),
     nextTokenId: 0,
@@ -138,6 +150,8 @@ function createEmptyWorldSlot(): World {
     magnetTimer: 0,
     heavyGravityTimer: 0,
     speedSurgeTimer: 0,
+    chibiTimer: 0,
+    chubbyTimer: 0,
     runDurationSec: 0,
     lastFeatherPipe: 0,
     feathersEarnedRun: 0,
@@ -169,6 +183,12 @@ function copyWorldState(src: World, dst: World): void {
     dp.gapCenter = sp.gapCenter;
     dp.gapHeight = sp.gapHeight;
     dp.scored = sp.scored;
+    dp.motionType = sp.motionType;
+    dp.motionAmp = sp.motionAmp;
+    dp.motionFreq = sp.motionFreq;
+    dp.motionPhase = sp.motionPhase;
+    dp.baseGapCenter = sp.baseGapCenter;
+    dp.baseGapHeight = sp.baseGapHeight;
   }
 
   // Copy orbs
@@ -224,6 +244,8 @@ function copyWorldState(src: World, dst: World): void {
   dst.magnetTimer = src.magnetTimer;
   dst.heavyGravityTimer = src.heavyGravityTimer;
   dst.speedSurgeTimer = src.speedSurgeTimer;
+  dst.chibiTimer = src.chibiTimer;
+  dst.chubbyTimer = src.chubbyTimer;
   dst.runDurationSec = src.runDurationSec;
   dst.lastFeatherPipe = src.lastFeatherPipe;
   dst.feathersEarnedRun = src.feathersEarnedRun;

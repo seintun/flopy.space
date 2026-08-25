@@ -59,13 +59,31 @@ When the browser renders frames at variable delta times ($60\text{Hz}$, $90\text
 3. Perfect replay fidelity during 4D time rewind.
 
 ### 2.2 Collision Math: Sphere vs AABB
-- **Hero Hitbox**: Modeled as a sphere at center $(x_b, y_b, z_b)$ with radius $r = 0.28\text{m}$.
+- **Hero Hitbox**: Modeled as a sphere at center $(x_b, y_b, z_b)$ with dynamic radius $r_{\text{eff}} = \text{getEffectiveHitboxRadius}(w)$.
 - **Pipe Hitbox**: Modeled as two 3D Axis-Aligned Bounding Boxes (AABBs): Top pipe and Bottom pipe.
 - **Distance Formula**: Clamps sphere center to box bounds $(x_{\text{clamp}}, y_{\text{clamp}}, z_{\text{clamp}})$:
 
 $$d^2 = (x_b - x_{\text{clamp}})^2 + (y_b - y_{\text{clamp}})^2 + (z_b - z_{\text{clamp}})^2$$
 
-$$\text{Collision} \iff d^2 \le r^2$$
+$$\text{Collision} \iff d^2 < r_{\text{eff}}^2$$
+
+### 2.3 Scale Shifter Hitbox Dynamics & Fluff Factor
+* **Chibi Modifier** (`chibiTimer > 0`):
+  $$r_{\text{chibi}} = r_{\text{base}} \times 0.55 \approx 0.210\text{m}, \quad \text{Visual Scale} = 0.45\times$$
+* **Chubby Modifier** (`chubbyTimer > 0`):
+  $$r_{\text{chubby}} = r_{\text{base}} \times 1.35 \approx 0.516\text{m}, \quad \text{Visual Scale} = 1.70\times$$
+  * **Fluff Buffer**: Outer $30\%$ of the visual mesh does not trigger collision, providing generous forgiveness while looking huge.
+  * **Expansion Grace Period**: Orb pickup grants $0.5\text{s}$ invulnerability (`CHUBBY_EXPANSION_GRACE_TICKS = 60`) to prevent instant expansion kills near obstacle rims.
+  * **Wager Multiplier**: Passing pipes awards $+3\times$ Coins and $+3$ bonus score.
+
+### 2.4 Deterministic Kinetic Pipeline Kinematics
+Moving obstacles are evaluated at each fixed tick from discrete simulation time $t = \text{tick} \times \Delta t_{\text{fixed}}$:
+* **Sine Bobber**:
+  $$y_{\text{gap}}(t) = \text{clamp}\left(y_{\text{base}} + A \sin(\omega t + \phi), \text{lo}(h), \text{hi}(h)\right)$$
+  where $A \le 1.2\text{m}$ and $\omega \le 2.0\text{ rad/s}$.
+* **Accordion Breathing**:
+  $$h_{\text{gap}}(t) = \max\left(3.1, h_{\text{base}} + A \sin(\omega t + \phi)\right)$$
+* **4D Time Determinism**: Because all kinematic transformations depend purely on the discrete integer `tick`, snapshot rewinds recalculate bit-identical obstacle positions.
 
 ---
 
@@ -95,24 +113,44 @@ The camera dynamically adjusts FOV and $Z$-distance based on the mobile device a
 
 - **Portrait Screens ($9:16$, $9:19.5$)**: Widens vertical FOV and shifts back in $Z$ ($z \approx 13.5\text{m}$) so upcoming obstacles on the right are framed with generous reaction sightlines.
 - **Landscape / Desktop**: Frames the horizontal band smoothly at $z \approx 10.5\text{m}$.
+- **Rotational Trauma Roll**: Collision impacts and near-misses apply subtle physical trauma to `camera.rotation.z`, delivering visceral 3D feedback without nauseating disorientation.
 
-### 4.2 Zero-Allocation Render Loop
+### 4.2 Zero-Allocation Render & DOM Loop
 - **Static Projection Vectors**: Preallocated module-level `_worldPopupVec` and `_tempVec` avoid per-frame `new THREE.Vector3()` churn.
+- **Pre-Allocated DOM Popup Pool**: 12 pre-allocated DOM text elements recycle continuously in memory, eliminating runtime `document.createElement("div")` / `removeChild` GC thrashing on low-end mobile CPUs.
 - **In-Place Material Updates**: Scene day/night lighting and ground colors mutate existing material properties via `.setHex()` without creating orphan shader programs.
 
 ---
 
-## 5. Procedural WebAudio Synthesizer
+## 5. Procedural WebAudio Synthesizer & Mobile Memory Architecture
 
-FLOPY.SPACE downloads **zero audio files**. All sound effects and musical chords are synthesized in real-time via the WebAudio API:
+FLOPY.SPACE downloads **zero audio files**. All sound effects and musical chords are synthesized in real-time via the WebAudio API with strict mobile memory safety:
 
-| Sound Effect | Synthesis Technique | Frequency / Waveform |
-| :--- | :--- | :--- |
-| **Flap** | Bandpass filtered noise burst + pitch envelope | Sine sweep $180\text{Hz} \to 80\text{Hz}$ |
-| **Score Chimes** | Additive dual-sine chime with exponential decay | $E_5, G^\sharp_5, B_5, E_6$ chord notes |
-| **Death Crunch** | Distortion overdrive + low-frequency square thump | $120\text{Hz} \to 30\text{Hz}$ with noise |
-| **Rewind Whoosh** | Reverse frequency sweep with resonant bandpass | $80\text{Hz} \to 880\text{Hz}$ reverse envelope |
-| **Slow-Mo Orb** | Shimmering FM synth bells with detuned oscillators | $440\text{Hz} / 884\text{Hz}$ frequency modulation |
+```mermaid
+flowchart LR
+    Voices["Transient Voices<br>(Oscillators, Filters, Gains)"] --> MasterGain["Master Gain (0.5)"]
+    MasterGain --> Compressor["DynamicsCompressorNode<br>(Threshold -4dB, Ratio 16:1)"]
+    Compressor --> Destination["ctx.destination (Speakers)"]
+    Voices -. "onended auto-cleanup" .-> Disconnect["Disconnect & GC Release"]
+```
+
+### 5.1 Mobile Audio Safety & Limiter Invariants
+1. **Master Bus Compression**: `DynamicsCompressorNode` acts as a brickwall limiter, preventing digital waveform clipping (0 dBFS distortion) when multiple particles, coin streaks, and fever chords sound simultaneously.
+2. **Deterministic Node Teardown**: Every transient oscillator registers `source.onended = () => source.disconnect()`, freeing WebAudio audio-thread graph memory on mobile browsers.
+3. **Mobile Lifecycle Auto-Resume**: Automatically re-activates suspended `AudioContext` on page foregrounding via `visibilitychange` listeners.
+
+### 5.2 Hero Species Voiceprints & Audio Palette
+
+| Hero / Event | Flap Sound | Near-Miss Gasp | Comical Death Sound |
+| :--- | :--- | :--- | :--- |
+| 🐱 **Flappy Neko** | Soft velvety meow flutter | High purr-squeak ($1.1\text{k} \to 1.6\text{k}\text{Hz}$) | Sad descending meow ($340 \to 90\text{Hz}$) |
+| 🐶 **Shiba Doge** | Crisp airy boof | Excited *"yip!"* ($450 \to 300\text{Hz}$) | Cartoon hollow whine ($420 \to 120\text{Hz}$) |
+| 🐲 **Chibi Dragon** | Deep bass ember whoosh | Fiery flame hiss | Sub-bass ember groan ($180 \to 40\text{Hz}$) |
+| 🐹 **Astro Hammy** | Jet micro-pulse ($1.2\text{k}\text{Hz}$) | Chirpy squeal ($1.5\text{k} \to 2.2\text{k}\text{Hz}$) | Comical spring boing ($900 \to 220\text{Hz}$) |
+| 🐦 **Retro Bird** | Retro sine chirp ($880\text{Hz}$) | Harmonic tweet flutter | 8-bit retro descent |
+| 🐥 **Chibi Orb** | — | — | Sparkling crystal chime ($1.0\text{k} \to 2.1\text{k}\text{Hz}$) |
+| 🐡 **Chubby Orb** | — | — | Slide-whistle up ($220 \to 550\text{Hz}$) + sub thud ($45\text{Hz}$) |
+| 🪙 **Token Streak** | — | — | 2-octave ascending pentatonic arpeggio |
 
 ---
 

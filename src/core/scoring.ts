@@ -52,7 +52,8 @@ export function processPasses(w: World): PassEvent[] {
     const mult = multiplier(w.combo); // 1, 2, or max 3
     const spreeBonus = mult - 1; // 0, 1, or 2 bonus points
     const nearMissBonus = nearMiss ? 1 : 0;
-    const totalBonus = spreeBonus + nearMissBonus;
+    const chubbyBonus = (w.chubbyTimer && w.chubbyTimer > 0) ? 3 : 0;
+    const totalBonus = spreeBonus + nearMissBonus + chubbyBonus;
 
     w.bonusScore = (w.bonusScore || 0) + totalBonus;
     w.score = w.pipesPassed + w.bonusScore;
