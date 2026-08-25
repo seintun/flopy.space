@@ -1,7 +1,7 @@
-# Lead Graphics & Audio Performance Engineering Report: ox-alpha (WebGL / WebAudio / 120Hz Tick Loop)
+# Lead Graphics & Audio Performance Engineering Report: flopy_space (WebGL / WebAudio / 120Hz Tick Loop)
 
 **Target Document**: `docs/research/performance-webgl-webaudio-runtime.md`  
-**Repository**: `/Users/seintun/code/sandbox/ox-alpha`  
+**Repository**: `/Users/seintun/code/sandbox/flopy_space`  
 **Author**: Lead Graphics & Audio Performance Engineer Subagent  
 **Date**: 2026-08-24  
 
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-A deep architectural audit of the `ox-alpha` codebase reveals significant performance, memory allocation, and GC optimization opportunities across WebGL rendering (Three.js), procedural WebAudio synthesis, and the 120Hz fixed-tick simulation loop. 
+A deep architectural audit of the `flopy_space` codebase reveals significant performance, memory allocation, and GC optimization opportunities across WebGL rendering (Three.js), procedural WebAudio synthesis, and the 120Hz fixed-tick simulation loop. 
 
 Currently, the game runs a 120Hz fixed-step physics accumulator combined with a variable display `requestAnimationFrame` loop. While the architecture is modular and deterministic, several hot paths generate continuous heap allocations (60–120+ allocations/sec), execute synchronous `localStorage` disk I/O inside the 120Hz simulation loop, push 180+ non-instanced WebGL draw calls per frame, leak GPU buffers upon character switches, and allocate 5–10 transient WebAudio nodes on every flap/coin without node recycling. Furthermore, mobile retina scaling (`devicePixelRatio = 2.0` at 120Hz ProMotion) pushes over 158 million fragment operations per second, triggering thermal throttling and battery drain.
 

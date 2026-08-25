@@ -1,7 +1,7 @@
 # AGENTS.md — FLOPY.SPACE Autonomous Agent Index 🪐🐱⚡
 
 > **System & Codebase Knowledge Base for Autonomous Agents & AI Engineers**  
-> Repository: `flopy.space` (`ox-alpha`) | Stack: TypeScript (ES2022), Three.js (r174), WebAudio API, Vitest, Vite 6, PWA Service Worker.
+> Repository: `flopy.space` (`flopy_space`) | Stack: TypeScript (ES2022), Three.js (r174), WebAudio API, Vitest, Vite 6, PWA Service Worker.
 
 ---
 

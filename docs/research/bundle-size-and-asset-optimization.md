@@ -1,7 +1,7 @@
 # Bundle Size & Asset Optimization Deep Investigation Report
 
 **Target File**: `docs/research/bundle-size-and-asset-optimization.md`  
-**Repository**: `/Users/seintun/code/sandbox/ox-alpha` (`flopy.space`)  
+**Repository**: `/Users/seintun/code/sandbox/flopy_space` (`flopy.space`)  
 **Author**: Lead Build & Bundle Optimization Engineer Subagent  
 **Date**: 2026-08-24  
 

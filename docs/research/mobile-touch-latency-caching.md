@@ -1,7 +1,7 @@
 # Deep Architectural Investigation: Mobile Touch Latency, Frame Pacing, Asset Delivery & Offline PWA Resilience
 
 **Target Report Path**: `docs/research/mobile-touch-latency-caching.md`  
-**System Analyzed**: FLOPY.SPACE (`ox-alpha`) — 3D WebGL / Three.js Mobile Arcade Game  
+**System Analyzed**: FLOPY.SPACE (`flopy_space`) — 3D WebGL / Three.js Mobile Arcade Game  
 **Author**: Lead Mobile Systems & Web Performance Architect  
 **Status**: Comprehensive Research Findings & Implementation Blueprints
 

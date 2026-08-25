@@ -1,6 +1,6 @@
-# FLOPY.SPACE (ox-alpha) — Comprehensive Security, Storage & PWA Architecture Audit
+# FLOPY.SPACE (flopy_space) — Comprehensive Security, Storage & PWA Architecture Audit
 
-**Target Repository**: `/Users/seintun/code/sandbox/ox-alpha`  
+**Target Repository**: `/Users/seintun/code/sandbox/flopy_space`  
 **Role**: Lead Application Security & Storage Architect  
 **Audit Scope**: DOM security, Storage schema integrity & anti-cheat resilience, HTTP headers & CSP, Service Worker & PWA cache integrity, Supply chain & dependency review.  
 **Target Document**: `docs/research/security-storage-pwa-audit.md`
