@@ -2,7 +2,9 @@
   "id": "space.flopy.arcade",
   "name": "FLOPY.SPACE — 3D Time Arcade",
   "short_name": "FLOPY.SPACE",
-  "description": "Addictive 3D arcade flyer with cute heroes, 4D time rewind, and dynamic worlds.",
+  "description": "Play FLOPY.SPACE: Addictive 3D arcade flyer with cute heroes, 4D time rewind, power-ups, and dynamic worlds.",
+  "lang": "en-US",
+  "dir": "ltr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -26,6 +28,20 @@
       "short_name": "Play",
       "description": "Start flying immediately",
       "url": "./?action=play",
+      "icons": [{ "src": "icon.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Hero Roster",
+      "short_name": "Heroes",
+      "description": "Customize your flyer and unlock new skins",
+      "url": "./?action=roster",
+      "icons": [{ "src": "icon.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Daily Quests",
+      "short_name": "Quests",
+      "description": "View daily goals and claim feather rewards",
+      "url": "./?action=quests",
       "icons": [{ "src": "icon.svg", "sizes": "192x192" }]
     }
   ]
