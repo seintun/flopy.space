@@ -9,7 +9,6 @@ import {
   loadAll,
   setCharacter,
   setSkin,
-  setBiome,
   claimCharacter,
   claimSkin,
   claimBiome,
@@ -77,6 +76,8 @@ export class GameOverView {
   private questClaimContainer: HTMLElement;
   private nextUnlockContainer: HTMLElement;
   private quickSwapContainer: HTMLElement;
+  private rewindContainer: HTMLElement;
+  private rewindBtn: HTMLButtonElement;
   private actionBtn: HTMLButtonElement;
   private callbacks?: GameOverCallbacks;
 
@@ -115,6 +116,13 @@ export class GameOverView {
         <!-- In-Situ Quest Claim Dopamine Banner -->
         <div id="go-quest-claim-box" style="display: none; width: 100%;"></div>
 
+        <!-- High-Impact Primary Rewind & Resume CTA (Always in Center Above Score Board) -->
+        <div id="go-rewind-container" style="display: none; width: 100%;">
+          <button id="go-rewind-btn" class="btn interactive" style="width: 100%; height: 54px; font-size: 16px; font-weight: 900; background: linear-gradient(135deg, #00e5ff, #00f5d4); border: none; border-radius: 27px; color: #002233; cursor: pointer; box-shadow: 0 0 28px rgba(0, 229, 255, 0.75); letter-spacing: 0.5px; animation: softGlowPulse 1.2s infinite alternate; touch-action: manipulation;">
+            ⚡ REWIND & RESUME (−1 🪶)
+          </button>
+        </div>
+
         <!-- High-Glance Score & Stat Capsule -->
         <div style="background: rgba(10, 16, 32, 0.90); border: 1.5px solid rgba(0, 229, 255, 0.4); border-radius: 20px; padding: 12px 16px; width: 100%; box-sizing: border-box; box-shadow: 0 12px 32px rgba(0,0,0,0.6), inset 0 0 16px rgba(0, 229, 255, 0.1); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);">
           <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -150,7 +158,7 @@ export class GameOverView {
           <div id="go-quick-swap" class="drag-scroll" style="display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 4px 2px; width: 100%; box-sizing: border-box;"></div>
         </div>
 
-        <!-- Dual CTA Buttons: Home / Roster + Big Primary Action (Fly Again or Rewind & Resume) -->
+        <!-- Dual CTA Buttons: Home / Roster + Big Primary Action (Fly Again) -->
         <div style="display: flex; width: 100%; gap: 10px; align-items: center;">
           <button id="go-menu-btn" class="btn interactive" style="flex: 0 0 54px; width: 54px; height: 54px; font-size: 20px; background: rgba(255, 255, 255, 0.08); border: 1.5px solid rgba(255, 255, 255, 0.2); border-radius: 27px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; touch-action: manipulation; box-shadow: 0 4px 16px rgba(0,0,0,0.3);" title="Home / Full Roster">
             🏠
@@ -176,20 +184,22 @@ export class GameOverView {
     this.questClaimContainer = this.overlay.querySelector("#go-quest-claim-box")!;
     this.nextUnlockContainer = this.overlay.querySelector("#go-next-unlock")!;
     this.quickSwapContainer = this.overlay.querySelector("#go-quick-swap")!;
+    this.rewindContainer = this.overlay.querySelector("#go-rewind-container")!;
+    this.rewindBtn = this.overlay.querySelector("#go-rewind-btn") as HTMLButtonElement;
     this.actionBtn = this.overlay.querySelector("#go-action-btn") as HTMLButtonElement;
 
     enableDragScroll(this.quickSwapContainer);
 
+    this.rewindBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.hide();
+      this.callbacks?.onRewind?.();
+    });
+
     this.actionBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      const data = loadAll();
-      if (data.feathers > 0 && this.callbacks?.onRewind) {
-        this.hide();
-        this.callbacks.onRewind();
-      } else {
-        this.hide();
-        this.callbacks?.onRetry();
-      }
+      this.hide();
+      this.callbacks?.onRetry();
     });
 
     const menuBtn = this.overlay.querySelector("#go-menu-btn") as HTMLButtonElement;
@@ -202,14 +212,13 @@ export class GameOverView {
 
   updateActionButton(feathers: number): void {
     if (feathers > 0) {
-      this.actionBtn.innerHTML = `⚡ REWIND & RESUME (−1 🪶)`;
-      this.actionBtn.style.background = `linear-gradient(135deg, #00e5ff, #00f5d4)`;
-      this.actionBtn.style.boxShadow = `0 0 30px rgba(0, 229, 255, 0.75)`;
+      this.rewindContainer.style.display = "block";
     } else {
-      this.actionBtn.innerHTML = `⚡ FLY AGAIN`;
-      this.actionBtn.style.background = `linear-gradient(135deg, #00e5ff, #00f5d4)`;
-      this.actionBtn.style.boxShadow = `0 0 24px rgba(0, 229, 255, 0.6)`;
+      this.rewindContainer.style.display = "none";
     }
+    this.actionBtn.innerHTML = `⚡ FLY AGAIN`;
+    this.actionBtn.style.background = `linear-gradient(135deg, #00e5ff, #00f5d4)`;
+    this.actionBtn.style.boxShadow = `0 0 24px rgba(0, 229, 255, 0.6)`;
   }
 
   show(
@@ -278,7 +287,7 @@ export class GameOverView {
             setCharacter(first.id as CharacterId);
           } else if (first.category === "scene") {
             claimBiome(first.id as BiomeId);
-            setBiome(first.id as BiomeId);
+            // Preserve current dynamic mode ('auto' stays active and incorporates the new scene)
           } else if (first.category === "skin") {
             claimSkin(first.id);
             setSkin(first.id);

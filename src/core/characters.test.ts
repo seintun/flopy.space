@@ -8,26 +8,26 @@ describe("characters", () => {
     expect(isCharacterUnlocked("bird", [])).toBe(true);
   });
 
-  it("makes Flappy Neko claimable at tokens >= 25", () => {
-    expect(isCharacterClaimable("neko", 24, [])).toBe(false);
-    expect(isCharacterClaimable("neko", 25, [])).toBe(true);
+  it("makes Flappy Neko claimable at tokens >= 40", () => {
+    expect(isCharacterClaimable("neko", 39, [])).toBe(false);
+    expect(isCharacterClaimable("neko", 40, [])).toBe(true);
     expect(isCharacterUnlocked("neko", [])).toBe(false);
     expect(isCharacterUnlocked("neko", ["neko"])).toBe(true);
   });
 
-  it("makes Shiba Doge claimable at tokens >= 110", () => {
-    expect(isCharacterClaimable("doge", 109, [])).toBe(false);
-    expect(isCharacterClaimable("doge", 110, [])).toBe(true);
+  it("makes Shiba Doge claimable at tokens >= 210", () => {
+    expect(isCharacterClaimable("doge", 209, [])).toBe(false);
+    expect(isCharacterClaimable("doge", 210, [])).toBe(true);
   });
 
-  it("makes Astro Hammy claimable at tokens >= 300", () => {
-    expect(isCharacterClaimable("hamster", 299, [])).toBe(false);
-    expect(isCharacterClaimable("hamster", 300, [])).toBe(true);
+  it("makes Astro Hammy claimable at tokens >= 560", () => {
+    expect(isCharacterClaimable("hamster", 559, [])).toBe(false);
+    expect(isCharacterClaimable("hamster", 560, [])).toBe(true);
   });
 
-  it("makes Chibi Dragon claimable at tokens >= 660", () => {
-    expect(isCharacterClaimable("dragon", 659, [])).toBe(false);
-    expect(isCharacterClaimable("dragon", 660, [])).toBe(true);
+  it("makes Chibi Dragon claimable at tokens >= 1250", () => {
+    expect(isCharacterClaimable("dragon", 1249, [])).toBe(false);
+    expect(isCharacterClaimable("dragon", 1250, [])).toBe(true);
   });
 
   it("allows character selection if present in unlockedList override", () => {

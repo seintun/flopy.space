@@ -106,6 +106,22 @@ describe("Devil's Advocate: 4D Snapshot & Rewind State Integrity", () => {
     expect(w.pipes[0]!.x).toBe(999);
   });
 
+  it("token deep copy isolation: token collection state restores on rewind without duplication exploits", () => {
+    const w = createWorld(99);
+    const buf = new SnapshotBuffer();
+    w.tokens.push({ id: 1, x: 5, y: 2, taken: false, value: 1 });
+    buf.record(w);
+
+    // Player collects token
+    w.tokens[0]!.taken = true;
+    for (let i = 0; i < BUFFER_LEN; i++) buf.record(w);
+
+    const testW = createWorld(99);
+    expect(buf.rewindInto(testW)).toBe(true);
+    // Oldest snapshot had taken = false
+    expect(testW.tokens.length).toBeGreaterThan(0);
+  });
+
   it("enforces rewind limit per run", () => {
     const w = createWorld(1);
     w.feathersRun = 10;

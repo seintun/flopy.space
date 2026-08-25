@@ -33,8 +33,16 @@ interface PooledPickup {
   orbId: number;
 }
 
+interface PooledToken {
+  group: THREE.Group;
+  mesh: THREE.Mesh;
+  rim: THREE.Mesh;
+  tokenId: number;
+}
+
 export class PickupsView {
   private pool: PooledPickup[] = [];
+  private tokenPool: PooledToken[] = [];
   private group: THREE.Group;
 
   constructor(scene: THREE.Scene, poolSize = 10) {
@@ -274,6 +282,30 @@ export class PickupsView {
         orbId: -1,
       });
     }
+
+    // Pooled 3D spinning gold coins (16 slots)
+    const coinGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.05, 16);
+    coinGeo.rotateX(Math.PI / 2);
+    const coinRimGeo = new THREE.TorusGeometry(0.24, 0.02, 6, 16);
+
+    const coinMat = new THREE.MeshStandardMaterial({
+      color: 0xffd700,
+      emissive: 0xff9900,
+      emissiveIntensity: 0.55,
+      metalness: 0.85,
+      roughness: 0.18,
+    });
+    const coinRimMat = new THREE.MeshBasicMaterial({ color: 0xffea00 });
+
+    for (let i = 0; i < 16; i++) {
+      const tGroup = new THREE.Group();
+      const mesh = new THREE.Mesh(coinGeo, coinMat);
+      const rim = new THREE.Mesh(coinRimGeo, coinRimMat);
+      tGroup.add(mesh, rim);
+      tGroup.visible = false;
+      this.group.add(tGroup);
+      this.tokenPool.push({ group: tGroup, mesh, rim, tokenId: -1 });
+    }
   }
 
   syncFrom(w: World, timeSec: number): void {
@@ -376,6 +408,28 @@ export class PickupsView {
       const item = this.pool[i]!;
       item.group.visible = false;
       item.orbId = -1;
+    }
+
+    // Sync in-flight Mario-style tokens
+    let activeTokenIdx = 0;
+    for (let j = 0; j < w.tokens.length; j++) {
+      const t = w.tokens[j]!;
+      if (t.taken) continue;
+      if (activeTokenIdx < this.tokenPool.length) {
+        const item = this.tokenPool[activeTokenIdx]!;
+        item.group.visible = true;
+        item.tokenId = t.id;
+        const bob = Math.sin(timeSec * 4.5 + t.id * 1.2) * 0.1;
+        item.group.position.set(t.x, t.y + bob, 0);
+        item.group.rotation.y = timeSec * 4.5 + t.id * 0.8;
+        activeTokenIdx++;
+      }
+    }
+
+    for (let i = activeTokenIdx; i < this.tokenPool.length; i++) {
+      const item = this.tokenPool[i]!;
+      item.group.visible = false;
+      item.tokenId = -1;
     }
   }
 }

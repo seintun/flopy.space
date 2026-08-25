@@ -71,10 +71,10 @@ export function getNextGoal(
   // 4. Master Prestige Tiers (if all items owned)
   if (candidates.length === 0) {
     const masterTiers = [
-      { name: "Diamond Aviator", emoji: "💎", targetScore: 1000 },
-      { name: "Galactic Ace", emoji: "⚡", targetScore: 1500 },
-      { name: "Cosmic Legend", emoji: "🌌", targetScore: 2500 },
-      { name: "Eternal Grandmaster", emoji: "👑", targetScore: 5000 },
+      { name: "Diamond Aviator", emoji: "💎", targetScore: 2000 },
+      { name: "Galactic Ace", emoji: "⚡", targetScore: 3000 },
+      { name: "Cosmic Legend", emoji: "🌌", targetScore: 5000 },
+      { name: "Eternal Grandmaster", emoji: "👑", targetScore: 10000 },
     ];
     masterTiers.forEach((tier) => {
       if (tier.targetScore > tokens) {

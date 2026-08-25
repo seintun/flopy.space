@@ -8,6 +8,7 @@ import {
   touchStreak,
   getStoredMissions,
   saveStoredMissions,
+  getUtcMidnightCountdown,
   addFeathers,
   spendTokens,
   claimCharacter,
@@ -527,9 +528,8 @@ export class MenuView {
           if (spendTokens(b.unlockScore)) {
             showDeductionFlyout(card, b.unlockScore);
             claimBiome(b.id);
-            setBiome(b.id);
+            // Keep current mode (dynamic 'auto' stays active) on claim
             this.callbacks.onClaimUnlock?.("scene", b.id);
-            this.callbacks.onBiomeChange(b.id);
             this.refresh();
           }
         } else if (isUnlocked) {
@@ -548,61 +548,106 @@ export class MenuView {
     enableDragScroll(scenesContainer);
   }
 
-  // 3. DAILY QUESTS TAB
+  // 3. DAILY & LIFETIME QUESTS TAB
   private renderQuestsTab(): void {
     const missions = getStoredMissions();
-    const list = document.createElement("div");
-    list.style.cssText = "display: flex; flex-direction: column; gap: 6px; width: 100%;";
+    const dailyMissions = missions.filter((m) => m.category === "daily");
+    const lifetimeMissions = missions.filter((m) => m.category === "lifetime");
 
-    missions.forEach((m) => {
-      const item = document.createElement("div");
-      item.style.cssText = `
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid ${m.completed ? "rgba(0, 255, 195, 0.35)" : "rgba(255, 255, 255, 0.08)"};
-        border-radius: 12px;
-        padding: 6px 12px;
-      `;
+    const container = document.createElement("div");
+    container.style.cssText = "display: flex; flex-direction: column; gap: 8px; width: 100%; padding-bottom: 4px;";
 
-      const progressPct = Math.min(100, Math.round((m.current / m.goal) * 100));
+    // 1. Daily Quests Header
+    const dailyHeader = document.createElement("div");
+    dailyHeader.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 2px 4px;";
+    dailyHeader.innerHTML = `
+      <div style="font-size: 10px; font-weight: 900; color: #ffd700; letter-spacing: 0.5px; text-transform: uppercase;">
+        📅 DAILY MISSIONS
+      </div>
+      <div style="font-size: 9px; font-weight: 800; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 2px 6px; border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.25);">
+        ⏳ Reset: ${getUtcMidnightCountdown()} UTC
+      </div>
+    `;
+    container.appendChild(dailyHeader);
 
-      item.innerHTML = `
-        <div style="flex: 1;">
-          <div style="font-size: 11px; font-weight: 800; color: #fff;">${m.title}</div>
-          <div style="font-size: 9px; color: #94a3b8;">${m.description} (${m.current}/${m.goal})</div>
-          <div style="width: 100%; height: 3px; background: rgba(0,0,0,0.5); border-radius: 2px; margin-top: 4px; overflow: hidden;">
-            <div style="width: ${progressPct}%; height: 100%; background: ${m.completed ? "linear-gradient(90deg, #00ffc3, #00b4d8)" : "#00e5ff"};"></div>
-          </div>
+    // Render Daily Items
+    const dailyList = document.createElement("div");
+    dailyList.style.cssText = "display: flex; flex-direction: column; gap: 5px; width: 100%;";
+    dailyMissions.forEach((m) => dailyList.appendChild(this.createMissionItem(m, missions)));
+    container.appendChild(dailyList);
+
+    // 2. Lifetime Milestones Header
+    const lifetimeCompletedCount = lifetimeMissions.filter((m) => m.completed).length;
+    const lifetimeHeader = document.createElement("div");
+    lifetimeHeader.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 6px 4px 2px 4px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 2px;";
+    lifetimeHeader.innerHTML = `
+      <div style="font-size: 10px; font-weight: 900; color: #a78bfa; letter-spacing: 0.5px; text-transform: uppercase;">
+        🏆 LIFETIME MILESTONES
+      </div>
+      <div style="font-size: 9px; font-weight: 800; color: #a78bfa; background: rgba(167, 139, 250, 0.12); padding: 2px 6px; border-radius: 8px; border: 1px solid rgba(167, 139, 250, 0.25);">
+        ${lifetimeCompletedCount}/${lifetimeMissions.length} Complete
+      </div>
+    `;
+    container.appendChild(lifetimeHeader);
+
+    // Render Lifetime Items
+    const lifetimeList = document.createElement("div");
+    lifetimeList.style.cssText = "display: flex; flex-direction: column; gap: 5px; width: 100%;";
+    lifetimeMissions.forEach((m) => lifetimeList.appendChild(this.createMissionItem(m, missions)));
+    container.appendChild(lifetimeList);
+
+    this.tabContentEl.appendChild(container);
+  }
+
+  private createMissionItem(m: ReturnType<typeof getStoredMissions>[0], allMissions: ReturnType<typeof getStoredMissions>): HTMLElement {
+    const item = document.createElement("div");
+    const isReadyToClaim = m.completed && !m.claimed;
+    item.style.cssText = `
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: ${isReadyToClaim ? "rgba(255, 215, 0, 0.1)" : "rgba(255, 255, 255, 0.04)"};
+      border: 1px solid ${isReadyToClaim ? "#ffd700" : m.completed ? "rgba(0, 255, 195, 0.35)" : "rgba(255, 255, 255, 0.08)"};
+      border-radius: 12px;
+      padding: 6px 12px;
+      box-shadow: ${isReadyToClaim ? "0 0 12px rgba(255, 215, 0, 0.25)" : "none"};
+      animation: ${isReadyToClaim ? "softGlowPulse 1.2s infinite alternate" : "none"};
+    `;
+
+    const progressPct = Math.min(100, Math.round((m.current / m.goal) * 100));
+
+    item.innerHTML = `
+      <div style="flex: 1;">
+        <div style="font-size: 11px; font-weight: 800; color: #fff;">${m.title}</div>
+        <div style="font-size: 9px; color: #94a3b8;">${m.description} (${Math.min(m.current, m.goal)}/${m.goal})</div>
+        <div style="width: 100%; height: 3px; background: rgba(0,0,0,0.5); border-radius: 2px; margin-top: 4px; overflow: hidden;">
+          <div style="width: ${progressPct}%; height: 100%; background: ${m.completed ? "linear-gradient(90deg, #00ffc3, #00b4d8)" : "#00e5ff"};"></div>
         </div>
-        <div style="margin-left: 10px;">
-          ${
-            m.claimed
-              ? '<span style="font-size: 10px; color: #64748b; font-weight: 800;">CLAIMED</span>'
-              : m.completed
-                ? `<button class="btn interactive claim-btn" data-id="${m.id}" style="background: linear-gradient(135deg, #00ffc3, #00b4d8); color: #002233; font-weight: 800; font-size: 10px; border: none; border-radius: 10px; padding: 4px 10px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,255,195,0.4);">CLAIM +${m.rewardFeathers}🪶</button>`
-                : `<span style="font-size: 10px; color: #00e5ff; font-weight: 800;">+${m.rewardFeathers} 🪶</span>`
-          }
-        </div>
-      `;
+      </div>
+      <div style="margin-left: 10px;">
+        ${
+          m.claimed
+            ? '<span style="font-size: 10px; color: #64748b; font-weight: 800;">CLAIMED</span>'
+            : m.completed
+              ? `<button class="btn interactive claim-btn" data-id="${m.id}" style="background: linear-gradient(135deg, #00ffc3, #00b4d8); color: #002233; font-weight: 800; font-size: 10px; border: none; border-radius: 10px; padding: 4px 10px; cursor: pointer; box-shadow: 0 2px 10px rgba(0,255,195,0.4);">CLAIM +${m.rewardFeathers}🪶</button>`
+              : `<span style="font-size: 10px; color: #00e5ff; font-weight: 800;">+${m.rewardFeathers} 🪶</span>`
+        }
+      </div>
+    `;
 
-      const claimBtn = item.querySelector(".claim-btn");
-      if (claimBtn) {
-        claimBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          m.claimed = true;
-          saveStoredMissions(missions);
-          addFeathers(m.rewardFeathers);
-          this.callbacks.onMissionClaim?.();
-          this.refresh();
-        });
-      }
+    const claimBtn = item.querySelector(".claim-btn");
+    if (claimBtn) {
+      claimBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        m.claimed = true;
+        saveStoredMissions(allMissions);
+        addFeathers(m.rewardFeathers);
+        this.callbacks.onMissionClaim?.();
+        this.refresh();
+      });
+    }
 
-      list.appendChild(item);
-    });
-
-    this.tabContentEl.appendChild(list);
+    return item;
   }
 
   // 4. SKINS TAB

@@ -12,6 +12,9 @@ import {
   getPendingUnlocks,
   setSkin,
   recordPlaySession,
+  getStoredMissions,
+  saveStoredMissions,
+  getUtcMidnightCountdown,
   clearStorageForTest,
 } from "./storage";
 
@@ -113,12 +116,12 @@ describe("storage", () => {
   });
 
   it("getPendingUnlocks returns claimable items matching player token balance", () => {
-    addTokens(60);
+    addTokens(100);
     const data = loadAll();
     const pending = getPendingUnlocks(data);
-    expect(pending.some((p) => p.id === "neko")).toBe(true); // 25 tokens
-    expect(pending.some((p) => p.id === "sunrise")).toBe(true); // 50 tokens
-    expect(pending.some((p) => p.id === "cyber")).toBe(false); // 75 tokens
+    expect(pending.some((p) => p.id === "neko")).toBe(true); // 40 tokens
+    expect(pending.some((p) => p.id === "sunrise")).toBe(true); // 85 tokens
+    expect(pending.some((p) => p.id === "cyber")).toBe(false); // 140 tokens
   });
 
   it("persists skin selection", () => {
@@ -136,17 +139,39 @@ describe("storage", () => {
     expect(loadAll().tokens).toBe(59);
     expect(loadAll().lifetimeTokens).toBe(59);
 
-    // Spend 25 tokens on Neko -> balance becomes 34
-    expect(spendTokens(25)).toBe(true);
-    expect(loadAll().tokens).toBe(34);
-    expect(loadAll().lifetimeTokens).toBe(59); // lifetime retained
+    // Spend 40 tokens on Neko -> balance becomes 19
+    expect(spendTokens(40)).toBe(true);
+    expect(loadAll().tokens).toBe(19);
+    expect(loadAll().lifetimeTokens).toBe(59); // lifetime never decreases
 
-    // Attempting to spend 50 tokens (more than 34) fails
-    expect(spendTokens(50)).toBe(false);
-    expect(loadAll().tokens).toBe(34);
+    // Insufficient funds rejected safely
+    expect(spendTokens(100)).toBe(false);
+    expect(loadAll().tokens).toBe(19);
 
-    // Spend remaining 34 -> balance becomes 0
-    expect(spendTokens(34)).toBe(true);
+    // Spend remaining 19 -> balance becomes 0
+    expect(spendTokens(19)).toBe(true);
     expect(loadAll().tokens).toBe(0);
+  });
+
+  it("stores and retrieves daily and lifetime missions", () => {
+    const missions = getStoredMissions();
+    expect(missions.length).toBe(15); // 3 daily + 12 lifetime
+    const daily = missions.filter((m) => m.category === "daily");
+    const lifetime = missions.filter((m) => m.category === "lifetime");
+    expect(daily.length).toBe(3);
+    expect(lifetime.length).toBe(12);
+
+    // Update progress on a lifetime mission
+    lifetime[0]!.current = 50;
+    saveStoredMissions(missions);
+
+    const reloaded = getStoredMissions();
+    const reloadedLifetime = reloaded.filter((m) => m.category === "lifetime");
+    expect(reloadedLifetime[0]!.current).toBe(50);
+  });
+
+  it("computes valid UTC midnight countdown", () => {
+    const countdown = getUtcMidnightCountdown();
+    expect(countdown).toMatch(/^\d{2}h \d{2}m \d{2}s$/);
   });
 });

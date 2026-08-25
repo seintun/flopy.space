@@ -41,7 +41,7 @@ export const BIOMES: Record<BiomeId, BiomeDef> = {
     name: "Neon Cyberpunk",
     emoji: "🌆",
     tagline: "Glowing laser grid & synthwave skyline",
-    unlockScore: 75, // Tier 3 (Scene)
+    unlockScore: 140, // Tier 3 (Scene)
     groundColor: 0x0f0c29,
     gridColor: 0x7209b7,
     pipeColor: 0x240046,
@@ -58,7 +58,7 @@ export const BIOMES: Record<BiomeId, BiomeDef> = {
     name: "Candy Kingdom",
     emoji: "🍭",
     tagline: "Pastel sugar plains & peppermint pillars",
-    unlockScore: 220, // Tier 6 (Scene)
+    unlockScore: 420, // Tier 6 (Scene)
     groundColor: 0xffcbf2,
     gridColor: 0xf72585,
     pipeColor: 0xff4d6d,
@@ -75,7 +75,7 @@ export const BIOMES: Record<BiomeId, BiomeDef> = {
     name: "Volcanic Rift",
     emoji: "🌋",
     tagline: "Obsidian crust & glowing basalt pillars",
-    unlockScore: 520, // Tier 9 (Scene)
+    unlockScore: 960, // Tier 9 (Scene)
     groundColor: 0x1f0c08,
     gridColor: 0xd00000,
     pipeColor: 0x370617,
@@ -95,25 +95,38 @@ export function getBiomeForScore(
   pipesOrScore: number,
   overrideBiome?: BiomeId | "auto",
   seed = 0,
+  unlockedBiomes: string[] = ["meadow"],
 ): BiomeDef {
   if (overrideBiome && overrideBiome !== "auto" && BIOMES[overrideBiome]) {
     return BIOMES[overrideBiome]!;
   }
+
+  // Filter BIOME_ORDER to only unlocked biomes (always guaranteed to have at least meadow)
+  const availableBiomes = BIOME_ORDER.filter(
+    (id) => id === "meadow" || unlockedBiomes.includes(id),
+  );
+
+  if (availableBiomes.length <= 1) {
+    const onlyBiome = availableBiomes[0] || "meadow";
+    return BIOMES[onlyBiome] || BIOMES.meadow;
+  }
+
   // Change scene calmly every 15 pipes
   const tier = Math.floor(Math.max(0, pipesOrScore) / 15);
   if (tier === 0) {
-    return BIOMES.meadow;
+    const firstBiome = availableBiomes[0] || "meadow";
+    return BIOMES[firstBiome] || BIOMES.meadow;
   }
 
-  // Guaranteed non-repeating smooth rotation
-  let prevIndex = 0; // meadow
+  // Guaranteed non-repeating smooth rotation among unlocked biomes
+  let prevIndex = 0; // first unlocked biome
   for (let t = 1; t <= tier; t++) {
     const h = Math.imul(t ^ (seed + 101), 0x45d9f3b) ^ (seed >>> 3);
-    const step = 1 + (Math.abs(h) % (BIOME_ORDER.length - 1));
-    prevIndex = (prevIndex + step) % BIOME_ORDER.length;
+    const step = 1 + (Math.abs(h) % (availableBiomes.length - 1));
+    prevIndex = (prevIndex + step) % availableBiomes.length;
   }
 
-  const biomeId = BIOME_ORDER[prevIndex] || "meadow";
+  const biomeId = availableBiomes[prevIndex] || "meadow";
   return BIOMES[biomeId] || BIOMES.meadow;
 }
 

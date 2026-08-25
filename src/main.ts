@@ -335,6 +335,11 @@ game.hooks = {
     audio.milestone();
   },
 
+  onTokenCollect: (_val, streak) => {
+    audio.tokenChime(streak);
+    hud.setTokens(loadAll().tokens);
+  },
+
   onGameOver: () => {
     // handled in onStateChange
   },

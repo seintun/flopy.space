@@ -194,16 +194,16 @@ flowchart TD
     Shop --> Claim["Manual Claim Action (spendTokens)"]
     
     subgraph Ladder ["Interleaved Multiplier Progression Ladder"]
-        H1["🐱 Flappy Neko (25 🪙)"] --> S1["🌸 Sakura Blossom (50 🪙)"]
-        S1 --> W1["🌆 Neon Cyberpunk (75 🪙)"]
-        W1 --> H2["🐶 Shiba Doge (110 🪙)"]
-        H2 --> S2["🌌 Midnight Obsidian (160 🪙)"]
-        S2 --> W2["🍭 Candy Kingdom (220 🪙)"]
-        W2 --> H3["🐹 Astro Hammy (300 🪙)"]
-        H3 --> S3["🔮 Cosmic Starcat (400 🪙)"]
-        S3 --> W3["🌋 Volcanic Rift (520 🪙)"]
-        W3 --> H4["🐲 Chibi Dragon (660 🪙)"]
-        H4 --> S4["💎 Prism Hologram (820 🪙)"]
+        H1["🐱 Flappy Neko (40 🪙)"] --> S1["🌸 Sakura Blossom (85 🪙)"]
+        S1 --> W1["🌆 Neon Cyberpunk (140 🪙)"]
+        W1 --> H2["🐶 Shiba Doge (210 🪙)"]
+        H2 --> S2["🌌 Midnight Obsidian (300 🪙)"]
+        S2 --> W2["🍭 Candy Kingdom (420 🪙)"]
+        W2 --> H3["🐹 Astro Hammy (560 🪙)"]
+        H3 --> S3["🔮 Cosmic Starcat (740 🪙)"]
+        S3 --> W3["🌋 Volcanic Rift (960 🪙)"]
+        W3 --> H4["🐲 Chibi Dragon (1,250 🪙)"]
+        H4 --> S4["💎 Prism Hologram (1,600 🪙)"]
     end
 
     Claim --> Ladder
@@ -211,12 +211,19 @@ flowchart TD
 ```
 
 ### 9.1 Economy Model & Invariants
-1. **Accrual**: Upon run termination (`gameOver`), the final run score is converted 1:1 into spendable 🪙 tokens and atomically deposited into `f3d.tokens`.
-2. **Interleaved Ladder**: Prevents milestone collisions by alternating unlock categories (`Hero` $\to$ `Skin` $\to$ `Scene`) with an escalating cost formula:
-   $$\text{Cost}(n) = \text{round}(25 \cdot n^{1.45})$$
-3. **Atomic Spend Operations**: `spendTokens(cost)` verifies balance before deduction and immediately writes to persistent storage.
-4. **Visual Telemetry & Feedback**: Real-time HUD token counter `[ 🪙 124 ] [ 🪶 2/3 ]`, dynamic `🎯 Next` target with percentage bar, and floating `-XX 🪙` upward-fading animation upon item redemption.
+1. **Accrual**:
+   - Run termination (`gameOver`) deposits the final run score 1:1 into spendable `f3d.tokens`.
+   - In-flight collected gold coins atomically deposit into `f3d.tokens` immediately upon collection.
+2. **In-Flight Mario-Style Token Trails & Dynamic Pipe Corridors**:
+   - **5 Risk/Reward Topologies**: High-Ceiling Danger Arc, Low-Ground Skimmer, S-Curve Wave, The Fork, and Breather Diamond.
+   - **Dynamic Spacing Expansion**: Spawns every 3–6 pipes with corridor widening ($11.0 \to 14.85$ units, +35% runway) and vertical gap expansion ($+0.8$ units) for safe, exhilarating acrobatics.
+   - **Kinematic Reachability Constraint**: Token height $\Delta y$ is dynamically clamped against target pipe gap boundaries.
+3. **Magnetic Suction Physics & Audio Arpeggio**:
+   - **Vortex Suction**: Super Magnet 🧲 and Fever Rush draw tokens within $8.5$ units into the bird mouth with golden particle trails.
+   - **Pentatonic Chimes**: 60ms throttled WebAudio arpeggios ($C_5 \to D_5 \to E_5 \to G_5 \to A_5 \to C_6$).
+4. **Interleaved Scaled Ladder**:
+   - Rebalanced from $40 \to 1,600\text{ 🪙}$ to account for in-flight coin influx while preserving aspirational long-term retention.
 5. **Unified Action CTA & Zero Give-Up Invariant**:
-   - **Unified Bottom Slot**: The primary action button maintains a fixed bottom position (`54px` touch target), displaying `⚡ FLY AGAIN` when feathers are 0, and seamlessly transforming into `⚡ REWIND & RESUME (−1 🪶)` whenever feathers are banked or claimed in situ.
-   - **Zero Give-Up Invariant**: When the player has banked feathers (`feathers > 0`), secondary "Give Up" buttons are suppressed, streamlining flow and preventing accidental forfeits. Spacebar keydown defaults to `chooseRewind()` directly.
+   - Primary action button maintains fixed bottom position (`54px`), displaying `⚡ FLY AGAIN` at 0 feathers and transforming into `⚡ REWIND & RESUME (−1 🪶)` when feathers are banked or claimed in situ.
+   - "Give Up" button is suppressed when `feathers > 0`, and Spacebar defaults to `chooseRewind()`.
 

@@ -116,11 +116,14 @@ function createEmptyWorldSlot(): World {
     bird: { y: 0, vy: 0, pitch: 0, alive: true, invulnUntilTick: 0 },
     pipes: Array.from({ length: 8 }, () => ({ id: 0, x: 0, gapCenter: 0, gapHeight: 0, scored: false })),
     orbs: Array.from({ length: 4 }, () => ({ id: 0, type: "slowmo" as const, x: 0, y: 0, taken: false })),
+    tokens: Array.from({ length: 16 }, () => ({ id: 0, x: 0, y: 0, taken: false, value: 1 })),
+    nextTokenId: 0,
     nextPipeId: 0,
     nextOrbId: 0,
     lastGapCenter: 0,
     nextPipeAtDist: 0,
     nextOrbPipesIn: 0,
+    nextTokenPipesIn: 0,
     score: 0,
     pipesPassed: 0,
     bonusScore: 0,
@@ -138,6 +141,7 @@ function createEmptyWorldSlot(): World {
     runDurationSec: 0,
     lastFeatherPipe: 0,
     feathersEarnedRun: 0,
+    tokensRunCollected: 0,
   };
 }
 
@@ -183,11 +187,29 @@ function copyWorldState(src: World, dst: World): void {
     do_.taken = so.taken;
   }
 
+  // Copy tokens
+  dst.tokens.length = src.tokens.length;
+  for (let i = 0; i < src.tokens.length; i++) {
+    const st = src.tokens[i]!;
+    let dt = dst.tokens[i];
+    if (!dt) {
+      dt = { id: 0, x: 0, y: 0, taken: false, value: 1 };
+      dst.tokens[i] = dt;
+    }
+    dt.id = st.id;
+    dt.x = st.x;
+    dt.y = st.y;
+    dt.taken = st.taken;
+    dt.value = st.value;
+  }
+
+  dst.nextTokenId = src.nextTokenId;
   dst.nextPipeId = src.nextPipeId;
   dst.nextOrbId = src.nextOrbId;
   dst.lastGapCenter = src.lastGapCenter;
   dst.nextPipeAtDist = src.nextPipeAtDist;
   dst.nextOrbPipesIn = src.nextOrbPipesIn;
+  dst.nextTokenPipesIn = src.nextTokenPipesIn;
   dst.score = src.score;
   dst.pipesPassed = src.pipesPassed;
   dst.bonusScore = src.bonusScore;
@@ -205,4 +227,5 @@ function copyWorldState(src: World, dst: World): void {
   dst.runDurationSec = src.runDurationSec;
   dst.lastFeatherPipe = src.lastFeatherPipe;
   dst.feathersEarnedRun = src.feathersEarnedRun;
+  dst.tokensRunCollected = src.tokensRunCollected;
 }

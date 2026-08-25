@@ -27,6 +27,14 @@ export interface Orb {
   taken: boolean;
 }
 
+export interface InFlightToken {
+  id: number;
+  x: number;
+  y: number;
+  taken: boolean;
+  value: number;
+}
+
 export interface World {
   tick: number;
   dist: number;
@@ -34,11 +42,14 @@ export interface World {
   bird: BirdState;
   pipes: Pipe[];
   orbs: Orb[];
+  tokens: InFlightToken[];
+  nextTokenId: number;
   nextPipeId: number;
   nextOrbId: number;
   lastGapCenter: number;
   nextPipeAtDist: number;
   nextOrbPipesIn: number;
+  nextTokenPipesIn: number;
   score: number;
   pipesPassed: number;
   bonusScore: number;
@@ -56,6 +67,7 @@ export interface World {
   runDurationSec: number;
   lastFeatherPipe: number;
   feathersEarnedRun: number;
+  tokensRunCollected: number;
 }
 
 export function createWorld(seed: number): World {
@@ -66,11 +78,14 @@ export function createWorld(seed: number): World {
     bird: { y: 1.5, vy: 0, pitch: 0, alive: true, invulnUntilTick: 0 },
     pipes: [],
     orbs: [],
+    tokens: [],
+    nextTokenId: 1,
     nextPipeId: 1,
     nextOrbId: 1,
     lastGapCenter: 1,
     nextPipeAtDist: 3, // ~0.5s initial spawn, reaching player in ~2.3s
     nextOrbPipesIn: ORB_EVERY_PIPES_MIN,
+    nextTokenPipesIn: 3, // first token cluster around pipe 3
     score: 0,
     pipesPassed: 0,
     bonusScore: 0,
@@ -88,5 +103,6 @@ export function createWorld(seed: number): World {
     runDurationSec: 0,
     lastFeatherPipe: 0,
     feathersEarnedRun: 0,
+    tokensRunCollected: 0,
   };
 }

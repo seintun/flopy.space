@@ -24,7 +24,7 @@ import { FeverSystem } from "./fever";
 import { getBiomeForScore, BIOMES, type BiomeDef, type BiomeId } from "./biomes";
 import { CHARACTERS, type CharacterId, type SoundType } from "./characters";
 import type { MissionEventType } from "./missions";
-import { loadAll, spendFeathers } from "./storage";
+import { loadAll, spendFeathers, addTokens } from "./storage";
 import type { PowerUpType } from "./powerups";
 
 export type GameState =
@@ -67,6 +67,7 @@ export interface GameHooks {
   onRewindChoice?: (feathers: number, pipesPassed?: number, bonusScore?: number) => void;
   onRewindComplete?: (title?: string, desc?: string, color?: string) => void;
   onMilestone?: (score: number) => void;
+  onTokenCollect?: (value: number, streakIndex: number, currentTokensRun: number) => void;
   onGameOver?: (
     score: number,
     timeSec: number,
@@ -104,6 +105,7 @@ export class Game {
   // Countdown timer
   private countdownTimer = 0;
   private lastCountdownVal: string | number = "";
+  private tokenStreak = 0;
 
   hooks: GameHooks = {};
 
@@ -135,7 +137,7 @@ export class Game {
 
   setBiomeOverride(biomeId: BiomeId | "auto"): void {
     this.biomeOverride = biomeId;
-    this.applyBiome(getBiomeForScore(this.world.score, this.biomeOverride));
+    this.applyBiome(getBiomeForScore(this.world.score, this.biomeOverride, this.world.runSeed, loadAll().unlockedBiomes));
   }
 
   private applyBiome(biome: BiomeDef): void {
@@ -153,8 +155,9 @@ export class Game {
   }
 
   start(seed = Date.now(), initialFeathers?: number): void {
+    const data = loadAll();
     const startFeathers =
-      initialFeathers !== undefined ? initialFeathers : loadAll().feathers;
+      initialFeathers !== undefined ? initialFeathers : data.feathers;
     this.world = createWorld(seed);
     this.world.feathersRun = Math.min(9, Math.max(0, startFeathers));
     this.time = new TimeSystem();
@@ -163,7 +166,7 @@ export class Game {
     this.accumulator.reset();
     this.lastMilestoneCrossed = 0;
 
-    this.applyBiome(getBiomeForScore(0, this.biomeOverride));
+    this.applyBiome(getBiomeForScore(0, this.biomeOverride, this.world.runSeed, data.unlockedBiomes));
 
     // Initiate 3-2-1 countdown
     this.countdownTimer = 1.6;
@@ -244,12 +247,14 @@ export class Game {
     this.replayTimer = 0;
     this.setState("rewindReplay");
     this.hooks.onRewindStart?.();
+    this.hooks.onMissionProgress?.("rewind");
     return true;
   }
 
   acceptDeath(): void {
     if (this.state === "rewindChoice" || this.state === "hitstop") {
       this.setState("gameOver");
+      this.hooks.onMissionProgress?.("tokensBanked", this.world.score);
       this.hooks.onGameOver?.(
         this.world.score,
         this.world.runDurationSec,
@@ -371,11 +376,15 @@ export class Game {
 
           advance(w, dt);
           stepBird(w, dt);
+          const prevSec = Math.floor(w.runDurationSec);
           w.runDurationSec += dt;
+          if (Math.floor(w.runDurationSec) > prevSec) {
+            this.hooks.onMissionProgress?.("airtime", 1);
+          }
           this.buf.record(w);
 
-          // Check dynamic biome transition strictly every 15 pipes
-          const targetBiome = getBiomeForScore(w.pipesPassed, this.biomeOverride, w.runSeed);
+          // Check dynamic biome transition strictly every 15 pipes (only through unlocked scenes)
+          const targetBiome = getBiomeForScore(w.pipesPassed, this.biomeOverride, w.runSeed, loadAll().unlockedBiomes);
           if (targetBiome.id !== this.currentBiome.id) {
             this.applyBiome(targetBiome);
             this.juice.popupAtWorld(`🌍 ${targetBiome.name.toUpperCase()}`, 0, w.bird.y, 0, this.ctx.camera, "#00f5d4", 1.0);
@@ -416,6 +425,7 @@ export class Game {
                     w.score = (w.pipesPassed || 0) + w.bonusScore;
                     this.juice.confetti(0, w.bird.y, 0, 25);
                     this.hooks.onOrbCollect?.("rainbow_trail");
+                    this.hooks.onMissionProgress?.("rainbow");
                     break;
                   }
                   case "shield": {
@@ -423,6 +433,7 @@ export class Game {
                     w.bonusScore = (w.bonusScore || 0) + 1;
                     w.score = (w.pipesPassed || 0) + w.bonusScore;
                     this.hooks.onOrbCollect?.("shield");
+                    this.hooks.onMissionProgress?.("shield");
                     break;
                   }
                   case "magnet": {
@@ -430,6 +441,7 @@ export class Game {
                     w.bonusScore = (w.bonusScore || 0) + 1;
                     w.score = (w.pipesPassed || 0) + w.bonusScore;
                     this.hooks.onOrbCollect?.("magnet");
+                    this.hooks.onMissionProgress?.("magnet");
                     break;
                   }
                   case "star_gem": {
@@ -439,6 +451,7 @@ export class Game {
                     this.juice.popupAtWorld("+5 GEM! ⭐", -0.4, w.bird.y, 0, this.ctx.camera, "#ffbe0b", -1.1);
                     this.juice.confetti(0, w.bird.y, 0, 20);
                     this.hooks.onOrbCollect?.("star_gem");
+                    this.hooks.onMissionProgress?.("stargem");
                     break;
                   }
                   case "hazard_mine": {
@@ -468,6 +481,7 @@ export class Game {
                     this.juice.burst(0, w.bird.y, 0, 14, 0xff8800);
                     this.juice.popupAtWorld("⚡ SPEED SURGE! +3X PTS", -0.5, Math.min(3.0, w.bird.y + 0.8), 0, this.ctx.camera, "#ff8800", -1.2);
                     this.hooks.onOrbCollect?.("speed_surge");
+                    this.hooks.onMissionProgress?.("speedsurge");
                     break;
                   }
                 }
@@ -486,6 +500,40 @@ export class Game {
             }
           }
 
+          // In-Flight Mario-Style Gold Coins (Suction & Collection)
+          for (const t of w.tokens) {
+            if (!t.taken) {
+              const dx = t.x - 0;
+              const dy = t.y - w.bird.y;
+              const distSq = dx * dx + dy * dy;
+
+              // Super Magnet / Fever vortex suction (8.5 radius) + Near-miss draft (1.4 radius)
+              if (hasMagnet && distSq < magnetRadius * magnetRadius) {
+                t.x += (0 - t.x) * 14 * dt;
+                t.y += (w.bird.y - t.y) * 14 * dt;
+              } else if (distSq < 2.0) {
+                // Subtle near-miss micro-draft
+                t.x += (0 - t.x) * 3.5 * dt;
+                t.y += (w.bird.y - t.y) * 3.5 * dt;
+              }
+
+              if (distSq < 0.75) {
+                t.taken = true;
+                const val = t.value || 1;
+                w.tokensRunCollected = (w.tokensRunCollected || 0) + val;
+                addTokens(val); // atomic persistent save
+                this.tokenStreak++;
+                this.juice.popupAtWorld(`+${val} 🪙`, -0.4, w.bird.y + 0.3, 0, this.ctx.camera, "#ffd700", -0.9);
+                this.juice.burst(0, w.bird.y, 0, 10, 0xffd700);
+                this.hooks.onTokenCollect?.(val, this.tokenStreak, w.tokensRunCollected);
+                this.hooks.onMissionProgress?.("tokenCollect", val);
+                if (hasMagnet) {
+                  this.hooks.onMissionProgress?.("magnetToken", val);
+                }
+              }
+            }
+          }
+
           // Collisions (with Shield Defense)
           const hit = checkCollisions(w);
           if (hit) {
@@ -497,6 +545,7 @@ export class Game {
               this.juice.burst(0, w.bird.y, 0, 20, 0xffd700);
               this.juice.popupAtWorld("💥 SHIELD SAVED!", -0.4, w.bird.y, 0, this.ctx.camera, "#ffd700", -1.1);
               this.hooks.onShieldBreak?.();
+              this.hooks.onMissionProgress?.("shield_save");
             } else {
               w.bird.alive = false;
               this.fever.reset();
@@ -578,6 +627,14 @@ export class Game {
 
             this.hooks.onPass?.(p);
             this.hooks.onMissionProgress?.("pass");
+            if (this.currentBiome.id === "cyber") {
+              this.hooks.onMissionProgress?.("cyberPass");
+            } else if (this.currentBiome.id === "candy") {
+              this.hooks.onMissionProgress?.("candyPass");
+            } else if (this.currentBiome.id === "magma") {
+              this.hooks.onMissionProgress?.("magmaPass");
+            }
+
             if (w.combo >= 5) {
               this.hooks.onMissionProgress?.("combo5");
             }

@@ -168,8 +168,8 @@ export function initHud(container: HTMLElement): HudApi {
               </div>
             </div>
           </div>
-          <div id="hud-rewind-badge" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 11px; font-weight: 800; color: #00f5d4; text-transform: uppercase; letter-spacing: 0.5px; text-align: left;">
-            ⚡ 1.5s Safe Runway + Shield
+          <div id="hud-rewind-badge" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 11px; font-weight: 800; color: #00f5d4; letter-spacing: 0.5px; text-align: left;">
+            ⚡ 1.5 SEC SAFE RUNWAY + SHIELD
           </div>
         </div>
 
@@ -409,7 +409,7 @@ export function initHud(container: HTMLElement): HudApi {
         rewindBadge.textContent = `★ ${best - score} PTS TO BEST RECORD`;
         rewindBadge.style.color = "#00f5d4";
       } else {
-        rewindBadge.textContent = "⚡ 1.5S SAFE RUNWAY + BULLET-TIME";
+        rewindBadge.textContent = "⚡ 1.5 SEC SAFE RUNWAY + BULLET-TIME";
         rewindBadge.style.color = "#00e5ff";
       }
 

@@ -36,7 +36,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     species: "Lucky Cat",
     tagline: "Pointy ears & fluffy meows",
     unlockType: "score",
-    unlockValue: 25, // Tier 1 (Hero)
+    unlockValue: 40, // Tier 1 (Hero)
     primaryColor: 0xff9f1c, // Orange Tabby
     bellyColor: 0xfff8f0,
     accentColor: 0xff6b8b,
@@ -49,7 +49,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     species: "Shiba Inu",
     tagline: "Much flap, very fly, wow!",
     unlockType: "score",
-    unlockValue: 110, // Tier 4 (Hero)
+    unlockValue: 210, // Tier 4 (Hero)
     primaryColor: 0xe09f3e, // Golden Shiba
     bellyColor: 0xfffae0,
     accentColor: 0xd90429, // Red hero cape/collar
@@ -62,7 +62,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     species: "Space Hamster",
     tagline: "Bubble saucer & jet thrusters",
     unlockType: "score",
-    unlockValue: 300, // Tier 7 (Hero)
+    unlockValue: 560, // Tier 7 (Hero)
     primaryColor: 0xffb703, // Golden hamster
     bellyColor: 0xffeedb,
     accentColor: 0x00f5d4, // Cyan saucer
@@ -75,7 +75,7 @@ export const CHARACTERS: Record<CharacterId, CharacterDef> = {
     species: "Flame Drake",
     tagline: "Tiny wings, fiery spirit",
     unlockType: "score",
-    unlockValue: 660, // Tier 10 (Hero)
+    unlockValue: 1250, // Tier 10 (Hero)
     primaryColor: 0x2ec4b6, // Jade / Teal dragon
     bellyColor: 0xcbf3f0,
     accentColor: 0xff9f1c, // Orange horns/spikes

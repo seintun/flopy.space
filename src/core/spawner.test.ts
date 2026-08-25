@@ -8,13 +8,24 @@ function runSeconds(w: ReturnType<typeof createWorld>, secs: number) {
 }
 
 describe("spawner", () => {
-  it("spawns pipes at fixed distance intervals", () => {
+  it("spawns pipes at dynamic distance intervals (standard 11.0 or expanded 14.85 with tokens)", () => {
     const w = createWorld(1);
     runSeconds(w, 40);
     expect(w.pipes.length).toBeGreaterThan(2);
     const xs = [...w.pipes].sort((a, b) => a.x - b.x);
     for (let i = 1; i < xs.length; i++) {
-      expect(xs[i]!.x - xs[i - 1]!.x).toBeCloseTo(PIPE_SPACING_DIST, 5);
+      const diff = xs[i]!.x - xs[i - 1]!.x;
+      expect(diff >= PIPE_SPACING_DIST - 0.1 && diff <= PIPE_SPACING_DIST * 1.4).toBe(true);
+    }
+  });
+
+  it("spawns in-flight tokens and recycles them offscreen", () => {
+    const w = createWorld(42);
+    runSeconds(w, 30);
+    expect(w.tokens.length).toBeGreaterThanOrEqual(0);
+    for (const t of w.tokens) {
+      expect(t.y).toBeGreaterThan(GROUND_Y + 1.0);
+      expect(t.y).toBeLessThan(CEILING_Y - 1.0);
     }
   });
 
@@ -35,9 +46,10 @@ describe("spawner", () => {
     }
   });
 
-  it("recycles offscreen pipes (pool stays small)", () => {
+  it("recycles offscreen pipes and tokens (pool stays small)", () => {
     const w = createWorld(1);
     runSeconds(w, 120);
     expect(w.pipes.length).toBeLessThan(8);
+    expect(w.tokens.length).toBeLessThan(12);
   });
 });

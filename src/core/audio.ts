@@ -4,6 +4,7 @@ export class AudioSys {
   private flapNoiseBuf: AudioBuffer | null = null;
   private rewindNoiseBuf: AudioBuffer | null = null;
   private muted = false;
+  private lastTokenAudioTime = 0;
 
   unlock(): void {
     if (!this.ctx) {
@@ -292,6 +293,32 @@ export class AudioSys {
     gain.connect(this.masterGain);
     osc.start(now);
     osc.stop(now + 0.2);
+  }
+
+  tokenChime(streak = 0): void {
+    if (this.muted || !this.ctx || !this.masterGain) return;
+    const now = this.ctx.currentTime;
+    const audioTime = Math.max(now, this.lastTokenAudioTime + 0.055);
+    this.lastTokenAudioTime = audioTime;
+
+    // Pentatonic ascending chime scale: C5, D5, E5, G5, A5, C6, D6, E6
+    const PENTATONIC = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.51];
+    const freq = PENTATONIC[streak % PENTATONIC.length]!;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq, audioTime);
+    osc.frequency.exponentialRampToValueAtTime(freq * 1.04, audioTime + 0.09);
+
+    gain.gain.setValueAtTime(0.24, audioTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioTime + 0.12);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+
+    osc.start(audioTime);
+    osc.stop(audioTime + 0.12);
   }
 
   score(combo: number): void {

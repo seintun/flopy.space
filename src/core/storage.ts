@@ -1,6 +1,6 @@
 import { CHARACTERS, type CharacterId } from "./characters";
 import { BIOMES, type BiomeId } from "./biomes";
-import { getDailyMissionsForDate, type Mission } from "./missions";
+import { getDailyMissionsForDate, getLifetimeMissions, type Mission } from "./missions";
 
 export interface SkinDef {
   id: string;
@@ -12,10 +12,10 @@ export interface SkinDef {
 
 export const SKINS: Record<string, SkinDef> = {
   classic: { id: "classic", name: "Classic Gold", bodyColor: 0xffd000, bellyColor: 0xfff8f0, unlockScore: 0 },
-  sunrise: { id: "sunrise", name: "Sakura Blossom", bodyColor: 0xff8da1, bellyColor: 0xfff0f5, unlockScore: 50 }, // Tier 2 (Skin)
-  ember: { id: "ember", name: "Midnight Obsidian", bodyColor: 0x25262c, bellyColor: 0x3a3d46, unlockScore: 160 }, // Tier 5 (Skin)
-  void: { id: "void", name: "Cosmic Starcat", bodyColor: 0x7928ca, bellyColor: 0x00dfd8, unlockScore: 400 }, // Tier 8 (Skin)
-  prism: { id: "prism", name: "Prism Hologram", bodyColor: 0x00f5d4, bellyColor: 0xff007f, unlockScore: 820 }, // Tier 11 (Skin)
+  sunrise: { id: "sunrise", name: "Sakura Blossom", bodyColor: 0xff8da1, bellyColor: 0xfff0f5, unlockScore: 85 }, // Tier 2 (Skin)
+  ember: { id: "ember", name: "Midnight Obsidian", bodyColor: 0x25262c, bellyColor: 0x3a3d46, unlockScore: 300 }, // Tier 5 (Skin)
+  void: { id: "void", name: "Cosmic Starcat", bodyColor: 0x7928ca, bellyColor: 0x00dfd8, unlockScore: 740 }, // Tier 8 (Skin)
+  prism: { id: "prism", name: "Prism Hologram", bodyColor: 0x00f5d4, bellyColor: 0xff007f, unlockScore: 1600 }, // Tier 11 (Skin)
 };
 
 export const FEATHER_BANK_CAP = 3;
@@ -234,10 +234,20 @@ function parseYMD(str: string): { y: number; m: number; d: number } {
 
 export function getTodayString(): string {
   const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
+  const y = now.getUTCFullYear();
+  const m = String(now.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(now.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
+}
+
+export function getUtcMidnightCountdown(): string {
+  const now = new Date();
+  const nextMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
+  const diffSec = Math.max(0, Math.floor((nextMidnight.getTime() - now.getTime()) / 1000));
+  const hours = Math.floor(diffSec / 3600);
+  const minutes = Math.floor((diffSec % 3600) / 60);
+  const seconds = diffSec % 60;
+  return `${String(hours).padStart(2, "0")}h ${String(minutes).padStart(2, "0")}m ${String(seconds).padStart(2, "0")}s`;
 }
 
 export function touchStreak(todayStr = getTodayString()): number {
@@ -397,22 +407,39 @@ export function getStoredMissions(): Mission[] {
   const today = getTodayString();
   const storedDate = getLocal("missionsDate");
   const rawMissions = getLocal("missions");
+  let daily: Mission[] = [];
 
   if (storedDate === today && rawMissions) {
     try {
-      return JSON.parse(rawMissions);
+      daily = JSON.parse(rawMissions);
+    } catch {
+      daily = getDailyMissionsForDate(today);
+    }
+  } else {
+    daily = getDailyMissionsForDate(today);
+    setLocal("missionsDate", today);
+    setLocal("missions", JSON.stringify(daily));
+  }
+
+  const rawLifetime = getLocal("lifetimeMissions");
+  let storedLifetime: Mission[] | undefined;
+  if (rawLifetime) {
+    try {
+      storedLifetime = JSON.parse(rawLifetime);
     } catch {
       // fallback
     }
   }
+  const lifetime = getLifetimeMissions(storedLifetime);
 
-  const fresh = getDailyMissionsForDate(today);
-  setLocal("missionsDate", today);
-  setLocal("missions", JSON.stringify(fresh));
-  return fresh;
+  return [...daily, ...lifetime];
 }
 
 export function saveStoredMissions(missions: Mission[]): void {
+  const daily = missions.filter((m) => m.category === "daily");
+  const lifetime = missions.filter((m) => m.category === "lifetime");
+
   setLocal("missionsDate", getTodayString());
-  setLocal("missions", JSON.stringify(missions));
+  setLocal("missions", JSON.stringify(daily));
+  setLocal("lifetimeMissions", JSON.stringify(lifetime));
 }
