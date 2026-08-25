@@ -141,7 +141,7 @@ export class InstallManager {
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
             <span style="background: #ffd700; color: #000; font-weight: 900; width: 22px; height: 22px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 11px;">⋮</span>
-            <span>Or open browser menu <strong style="font-size:14px;">⋮</strong> $\\to$ <strong>Save and Share</strong> $\\to$ <strong>Install App</strong>.</span>
+            <span>Or open browser menu <strong style="font-size:14px;">⋮</strong> → <strong>Save and Share</strong> → <strong>Install App</strong>.</span>
           </div>
         </div>
       `;
