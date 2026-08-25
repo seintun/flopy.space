@@ -29,6 +29,7 @@ import { CHARACTERS, type CharacterId, type SoundType } from "./characters";
 import type { MissionEventType } from "./missions";
 import { loadAll, spendFeathers, addTokens } from "./storage";
 import type { PowerUpType } from "./powerups";
+import { updateInFlightTokens } from "./tokens";
 
 export type GameState =
   | "menu"
@@ -535,39 +536,26 @@ export class Game {
           }
 
           // In-Flight Mario-Style Gold Coins (Suction & Collection)
-          for (const t of w.tokens) {
-            if (!t.taken) {
-              const dx = t.x - 0;
-              const dy = t.y - w.bird.y;
-              const distSq = dx * dx + dy * dy;
-
-              // Super Magnet / Fever vortex suction (8.5 radius) + Near-miss draft (1.4 radius)
-              if (hasMagnet && distSq < magnetRadius * magnetRadius) {
-                t.x += (0 - t.x) * 14 * dt;
-                t.y += (w.bird.y - t.y) * 14 * dt;
-              } else if (distSq < 2.0) {
-                // Subtle near-miss micro-draft
-                t.x += (0 - t.x) * 3.5 * dt;
-                t.y += (w.bird.y - t.y) * 3.5 * dt;
+          updateInFlightTokens(
+            w.tokens,
+            w.bird.y,
+            dt,
+            hasMagnet,
+            magnetRadius,
+            !!(w.chubbyTimer && w.chubbyTimer > 0),
+            (ev) => {
+              w.tokensRunCollected = (w.tokensRunCollected || 0) + ev.value;
+              addTokens(ev.value); // atomic persistent save
+              this.tokenStreak++;
+              this.juice.popupAtWorld(`+${ev.value} 🪙`, -0.4, w.bird.y + 0.3, 0, this.ctx.camera, "#ffd700", -0.9);
+              this.juice.burst(0, w.bird.y, 0, 10, 0xffd700);
+              this.hooks.onTokenCollect?.(ev.value, this.tokenStreak, w.tokensRunCollected);
+              this.hooks.onMissionProgress?.("tokenCollect", ev.value);
+              if (hasMagnet) {
+                this.hooks.onMissionProgress?.("magnetToken", ev.value);
               }
-
-              if (distSq < 0.75) {
-                t.taken = true;
-                const chubbyCoinMult = (w.chubbyTimer && w.chubbyTimer > 0) ? 3 : 1;
-                const val = (t.value || 1) * chubbyCoinMult;
-                w.tokensRunCollected = (w.tokensRunCollected || 0) + val;
-                addTokens(val); // atomic persistent save
-                this.tokenStreak++;
-                this.juice.popupAtWorld(`+${val} 🪙`, -0.4, w.bird.y + 0.3, 0, this.ctx.camera, "#ffd700", -0.9);
-                this.juice.burst(0, w.bird.y, 0, 10, 0xffd700);
-                this.hooks.onTokenCollect?.(val, this.tokenStreak, w.tokensRunCollected);
-                this.hooks.onMissionProgress?.("tokenCollect", val);
-                if (hasMagnet) {
-                  this.hooks.onMissionProgress?.("magnetToken", val);
-                }
-              }
-            }
-          }
+            },
+          );
 
           // Collisions (with Shield Defense)
           const hit = checkCollisions(w);
