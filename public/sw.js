@@ -1,4 +1,4 @@
-const CACHE_NAME = "flopy-space-v1";
+const CACHE_NAME = "flopy-space-v2";
 const PRECACHE_ASSETS = [
   "./",
   "index.html",
@@ -30,45 +30,66 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// 3. Fetch: Cache-First for versioned assets & webfonts, Stale-While-Revalidate for HTML
+// 3. Fetch Strategy:
+// - Navigation (HTML): Network-First with Cache Fallback (prevents deployment desync)
+// - Static /assets/ & Precached: Cache-First
+// - Web Fonts: Stale-While-Revalidate with Opaque Support
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
 
-  // External Fonts & CDN
+  // Ignore non-http(s) schemes (e.g. chrome-extension://)
+  if (!url.protocol.startsWith("http")) return;
+
+  // Strategy A: Navigation requests (HTML) -> Network-First (ensures fresh deployments, falls back to cache offline)
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match("./") || caches.match("index.html"))
+    );
+    return;
+  }
+
+  // Strategy B: External Fonts -> Stale-While-Revalidate with opaque support
   if (url.origin === "https://fonts.googleapis.com" || url.origin === "https://fonts.gstatic.com") {
     event.respondWith(
       caches.match(event.request).then((cached) => {
-        if (cached) return cached;
-        return fetch(event.request).then((response) => {
-          if (response && response.status === 200) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          }
-          return response;
-        });
+        const networkFetch = fetch(event.request)
+          .then((response) => {
+            if (response && (response.status === 200 || response.type === "opaque")) {
+              const copy = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+            }
+            return response;
+          })
+          .catch(() => cached);
+
+        return cached || networkFetch;
       })
     );
     return;
   }
 
-  // App Shell & Local Assets
+  // Strategy C: Hashed Assets & Static App Shell -> Cache-First
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request)
-        .then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return networkResponse;
-        })
-        .catch(() => cached);
+      if (cached) return cached;
 
-      return cached || fetchPromise;
+      return fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const copy = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        }
+        return networkResponse;
+      });
     })
   );
 });

@@ -33,6 +33,11 @@ canvas {
   touch-action: none;
 }
 
+.btn, button {
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+}
+
 .interactive {
   pointer-events: auto !important;
 }

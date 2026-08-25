@@ -480,10 +480,13 @@ export class CharacterView {
   }
 
   syncFrom(w: World, alpha: number, dt: number): void {
-    void alpha;
     this.animTime += dt;
     this.group.position.x = BIRD_X;
-    this.group.position.y = w.bird.y;
+
+    // Sub-frame linear interpolation between previous tick and current tick
+    const subFrameDt = (1 / 120) * (alpha - 1);
+    const interpY = w.bird.alive ? w.bird.y + w.bird.vy * subFrameDt : w.bird.y;
+    this.group.position.y = interpY;
 
     // Pitch
     this.group.rotation.z = (w.bird.pitch * Math.PI) / 180;

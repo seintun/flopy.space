@@ -2,37 +2,39 @@ export function initInput(onFlap: () => void, onFirstGesture: () => void): () =>
   let gestured = false;
 
   const isInteractive = (target: EventTarget | null): boolean => {
-    if (!(target instanceof HTMLElement)) return false;
+    if (!(target instanceof Element)) return false;
     return !!target.closest(
-      "button, .btn, .interactive, #main-menu, #menu-drawer, #menu-tab-content, #menu-tabs, #hud-rewind-panel, #gameover-overlay, #hud, .drag-scroll, .tab-btn, [role='status']",
+      "button, .btn, .interactive, .drag-scroll, .tab-btn, input, select, a, #menu-drawer, #gameover-overlay, #hud-rewind-panel",
     );
   };
 
-  const fire = (e?: Event) => {
-    if (e && isInteractive(e.target)) return;
+  const triggerGesture = () => {
     if (!gestured) {
       gestured = true;
       onFirstGesture();
     }
-    onFlap();
   };
 
   const onPointerDown = (e: PointerEvent) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+
     if (isInteractive(e.target)) {
-      if (!gestured) {
-        gestured = true;
-        onFirstGesture();
-      }
+      triggerGesture();
       return;
     }
-    e.preventDefault();
-    fire();
+
+    if (e.cancelable) e.preventDefault();
+    triggerGesture();
+    onFlap();
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
-    if (e.code === "Space" && !e.repeat) {
+    if ((e.code === "Space" || e.code === "ArrowUp") && !e.repeat) {
+      const activeEl = document.activeElement;
+      if (activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA")) return;
       e.preventDefault();
-      fire();
+      triggerGesture();
+      onFlap();
     }
   };
 
